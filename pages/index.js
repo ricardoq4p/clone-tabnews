@@ -11,8 +11,10 @@ function Home() {
         aceitável, pelo honroso. Opte pelo que faz o seu coração vibrar. Opte
         pelo que gostaria de fazer, apesar de todas as consequências. -Osho!
       </h1>
-      <button onClick={() => setMostrarEmoticon(true)}>Enviar Beijo</button>
-      {mostrarEmoticon && <p>:D</p>}
+      <button onClick={() => setMostrarEmoticon(true)}>
+        Smile button of the killer toy
+      </button>
+      {mostrarEmoticon && <p>😈</p>}
     </div>
   );
 }
