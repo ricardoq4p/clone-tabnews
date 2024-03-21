@@ -1,0 +1,4 @@
+/* Em seu arquivo CSS */
+.bg-azul {
+  background-color: hsl(180, 100%, 75%);
+}
