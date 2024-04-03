@@ -14,7 +14,7 @@ function Home() {
       <button onClick={() => setMostrarEmoticon(true)}>
         Smile button of the killer toy
       </button>
-      {mostrarEmoticon && <p>😈</p>}
+      {mostrarEmoticon && <p>🐕</p>}
     </div>
   );
 }
