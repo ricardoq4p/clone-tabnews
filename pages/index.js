@@ -38,7 +38,7 @@ const HomePage = () => {
       >
         <p>SITE EM CONSTRUÇÃO!</p>
         <img
-          src="https://github.com/ricardoq4p/clone-tabnews/blob/main/caminho/para/imagem/construcao.png?raw=true"
+          src="https://github.com/ricardoq4p/clone-tabnews/blob/main/construcao.png?raw=true"
           alt="Em Construção"
           style={{ maxWidth: "100%", height: "auto" }}
         />
