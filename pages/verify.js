@@ -13,8 +13,22 @@ export default function Verify() {
       .then((res) => res.json())
       .then((data) => {
         setMessage(data.message);
+
+        // 👉 redireciona após sucesso
+        if (data.message.includes("sucesso")) {
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000);
+        }
+      })
+      .catch(() => {
+        setMessage("Erro ao verificar. Tente novamente.");
       });
   }, [token]);
 
-  return <h1>{message}</h1>;
+  return (
+    <div style={{ textAlign: "center", marginTop: "100px" }}>
+      <h1>{message}</h1>
+    </div>
+  );
 }
