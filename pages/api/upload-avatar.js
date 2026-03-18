@@ -21,25 +21,28 @@ export default async function handler(req, res) {
     }
 
     try {
-      const file = files.file;
+      const file = files.file?.[0] || files.file;
 
       if (!file) {
         return res.status(400).json({ error: "Nenhum arquivo enviado" });
       }
 
-      const fileBuffer = fs.readFileSync(file.filepath);
+      const filePath = file.filepath || file.path;
 
-      // 🔥 compressão com sharp
+      if (!filePath) {
+        return res.status(400).json({ error: "Arquivo inválido" });
+      }
+
+      const fileBuffer = fs.readFileSync(filePath);
+
       const compressed = await sharp(fileBuffer)
-        .resize(200, 200)
+        .resize(200, 200, { fit: "cover" })
         .jpeg({ quality: 60 })
         .toBuffer();
 
-      // 👉 aqui você pode salvar (Mongo, S3, etc)
-      // por enquanto só retorna sucesso
-
       return res.status(200).json({
         message: "Imagem comprimida com sucesso!",
+        size: compressed.length,
       });
     } catch (error) {
       console.error(error);
