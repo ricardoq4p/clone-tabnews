@@ -1,2 +1,4 @@
 .next
-node_modules
+node_modules.env.local
+.env.local
+node_modules/
