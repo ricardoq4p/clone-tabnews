@@ -4,7 +4,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
 
-// 🚀 Pusher
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
   key: process.env.PUSHER_KEY,
@@ -16,7 +15,7 @@ const pusher = new Pusher({
 export default async function handler(req, res) {
   await connectToDatabase();
 
-  // 🔹 GET (buscar comentários de um post)
+  // 🔹 GET
   if (req.method === "GET") {
     try {
       const { messageId } = req.query;
@@ -24,12 +23,12 @@ export default async function handler(req, res) {
       const comments = await Comment.find({ messageId }).sort({ _id: -1 });
 
       return res.status(200).json(comments);
-    } catch (error) {
+    } catch {
       return res.status(500).json({ error: "Erro ao buscar comentários" });
     }
   }
 
-  // 🔹 POST (criar comentário)
+  // 🔹 POST
   if (req.method === "POST") {
     try {
       const session = await getServerSession(req, res, authOptions);
@@ -40,7 +39,7 @@ export default async function handler(req, res) {
 
       const { content, messageId } = req.body;
 
-      if (!content || !content.trim()) {
+      if (!content?.trim()) {
         return res.status(400).json({ error: "Comentário vazio" });
       }
 
@@ -54,26 +53,27 @@ export default async function handler(req, res) {
         createdAt: new Date(),
       });
 
-      // 🔥 AQUI ESTÁ O QUE FALTAVA
+      // 🚀 realtime criar
       await pusher.trigger("comments", "new-comment", newComment);
 
       return res.status(201).json(newComment);
-    } catch (error) {
+    } catch {
       return res.status(500).json({ error: "Erro ao criar comentário" });
     }
   }
 
-  // 🔹 DELETE (opcional)
+  // 🔹 DELETE
   if (req.method === "DELETE") {
     try {
       const { id } = req.body;
 
       await Comment.findByIdAndDelete(id);
 
+      // 🚀 realtime delete
       await pusher.trigger("comments", "delete-comment", { id });
 
       return res.status(200).json({ success: true });
-    } catch (error) {
+    } catch {
       return res.status(500).json({ error: "Erro ao deletar comentário" });
     }
   }

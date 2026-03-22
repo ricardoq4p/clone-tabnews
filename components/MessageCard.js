@@ -14,33 +14,30 @@ export default function MessageCard({ msg }) {
 
   const isAuthor = msg?.author === currentUser;
 
-  // 🔥 buscar avatar pelo username
+  // 🔥 avatar
   useEffect(() => {
     if (!msg?.username) return;
 
     fetch(`/api/users/${msg.username}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data?.avatar_url) {
-          setAvatar(data.avatar_url);
-        }
+        if (data?.avatar_url) setAvatar(data.avatar_url);
       })
       .catch(() => {});
   }, [msg?.username]);
 
-  // 🔹 buscar comentários iniciais
+  // 🔹 carregar comentários
   useEffect(() => {
     if (!msg?._id) return;
 
     fetch(`/api/comments?messageId=${msg._id}`)
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) setComments(data);
-        else setComments([]);
+        setComments(Array.isArray(data) ? data : []);
       });
   }, [msg?._id]);
 
-  // 🚀 REALTIME comentários
+  // 🚀 REALTIME
   useEffect(() => {
     if (!msg?._id) return;
 
@@ -50,15 +47,19 @@ export default function MessageCard({ msg }) {
 
     const channel = pusher.subscribe("comments");
 
+    // 🟢 novo comentário
     channel.bind("new-comment", (data) => {
-      // 🔥 só adiciona se for do mesmo post
       if (data.messageId === msg._id) {
         setComments((prev) => {
-          // evita duplicação
           if (prev.find((c) => c._id === data._id)) return prev;
           return [data, ...prev];
         });
       }
+    });
+
+    // 🔴 deletar comentário
+    channel.bind("delete-comment", (data) => {
+      setComments((prev) => prev.filter((c) => c._id !== data.id));
     });
 
     return () => {
@@ -82,7 +83,6 @@ export default function MessageCard({ msg }) {
     });
 
     setComment("");
-    // ❌ não precisa mais refetch (realtime cuida disso)
   };
 
   const handleDelete = async () => {
@@ -98,44 +98,27 @@ export default function MessageCard({ msg }) {
   };
 
   return (
-    <div
-      style={{
-        marginBottom: "40px",
-        padding: "30px",
-        borderRadius: "14px",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.08)",
-      }}
-    >
-      {/* 🔥 header com avatar */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+    <div style={{ marginBottom: 40, padding: 30 }}>
+      <div style={{ display: "flex", gap: 10 }}>
         <img
           src={avatar || `https://ui-avatars.com/api/?name=${msg.author}`}
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            objectFit: "cover",
-          }}
+          style={{ width: 40, height: 40, borderRadius: "50%" }}
         />
-
-        <span style={{ opacity: 0.6 }}>{msg.author}</span>
+        <span>{msg.author}</span>
       </div>
 
-      <p style={{ fontSize: "1.25rem", marginTop: "15px" }}>{msg.content}</p>
+      <p>{msg.content}</p>
 
       {isAuthor && <button onClick={handleDelete}>Excluir</button>}
 
-      <div style={{ marginTop: "15px" }}>
-        <input
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="Comentar..."
-        />
-        <button onClick={handleComment}>Comentar</button>
-      </div>
+      <input
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Comentar..."
+      />
+      <button onClick={handleComment}>Comentar</button>
 
-      <div style={{ marginTop: "10px" }}>
+      <div>
         {comments.map((c) => (
           <div key={c._id}>
             <p>{c.content}</p>
