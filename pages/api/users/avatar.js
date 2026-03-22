@@ -1,8 +1,8 @@
 import sharp from "sharp";
 import formidable from "formidable";
 import fs from "fs";
-import connectToDatabase from "../../lib/db";
-import User from "../../lib/models/User";
+import connectToDatabase from "../../../lib/db";
+import User from "../../../lib/models/User";
 
 export const config = {
   api: {
