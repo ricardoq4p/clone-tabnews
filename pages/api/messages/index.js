@@ -1,5 +1,4 @@
 import connectToDatabase from "../../../lib/db";
-import Message from "../../../lib/models/Message";
 import Comment from "../../../lib/models/Comment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
@@ -17,17 +16,20 @@ const pusher = new Pusher({
 export default async function handler(req, res) {
   await connectToDatabase();
 
-  // 🔹 GET
+  // 🔹 GET (buscar comentários de um post)
   if (req.method === "GET") {
     try {
-      const messages = await Message.find().sort({ _id: -1 });
-      return res.status(200).json(messages);
+      const { messageId } = req.query;
+
+      const comments = await Comment.find({ messageId }).sort({ _id: -1 });
+
+      return res.status(200).json(comments);
     } catch (error) {
-      return res.status(500).json({ error: "Erro ao buscar mensagens" });
+      return res.status(500).json({ error: "Erro ao buscar comentários" });
     }
   }
 
-  // 🔹 POST
+  // 🔹 POST (criar comentário)
   if (req.method === "POST") {
     try {
       const session = await getServerSession(req, res, authOptions);
@@ -36,60 +38,43 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Não autenticado" });
       }
 
-      const { content } = req.body;
+      const { content, messageId } = req.body;
 
       if (!content || !content.trim()) {
-        return res.status(400).json({ error: "Mensagem vazia" });
+        return res.status(400).json({ error: "Comentário vazio" });
       }
 
       const username = session.user.email.split("@")[0];
 
-      const newMessage = await Message.create({
+      const newComment = await Comment.create({
         content,
+        messageId,
         author: session.user.name,
-        username, // 🔥 NOVO CAMPO
+        username,
         createdAt: new Date(),
       });
 
-      await pusher.trigger("feed", "new-message", newMessage);
+      // 🔥 AQUI ESTÁ O QUE FALTAVA
+      await pusher.trigger("comments", "new-comment", newComment);
 
-      return res.status(201).json(newMessage);
+      return res.status(201).json(newComment);
     } catch (error) {
-      return res.status(500).json({ error: "Erro ao criar mensagem" });
+      return res.status(500).json({ error: "Erro ao criar comentário" });
     }
   }
 
-  // 🔹 DELETE
+  // 🔹 DELETE (opcional)
   if (req.method === "DELETE") {
     try {
-      const session = await getServerSession(req, res, authOptions);
-
-      if (!session) {
-        return res.status(401).json({ error: "Não autenticado" });
-      }
-
       const { id } = req.body;
 
-      const message = await Message.findById(id);
+      await Comment.findByIdAndDelete(id);
 
-      if (!message) {
-        return res.status(404).json({ error: "Mensagem não encontrada" });
-      }
-
-      const isAuthor = message.author === session.user.name;
-
-      if (!isAuthor) {
-        return res.status(403).json({ error: "Sem permissão" });
-      }
-
-      await Message.findByIdAndDelete(id);
-      await Comment.deleteMany({ messageId: id });
-
-      await pusher.trigger("feed", "delete-message", { id });
+      await pusher.trigger("comments", "delete-comment", { id });
 
       return res.status(200).json({ success: true });
     } catch (error) {
-      return res.status(500).json({ error: "Erro ao deletar mensagem" });
+      return res.status(500).json({ error: "Erro ao deletar comentário" });
     }
   }
 
