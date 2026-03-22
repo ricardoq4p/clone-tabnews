@@ -19,7 +19,7 @@ export default function Feed() {
 
   if (status === "loading" || !session) return null;
 
-  // 🚀 carregar + realtime
+  // 🚀 carregar mensagens + realtime
   useEffect(() => {
     // 🔹 carregar mensagens iniciais
     fetch("/api/messages")
@@ -33,18 +33,24 @@ export default function Feed() {
 
     const channel = pusher.subscribe("feed");
 
+    // 🆕 nova mensagem
     channel.bind("new-message", (data) => {
       setMessages((prev) => {
-        // evita duplicar mensagem
         const exists = prev.find((m) => m._id === data._id);
         if (exists) return prev;
         return [data, ...prev];
       });
     });
 
+    // 🗑️ mensagem deletada
+    channel.bind("delete-message", (data) => {
+      setMessages((prev) => prev.filter((msg) => msg._id !== data.id));
+    });
+
+    // 🧹 cleanup correto
     return () => {
       channel.unbind_all();
-      channel.unsubscribe();
+      pusher.unsubscribe("feed");
     };
   }, []);
 
@@ -61,8 +67,6 @@ export default function Feed() {
     });
 
     setNewMessage("");
-
-    // ❌ NÃO precisa mais refetch (realtime resolve)
   };
 
   return (
