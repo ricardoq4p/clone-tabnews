@@ -8,77 +8,95 @@ export default function MessageCard({ msg }) {
   const { data: session } = useSession();
   const currentUser = session?.user?.name;
 
-  // 🔒 proteção contra msg undefined
-  if (!msg) return null;
+  // 🔒 proteção TOTAL contra msg inválido
+  if (!msg || !msg._id) return null;
 
-  const isAuthor = msg?.author === currentUser;
+  const isAuthor = msg.author === currentUser;
 
   // 🔹 carregar comentários
   useEffect(() => {
-    if (!msg?._id) return;
+    let isMounted = true;
 
-    fetch(`/api/comments?messageId=${msg._id}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (Array.isArray(data)) {
-          setComments(data);
-        } else {
-          console.error("Erro nos comentários:", data);
-          setComments([]);
+    const fetchComments = async () => {
+      try {
+        if (!msg?._id) return;
+
+        const res = await fetch(`/api/comments?messageId=${msg._id}`);
+        const data = await res.json();
+
+        if (isMounted) {
+          if (Array.isArray(data)) {
+            setComments(data);
+          } else {
+            setComments([]);
+          }
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error("Erro ao buscar comentários:", err);
-        setComments([]);
-      });
-  }, [msg?._id]);
+        if (isMounted) setComments([]);
+      }
+    };
+
+    fetchComments();
+
+    return () => {
+      isMounted = false; // 🔥 evita crash ao deletar
+    };
+  }, [msg._id]);
 
   // 🔹 enviar comentário
   const handleComment = async () => {
     if (!comment.trim() || !msg?._id) return;
 
-    await fetch("/api/comments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: comment,
-        messageId: msg._id,
-      }),
-    });
+    try {
+      await fetch("/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: comment,
+          messageId: msg._id,
+        }),
+      });
 
-    setComment("");
+      setComment("");
 
-    // recarregar comentários
-    const res = await fetch(`/api/comments?messageId=${msg._id}`);
-    const data = await res.json();
+      // recarregar comentários
+      const res = await fetch(`/api/comments?messageId=${msg._id}`);
+      const data = await res.json();
 
-    if (Array.isArray(data)) {
-      setComments(data);
-    } else {
-      setComments([]);
+      if (Array.isArray(data)) {
+        setComments(data);
+      } else {
+        setComments([]);
+      }
+    } catch (err) {
+      console.error("Erro ao comentar:", err);
     }
   };
 
-  // 🔥 deletar mensagem
+  // 🔥 deletar mensagem (SEM reload)
   const handleDelete = async () => {
     const confirmDelete = confirm("Deseja excluir essa mensagem?");
     if (!confirmDelete || !msg?._id) return;
 
-    await fetch("/api/messages", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: msg._id,
-      }),
-    });
+    try {
+      await fetch("/api/messages", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: msg._id,
+        }),
+      });
 
-    // melhor prática: não recarregar página
-    // mas se quiser manter simples:
-    window.location.reload();
+      // ❌ SEM reload
+      // o Pusher vai cuidar da remoção em tempo real
+    } catch (err) {
+      console.error("Erro ao deletar:", err);
+    }
   };
 
   return (
@@ -93,11 +111,11 @@ export default function MessageCard({ msg }) {
     >
       {/* 🧠 conteúdo */}
       <p style={{ fontSize: "1.25rem", marginBottom: "12px" }}>
-        {msg?.content || "Mensagem vazia"}
+        {msg.content || "Mensagem vazia"}
       </p>
 
       {/* 👤 autor */}
-      <span style={{ opacity: 0.4 }}>— {msg?.author || "Anônimo"}</span>
+      <span style={{ opacity: 0.4 }}>— {msg.author || "Anônimo"}</span>
 
       {/* 🔥 botão excluir */}
       {isAuthor && (
@@ -122,8 +140,8 @@ export default function MessageCard({ msg }) {
         {comments?.map((c) =>
           c?._id ? (
             <div key={c._id}>
-              <p>{c?.content}</p>
-              <small>— {c?.author}</small>
+              <p>{c.content}</p>
+              <small>— {c.author}</small>
             </div>
           ) : null,
         )}
