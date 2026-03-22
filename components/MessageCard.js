@@ -30,8 +30,8 @@ export default function MessageCard({ msg }) {
     fetch(`/api/users/${msg.username}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data?.avatar) {
-          setAvatar(data.avatar);
+        if (data?.avatar_url) {
+          setAvatar(data.avatar_url);
         } else {
           // fallback se não tiver avatar no banco
           setAvatar(
