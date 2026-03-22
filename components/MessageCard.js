@@ -8,18 +8,34 @@ export default function MessageCard({ msg }) {
   const { data: session } = useSession();
   const currentUser = session?.user?.name;
 
-  const isAuthor = msg.author === currentUser;
+  // 🔒 proteção contra msg undefined
+  if (!msg) return null;
+
+  const isAuthor = msg?.author === currentUser;
 
   // 🔹 carregar comentários
   useEffect(() => {
+    if (!msg?._id) return;
+
     fetch(`/api/comments?messageId=${msg._id}`)
       .then((res) => res.json())
-      .then((data) => setComments(data));
-  }, [msg._id]);
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setComments(data);
+        } else {
+          console.error("Erro nos comentários:", data);
+          setComments([]);
+        }
+      })
+      .catch((err) => {
+        console.error("Erro ao buscar comentários:", err);
+        setComments([]);
+      });
+  }, [msg?._id]);
 
   // 🔹 enviar comentário
   const handleComment = async () => {
-    if (!comment.trim()) return;
+    if (!comment.trim() || !msg?._id) return;
 
     await fetch("/api/comments", {
       method: "POST",
@@ -34,15 +50,21 @@ export default function MessageCard({ msg }) {
 
     setComment("");
 
+    // recarregar comentários
     const res = await fetch(`/api/comments?messageId=${msg._id}`);
     const data = await res.json();
-    setComments(data);
+
+    if (Array.isArray(data)) {
+      setComments(data);
+    } else {
+      setComments([]);
+    }
   };
 
   // 🔥 deletar mensagem
   const handleDelete = async () => {
     const confirmDelete = confirm("Deseja excluir essa mensagem?");
-    if (!confirmDelete) return;
+    if (!confirmDelete || !msg?._id) return;
 
     await fetch("/api/messages", {
       method: "DELETE",
@@ -54,6 +76,8 @@ export default function MessageCard({ msg }) {
       }),
     });
 
+    // melhor prática: não recarregar página
+    // mas se quiser manter simples:
     window.location.reload();
   };
 
@@ -67,18 +91,22 @@ export default function MessageCard({ msg }) {
         border: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      <p style={{ fontSize: "1.25rem", marginBottom: "12px" }}>{msg.content}</p>
+      {/* 🧠 conteúdo */}
+      <p style={{ fontSize: "1.25rem", marginBottom: "12px" }}>
+        {msg?.content || "Mensagem vazia"}
+      </p>
 
-      <span style={{ opacity: 0.4 }}>— {msg.author}</span>
+      {/* 👤 autor */}
+      <span style={{ opacity: 0.4 }}>— {msg?.author || "Anônimo"}</span>
 
-      {/* 🔥 botão só aparece pro autor */}
+      {/* 🔥 botão excluir */}
       {isAuthor && (
         <div style={{ marginTop: "10px" }}>
           <button onClick={handleDelete}>Excluir</button>
         </div>
       )}
 
-      {/* 💬 input de comentário */}
+      {/* 💬 comentário */}
       <div style={{ marginTop: "20px" }}>
         <input
           value={comment}
@@ -89,14 +117,16 @@ export default function MessageCard({ msg }) {
         <button onClick={handleComment}>Comentar</button>
       </div>
 
-      {/* 📜 comentários */}
+      {/* 📜 lista de comentários */}
       <div style={{ marginTop: "20px" }}>
-        {comments.map((c) => (
-          <div key={c._id}>
-            <p>{c.content}</p>
-            <small>— {c.author}</small>
-          </div>
-        ))}
+        {comments?.map((c) =>
+          c?._id ? (
+            <div key={c._id}>
+              <p>{c?.content}</p>
+              <small>— {c?.author}</small>
+            </div>
+          ) : null,
+        )}
       </div>
     </div>
   );

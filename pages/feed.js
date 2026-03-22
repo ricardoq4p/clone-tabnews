@@ -17,6 +17,7 @@ export default function Feed() {
     if (!session) router.push("/login");
   }, [session, status]);
 
+  // ⛔ evita render quebrado
   if (status === "loading" || !session) return null;
 
   // 🚀 carregar mensagens + realtime
@@ -24,7 +25,14 @@ export default function Feed() {
     // 🔹 carregar mensagens iniciais
     fetch("/api/messages")
       .then((res) => res.json())
-      .then((data) => setMessages(data));
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setMessages(data);
+        } else {
+          console.error("Erro: messages não é array", data);
+          setMessages([]);
+        }
+      });
 
     // 🚀 Pusher realtime
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
@@ -36,18 +44,20 @@ export default function Feed() {
     // 🆕 nova mensagem
     channel.bind("new-message", (data) => {
       setMessages((prev) => {
+        if (!data?._id) return prev;
+
         const exists = prev.find((m) => m._id === data._id);
         if (exists) return prev;
+
         return [data, ...prev];
       });
     });
 
-    // 🗑️ mensagem deletada
+    // 🗑️ deletar mensagem
     channel.bind("delete-message", (data) => {
       setMessages((prev) => prev.filter((msg) => msg._id !== data.id));
     });
 
-    // 🧹 cleanup correto
     return () => {
       channel.unbind_all();
       pusher.unsubscribe("feed");
@@ -151,9 +161,9 @@ export default function Feed() {
           </div>
 
           {/* mensagens */}
-          {messages.map((msg) => (
-            <MessageCard key={msg._id} msg={msg} />
-          ))}
+          {messages?.map((msg) =>
+            msg?._id ? <MessageCard key={msg._id} msg={msg} /> : null,
+          )}
         </div>
       </div>
     </>
