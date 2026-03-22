@@ -63,8 +63,8 @@ export default function Profile() {
       const data = await res.json();
       const imageUrl = data.secure_url;
 
-      // 💾 salvar no banco (ATENÇÃO: users)
-      await fetch("/api/user/avatar", {
+      // 🔥 CORREÇÃO AQUI (users)
+      await fetch("/api/users/avatar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -88,8 +88,27 @@ export default function Profile() {
         color: "#fff",
         padding: "40px",
         textAlign: "center",
+        position: "relative",
       }}
     >
+      {/* 🔥 BOTÃO HOME */}
+      <button
+        onClick={() => router.push("/feed")}
+        style={{
+          position: "absolute",
+          top: "20px",
+          left: "20px",
+          padding: "6px 14px",
+          borderRadius: "20px",
+          border: "1px solid rgba(255,255,255,0.2)",
+          background: "transparent",
+          color: "#fff",
+          cursor: "pointer",
+        }}
+      >
+        Home
+      </button>
+
       <h1>Perfil 👤</h1>
 
       {/* 👤 avatar */}
