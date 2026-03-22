@@ -3,7 +3,7 @@ export default function Home() {
     <div
       style={{
         minHeight: "100vh",
-        background: "#0f0f0f",
+        background: "radial-gradient(circle at center, #1a1a1a 0%, #000 100%)",
         color: "#fff",
         display: "flex",
         flexDirection: "column",
@@ -13,68 +13,51 @@ export default function Home() {
         padding: "20px",
       }}
     >
-      {/* HERO */}
-      <h1 style={{ fontSize: "2.5rem", marginBottom: "20px" }}>
-        Encontre paz em meio ao ruído do mundo
-      </h1>
-
-      <p style={{ maxWidth: "600px", marginBottom: "30px", opacity: 0.8 }}>
-        O PanteraLab é um espaço de silêncio, reflexão e conexão com Deus.
-        Receba mensagens profundas e caminhe com mais leveza todos os dias.
+      {/* NOME */}
+      <p style={{ opacity: 0.4, marginBottom: "20px", letterSpacing: "2px" }}>
+        PANTERALAB
       </p>
 
+      {/* FRASE PRINCIPAL */}
+      <h1
+        style={{
+          fontSize: "2.8rem",
+          fontWeight: "500",
+          maxWidth: "700px",
+          lineHeight: "1.4",
+          marginBottom: "20px",
+        }}
+      >
+        Em silêncio, tudo fala.
+      </h1>
+
+      {/* FRASE SECUNDÁRIA */}
+      <p
+        style={{
+          opacity: 0.6,
+          maxWidth: "500px",
+          marginBottom: "40px",
+        }}
+      >
+        Entre. Observe. Permaneça.
+      </p>
+
+      {/* BOTÃO */}
       <a href="/login">
         <button
           style={{
-            padding: "12px 24px",
-            backgroundColor: "#ffffff",
-            color: "#000",
-            border: "none",
-            borderRadius: "8px",
+            padding: "10px 22px",
+            background: "transparent",
+            color: "#fff",
+            border: "1px solid rgba(255,255,255,0.3)",
+            borderRadius: "20px",
             cursor: "pointer",
-            fontWeight: "bold",
+            transition: "0.3s",
           }}
         >
-          Começar agora
+          Entrar
         </button>
       </a>
-
-      {/* SOBRE */}
-      <section style={{ marginTop: "80px", maxWidth: "700px" }}>
-        <h2>Um refúgio espiritual</h2>
-        <p style={{ opacity: 0.8 }}>
-          Aqui você encontra palavras que tocam a alma, imagens que despertam a
-          consciência e mensagens que ajudam você a se reconectar com Deus no
-          meio da correria do dia a dia.
-        </p>
-      </section>
-
-      {/* FEATURES */}
-      <section style={{ marginTop: "60px" }}>
-        <p>✨ Mensagens inspiradas na fé</p>
-        <p>✨ Reflexões profundas</p>
-        <p>✨ Conteúdos exclusivos</p>
-        <p>✨ Um espaço de paz e silêncio</p>
-      </section>
-
-      {/* CTA FINAL */}
-      <section style={{ marginTop: "60px" }}>
-        <a href="/login">
-          <button
-            style={{
-              padding: "12px 24px",
-              backgroundColor: "#ffffff",
-              color: "#000",
-              border: "none",
-              borderRadius: "8px",
-              cursor: "pointer",
-              fontWeight: "bold",
-            }}
-          >
-            Criar conta gratuitamente
-          </button>
-        </a>
-      </section>
     </div>
   );
 }
