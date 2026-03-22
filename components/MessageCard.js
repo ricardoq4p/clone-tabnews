@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import Pusher from "pusher-js";
 
 export default function MessageCard({ msg }) {
   const [comment, setComment] = useState("");
@@ -27,7 +28,7 @@ export default function MessageCard({ msg }) {
       .catch(() => {});
   }, [msg?.username]);
 
-  // 🔹 comentários
+  // 🔹 buscar comentários iniciais
   useEffect(() => {
     if (!msg?._id) return;
 
@@ -37,6 +38,33 @@ export default function MessageCard({ msg }) {
         if (Array.isArray(data)) setComments(data);
         else setComments([]);
       });
+  }, [msg?._id]);
+
+  // 🚀 REALTIME comentários
+  useEffect(() => {
+    if (!msg?._id) return;
+
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+    });
+
+    const channel = pusher.subscribe("comments");
+
+    channel.bind("new-comment", (data) => {
+      // 🔥 só adiciona se for do mesmo post
+      if (data.messageId === msg._id) {
+        setComments((prev) => {
+          // evita duplicação
+          if (prev.find((c) => c._id === data._id)) return prev;
+          return [data, ...prev];
+        });
+      }
+    });
+
+    return () => {
+      pusher.unsubscribe("comments");
+      pusher.disconnect();
+    };
   }, [msg?._id]);
 
   const handleComment = async () => {
@@ -54,10 +82,7 @@ export default function MessageCard({ msg }) {
     });
 
     setComment("");
-
-    const res = await fetch(`/api/comments?messageId=${msg._id}`);
-    const data = await res.json();
-    setComments(Array.isArray(data) ? data : []);
+    // ❌ não precisa mais refetch (realtime cuida disso)
   };
 
   const handleDelete = async () => {
