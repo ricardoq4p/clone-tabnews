@@ -1,95 +1,125 @@
-import Link from "next/link";
-import { useSession } from "next-auth/react";
+import { useState } from "react";
+import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
-import { useEffect } from "react";
+import Link from "next/link";
 
-export default function Home() {
-  const { data: session, status } = useSession();
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+
   const router = useRouter();
 
-  useEffect(() => {
-    if (session) {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const res = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    });
+
+    if (res.error) {
+      setError("Email ou senha inválidos");
+    } else {
       router.push("/feed");
     }
-  }, [session]);
-
-  if (status === "loading") return null;
+  };
 
   return (
     <div
       style={{
         minHeight: "100vh",
         background: "radial-gradient(circle at center, #1a1a1a 0%, #000 100%)",
-        color: "#fff",
         display: "flex",
-        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        textAlign: "center",
-        padding: "20px",
+        color: "#fff",
+        fontFamily: "sans-serif",
       }}
     >
-      {/* NOME */}
-      <p style={{ opacity: 0.4, marginBottom: "20px", letterSpacing: "2px" }}>
-        PANTERALAB
-      </p>
-
-      {/* FRASE PRINCIPAL */}
-      <h1
+      <form
+        onSubmit={handleSubmit}
         style={{
-          fontSize: "2.8rem",
-          fontWeight: "500",
-          maxWidth: "700px",
-          lineHeight: "1.4",
-          marginBottom: "20px",
+          width: "100%",
+          maxWidth: "400px",
+          padding: "40px",
+          borderRadius: "16px",
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          backdropFilter: "blur(10px)",
         }}
       >
-        Em silêncio, tudo fala.
-      </h1>
+        <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Entrar ✨</h2>
 
-      {/* FRASE SECUNDÁRIA */}
-      <p
-        style={{
-          opacity: 0.6,
-          maxWidth: "500px",
-          marginBottom: "40px",
-        }}
-      >
-        Entre. Observe. Permaneça.
-      </p>
+        {/* EMAIL */}
+        <input
+          type="email"
+          placeholder="Seu email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          style={{
+            width: "100%",
+            padding: "12px",
+            marginBottom: "12px",
+            borderRadius: "8px",
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.02)",
+            color: "#fff",
+            outline: "none",
+          }}
+        />
 
-      {/* BOTÕES */}
-      <div style={{ display: "flex", gap: "15px" }}>
-        <Link href="/login">
-          <button
-            style={{
-              padding: "10px 22px",
-              background: "transparent",
-              color: "#fff",
-              border: "1px solid rgba(255,255,255,0.3)",
-              borderRadius: "20px",
-              cursor: "pointer",
-            }}
-          >
-            Entrar
-          </button>
-        </Link>
+        {/* SENHA */}
+        <input
+          type="password"
+          placeholder="Sua senha"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          style={{
+            width: "100%",
+            padding: "12px",
+            marginBottom: "12px",
+            borderRadius: "8px",
+            border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.02)",
+            color: "#fff",
+            outline: "none",
+          }}
+        />
 
-        <Link href="/register">
-          <button
-            style={{
-              padding: "10px 22px",
-              background: "#fff",
-              color: "#000",
-              borderRadius: "20px",
-              cursor: "pointer",
-              border: "none",
-            }}
-          >
+        {/* ERRO */}
+        {error && (
+          <p style={{ color: "#ff6b6b", marginBottom: "10px" }}>{error}</p>
+        )}
+
+        {/* BOTÃO */}
+        <button
+          type="submit"
+          style={{
+            width: "100%",
+            padding: "12px",
+            borderRadius: "20px",
+            border: "1px solid rgba(255,255,255,0.2)",
+            background: "transparent",
+            color: "#fff",
+            cursor: "pointer",
+            marginTop: "10px",
+          }}
+        >
+          Entrar
+        </button>
+
+        {/* LINK */}
+        <p style={{ marginTop: "20px", textAlign: "center", opacity: 0.6 }}>
+          Não tem conta?{" "}
+          <Link href="/register" style={{ color: "#fff" }}>
             Criar conta
-          </button>
-        </Link>
-      </div>
+          </Link>
+        </p>
+      </form>
     </div>
   );
 }
