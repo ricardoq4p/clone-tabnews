@@ -7,7 +7,7 @@ import Pusher from "pusher-js";
 export default function Feed() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [userData, setUserData] = useState(null); // 🔥 NOVO
+  const [userData, setUserData] = useState(null);
 
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -18,31 +18,24 @@ export default function Feed() {
     if (!session) router.push("/login");
   }, [session, status]);
 
-  // 🔥 buscar usuário (avatar)
+  // 🔥 buscar usuário
   useEffect(() => {
     if (!session) return;
 
     fetch("/api/users/me")
       .then((res) => res.json())
       .then((data) => setUserData(data))
-      .catch((err) => console.error("Erro ao buscar user:", err));
+      .catch(() => {});
   }, [session]);
 
-  // ⛔ evita render quebrado
-  if (status === "loading" || !session) return null;
-
-  // 🚀 carregar mensagens + realtime
+  // 🚀 carregar mensagens + realtime (ANTES DO RETURN)
   useEffect(() => {
     fetch("/api/messages")
       .then((res) => res.json())
       .then((data) => {
-        if (Array.isArray(data)) {
-          setMessages(data);
-        } else {
-          console.error("Erro: messages não é array", data);
-          setMessages([]);
-        }
-      });
+        setMessages(Array.isArray(data) ? data : []);
+      })
+      .catch(() => setMessages([]));
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
@@ -50,6 +43,7 @@ export default function Feed() {
 
     const channel = pusher.subscribe("feed");
 
+    // 🟢 nova mensagem
     channel.bind("new-message", (data) => {
       setMessages((prev) => {
         if (!data?._id) return prev;
@@ -61,6 +55,7 @@ export default function Feed() {
       });
     });
 
+    // 🔴 deletar mensagem
     channel.bind("delete-message", (data) => {
       setMessages((prev) => prev.filter((msg) => msg._id !== data.id));
     });
@@ -68,22 +63,30 @@ export default function Feed() {
     return () => {
       channel.unbind_all();
       pusher.unsubscribe("feed");
+      pusher.disconnect(); // 🔥 ESSENCIAL
     };
   }, []);
 
-  // 📝 enviar mensagem
+  // ⛔ só depois dos hooks
+  if (status === "loading" || !session) return null;
+
+  // 📝 publicar
   const handleSubmit = async () => {
     if (!newMessage.trim()) return;
 
-    await fetch("/api/messages", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ content: newMessage }),
-    });
+    try {
+      await fetch("/api/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content: newMessage }),
+      });
 
-    setNewMessage("");
+      setNewMessage("");
+    } catch (err) {
+      console.error("Erro ao publicar:", err);
+    }
   };
 
   return (
@@ -99,7 +102,6 @@ export default function Feed() {
           alignItems: "center",
         }}
       >
-        {/* 👤 avatar + nome + link perfil */}
         <div
           onClick={() => router.push("/profile")}
           style={{
@@ -123,18 +125,11 @@ export default function Feed() {
             }}
           />
 
-          {/* 🔥 nome corrigido */}
-          <span
-            style={{
-              color: "#fff", // 👈 AGORA VISÍVEL
-              fontWeight: "500",
-            }}
-          >
+          <span style={{ color: "#fff", fontWeight: "500" }}>
             {session?.user?.name}
           </span>
         </div>
 
-        {/* 🔘 botão perfil (extra) */}
         <button
           onClick={() => router.push("/profile")}
           style={{
@@ -149,7 +144,6 @@ export default function Feed() {
           Perfil
         </button>
 
-        {/* 🚪 sair */}
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           style={{
@@ -217,7 +211,7 @@ export default function Feed() {
           </div>
 
           {/* mensagens */}
-          {messages?.map((msg) =>
+          {messages.map((msg) =>
             msg?._id ? <MessageCard key={msg._id} msg={msg} /> : null,
           )}
         </div>
