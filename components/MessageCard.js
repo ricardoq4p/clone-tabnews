@@ -10,22 +10,45 @@ export default function MessageCard({ msg }) {
   const { data: session } = useSession();
   const currentUser = session?.user?.name;
 
-  // 🛑 proteção total
+  // 🛑 proteção
   if (!msg || !msg._id) return null;
 
   const isAuthor = msg?.author === currentUser;
 
-  // 🔥 avatar
+  // 🔥 AVATAR (CORRIGIDO + FALLBACK)
   useEffect(() => {
-    if (!msg?.username) return;
+    if (!msg?.username) {
+      // fallback: usa iniciais
+      setAvatar(
+        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+          msg.author || "User",
+        )}`,
+      );
+      return;
+    }
 
     fetch(`/api/users/${msg.username}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data?.avatar) setAvatar(data.avatar);
+        if (data?.avatar) {
+          setAvatar(data.avatar);
+        } else {
+          // fallback se não tiver avatar no banco
+          setAvatar(
+            `https://ui-avatars.com/api/?name=${encodeURIComponent(
+              msg.author || "User",
+            )}`,
+          );
+        }
       })
-      .catch(() => {});
-  }, [msg?.username]);
+      .catch(() => {
+        setAvatar(
+          `https://ui-avatars.com/api/?name=${encodeURIComponent(
+            msg.author || "User",
+          )}`,
+        );
+      });
+  }, [msg?.username, msg?.author]);
 
   // 🔹 carregar comentários
   useEffect(() => {
@@ -119,9 +142,8 @@ export default function MessageCard({ msg }) {
       {/* 👤 header */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <img
-          src={
-            avatar || `https://ui-avatars.com/api/?name=${msg.author || "User"}`
-          }
+          src={avatar}
+          alt="avatar"
           style={{
             width: "40px",
             height: "40px",
