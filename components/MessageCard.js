@@ -4,99 +4,72 @@ import { useSession } from "next-auth/react";
 export default function MessageCard({ msg }) {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
+  const [avatar, setAvatar] = useState("");
 
   const { data: session } = useSession();
   const currentUser = session?.user?.name;
 
-  // 🔒 proteção TOTAL contra msg inválido
-  if (!msg || !msg._id) return null;
+  if (!msg) return null;
 
-  const isAuthor = msg.author === currentUser;
+  const isAuthor = msg?.author === currentUser;
 
-  // 🔹 carregar comentários
+  // 🔥 buscar avatar pelo username
   useEffect(() => {
-    let isMounted = true;
+    if (!msg?.username) return;
 
-    const fetchComments = async () => {
-      try {
-        if (!msg?._id) return;
-
-        const res = await fetch(`/api/comments?messageId=${msg._id}`);
-        const data = await res.json();
-
-        if (isMounted) {
-          if (Array.isArray(data)) {
-            setComments(data);
-          } else {
-            setComments([]);
-          }
+    fetch(`/api/users/${msg.username}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.avatar_url) {
+          setAvatar(data.avatar_url);
         }
-      } catch (err) {
-        console.error("Erro ao buscar comentários:", err);
-        if (isMounted) setComments([]);
-      }
-    };
+      })
+      .catch(() => {});
+  }, [msg?.username]);
 
-    fetchComments();
+  // 🔹 comentários
+  useEffect(() => {
+    if (!msg?._id) return;
 
-    return () => {
-      isMounted = false; // 🔥 evita crash ao deletar
-    };
-  }, [msg._id]);
-
-  // 🔹 enviar comentário
-  const handleComment = async () => {
-    if (!comment.trim() || !msg?._id) return;
-
-    try {
-      await fetch("/api/comments", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          content: comment,
-          messageId: msg._id,
-        }),
+    fetch(`/api/comments?messageId=${msg._id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) setComments(data);
+        else setComments([]);
       });
+  }, [msg?._id]);
 
-      setComment("");
+  const handleComment = async () => {
+    if (!comment.trim()) return;
 
-      // recarregar comentários
-      const res = await fetch(`/api/comments?messageId=${msg._id}`);
-      const data = await res.json();
+    await fetch("/api/comments", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        content: comment,
+        messageId: msg._id,
+      }),
+    });
 
-      if (Array.isArray(data)) {
-        setComments(data);
-      } else {
-        setComments([]);
-      }
-    } catch (err) {
-      console.error("Erro ao comentar:", err);
-    }
+    setComment("");
+
+    const res = await fetch(`/api/comments?messageId=${msg._id}`);
+    const data = await res.json();
+    setComments(Array.isArray(data) ? data : []);
   };
 
-  // 🔥 deletar mensagem (SEM reload)
   const handleDelete = async () => {
-    const confirmDelete = confirm("Deseja excluir essa mensagem?");
-    if (!confirmDelete || !msg?._id) return;
+    if (!confirm("Deseja excluir?")) return;
 
-    try {
-      await fetch("/api/messages", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          id: msg._id,
-        }),
-      });
-
-      // ❌ SEM reload
-      // o Pusher vai cuidar da remoção em tempo real
-    } catch (err) {
-      console.error("Erro ao deletar:", err);
-    }
+    await fetch("/api/messages", {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: msg._id }),
+    });
   };
 
   return (
@@ -109,42 +82,41 @@ export default function MessageCard({ msg }) {
         border: "1px solid rgba(255,255,255,0.08)",
       }}
     >
-      {/* 🧠 conteúdo */}
-      <p style={{ fontSize: "1.25rem", marginBottom: "12px" }}>
-        {msg.content || "Mensagem vazia"}
-      </p>
+      {/* 🔥 header com avatar */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <img
+          src={avatar || `https://ui-avatars.com/api/?name=${msg.author}`}
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            objectFit: "cover",
+          }}
+        />
 
-      {/* 👤 autor */}
-      <span style={{ opacity: 0.4 }}>— {msg.author || "Anônimo"}</span>
+        <span style={{ opacity: 0.6 }}>{msg.author}</span>
+      </div>
 
-      {/* 🔥 botão excluir */}
-      {isAuthor && (
-        <div style={{ marginTop: "10px" }}>
-          <button onClick={handleDelete}>Excluir</button>
-        </div>
-      )}
+      <p style={{ fontSize: "1.25rem", marginTop: "15px" }}>{msg.content}</p>
 
-      {/* 💬 comentário */}
-      <div style={{ marginTop: "20px" }}>
+      {isAuthor && <button onClick={handleDelete}>Excluir</button>}
+
+      <div style={{ marginTop: "15px" }}>
         <input
           value={comment}
           onChange={(e) => setComment(e.target.value)}
-          placeholder="Escreva um comentário..."
+          placeholder="Comentar..."
         />
-
         <button onClick={handleComment}>Comentar</button>
       </div>
 
-      {/* 📜 lista de comentários */}
-      <div style={{ marginTop: "20px" }}>
-        {comments?.map((c) =>
-          c?._id ? (
-            <div key={c._id}>
-              <p>{c.content}</p>
-              <small>— {c.author}</small>
-            </div>
-          ) : null,
-        )}
+      <div style={{ marginTop: "10px" }}>
+        {comments.map((c) => (
+          <div key={c._id}>
+            <p>{c.content}</p>
+            <small>— {c.author}</small>
+          </div>
+        ))}
       </div>
     </div>
   );

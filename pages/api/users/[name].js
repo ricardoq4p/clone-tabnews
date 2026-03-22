@@ -7,15 +7,16 @@ export default async function handler(req, res) {
   const { name } = req.query;
 
   try {
-    const user = await User.findOne({ name });
+    const user = await User.findOne({ username: name });
 
     if (!user) {
       return res.status(404).json({ error: "Usuário não encontrado" });
     }
 
     return res.status(200).json({
+      username: user.username,
       name: user.name,
-      avatar: user.avatar || null,
+      avatar_url: user.avatar_url || null,
     });
   } catch (err) {
     return res.status(500).json({ error: "Erro ao buscar usuário" });

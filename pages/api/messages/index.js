@@ -1,12 +1,11 @@
 import connectToDatabase from "../../../lib/db";
 import Message from "../../../lib/models/Message";
 import Comment from "../../../lib/models/Comment";
-import User from "../../../lib/models/User"; // 🔥 NOVO
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
 
-// 🚀 Configuração do Pusher
+// 🚀 Pusher
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
   key: process.env.PUSHER_KEY,
@@ -18,7 +17,7 @@ const pusher = new Pusher({
 export default async function handler(req, res) {
   await connectToDatabase();
 
-  // 🔹 GET → buscar mensagens
+  // 🔹 GET
   if (req.method === "GET") {
     try {
       const messages = await Message.find().sort({ _id: -1 });
@@ -28,7 +27,7 @@ export default async function handler(req, res) {
     }
   }
 
-  // 🔹 POST → criar mensagem (COM AVATAR 🔥)
+  // 🔹 POST
   if (req.method === "POST") {
     try {
       const session = await getServerSession(req, res, authOptions);
@@ -43,33 +42,24 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Mensagem vazia" });
       }
 
-      const userEmail = session.user?.email;
-
-      if (!userEmail) {
-        return res.status(400).json({ error: "Usuário inválido" });
-      }
-
-      // 🔥 BUSCA USUÁRIO NO BANCO
-      const user = await User.findOne({ email: userEmail });
+      const username = session.user.email.split("@")[0];
 
       const newMessage = await Message.create({
         content,
-        author: user?.name || "Anônimo",
-        avatar: user?.avatar || "", // 🔥 AQUI ESTÁ O AVATAR
+        author: session.user.name,
+        username, // 🔥 NOVO CAMPO
         createdAt: new Date(),
       });
 
-      // 🚀 TEMPO REAL
       await pusher.trigger("feed", "new-message", newMessage);
 
       return res.status(201).json(newMessage);
     } catch (error) {
-      console.error(error);
       return res.status(500).json({ error: "Erro ao criar mensagem" });
     }
   }
 
-  // 🔹 DELETE → apagar com permissão + tempo real
+  // 🔹 DELETE
   if (req.method === "DELETE") {
     try {
       const session = await getServerSession(req, res, authOptions);
@@ -78,12 +68,7 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Não autenticado" });
       }
 
-      const user = session.user;
       const { id } = req.body;
-
-      if (!id) {
-        return res.status(400).json({ error: "ID obrigatório" });
-      }
 
       const message = await Message.findById(id);
 
@@ -91,26 +76,19 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: "Mensagem não encontrada" });
       }
 
-      // 🔒 regra de permissão
-      const isAuthor = message.author === user.name;
-      const isAdmin = user.role === "admin";
+      const isAuthor = message.author === session.user.name;
 
-      if (!isAuthor && !isAdmin) {
+      if (!isAuthor) {
         return res.status(403).json({ error: "Sem permissão" });
       }
 
-      // 🗑️ remove mensagem
       await Message.findByIdAndDelete(id);
-
-      // 🧹 remove comentários relacionados
       await Comment.deleteMany({ messageId: id });
 
-      // 🚀 TEMPO REAL
       await pusher.trigger("feed", "delete-message", { id });
 
       return res.status(200).json({ success: true });
     } catch (error) {
-      console.error(error);
       return res.status(500).json({ error: "Erro ao deletar mensagem" });
     }
   }
