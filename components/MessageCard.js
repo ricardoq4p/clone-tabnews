@@ -14,7 +14,7 @@ export default function MessageCard({ msg }) {
 
   const isAuthor = msg?.author === currentUser;
 
-  // 🔥 avatar
+  // 🔥 buscar avatar
   useEffect(() => {
     if (!msg?.username) return;
 
@@ -26,7 +26,7 @@ export default function MessageCard({ msg }) {
       .catch(() => {});
   }, [msg?.username]);
 
-  // 🔹 carregar comentários
+  // 🔹 carregar comentários iniciais
   useEffect(() => {
     if (!msg?._id) return;
 
@@ -37,7 +37,7 @@ export default function MessageCard({ msg }) {
       });
   }, [msg?._id]);
 
-  // 🚀 REALTIME
+  // 🚀 REALTIME (COMENTÁRIOS)
   useEffect(() => {
     if (!msg?._id) return;
 
@@ -51,6 +51,7 @@ export default function MessageCard({ msg }) {
     channel.bind("new-comment", (data) => {
       if (data.messageId === msg._id) {
         setComments((prev) => {
+          // evita duplicação
           if (prev.find((c) => c._id === data._id)) return prev;
           return [data, ...prev];
         });
@@ -63,11 +64,13 @@ export default function MessageCard({ msg }) {
     });
 
     return () => {
+      channel.unbind_all();
       pusher.unsubscribe("comments");
       pusher.disconnect();
     };
   }, [msg?._id]);
 
+  // 📝 comentar
   const handleComment = async () => {
     if (!comment.trim()) return;
 
@@ -85,6 +88,7 @@ export default function MessageCard({ msg }) {
     setComment("");
   };
 
+  // 🗑️ deletar mensagem
   const handleDelete = async () => {
     if (!confirm("Deseja excluir?")) return;
 
@@ -98,27 +102,51 @@ export default function MessageCard({ msg }) {
   };
 
   return (
-    <div style={{ marginBottom: 40, padding: 30 }}>
-      <div style={{ display: "flex", gap: 10 }}>
+    <div
+      style={{
+        marginBottom: "40px",
+        padding: "30px",
+        borderRadius: "14px",
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.08)",
+      }}
+    >
+      {/* 👤 header */}
+      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <img
           src={avatar || `https://ui-avatars.com/api/?name=${msg.author}`}
-          style={{ width: 40, height: 40, borderRadius: "50%" }}
+          style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            objectFit: "cover",
+          }}
         />
-        <span>{msg.author}</span>
+        <span style={{ opacity: 0.7 }}>{msg.author}</span>
       </div>
 
-      <p>{msg.content}</p>
+      {/* 💬 conteúdo */}
+      <p style={{ fontSize: "1.2rem", marginTop: "15px" }}>{msg.content}</p>
 
-      {isAuthor && <button onClick={handleDelete}>Excluir</button>}
+      {/* 🗑️ excluir */}
+      {isAuthor && (
+        <button onClick={handleDelete} style={{ marginTop: "10px" }}>
+          Excluir
+        </button>
+      )}
 
-      <input
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-        placeholder="Comentar..."
-      />
-      <button onClick={handleComment}>Comentar</button>
+      {/* ✍️ comentar */}
+      <div style={{ marginTop: "15px" }}>
+        <input
+          value={comment}
+          onChange={(e) => setComment(e.target.value)}
+          placeholder="Comentar..."
+        />
+        <button onClick={handleComment}>Comentar</button>
+      </div>
 
-      <div>
+      {/* 💬 lista comentários */}
+      <div style={{ marginTop: "10px" }}>
         {comments.map((c) => (
           <div key={c._id}>
             <p>{c.content}</p>
