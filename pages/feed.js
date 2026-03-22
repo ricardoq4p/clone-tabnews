@@ -99,8 +99,16 @@ export default function Feed() {
           alignItems: "center",
         }}
       >
-        {/* 👤 avatar + nome */}
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        {/* 👤 avatar + nome + link perfil */}
+        <div
+          onClick={() => router.push("/profile")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            cursor: "pointer",
+          }}
+        >
           <img
             src={
               userData?.avatar ||
@@ -115,8 +123,31 @@ export default function Feed() {
             }}
           />
 
-          <span style={{ opacity: 0.7 }}>{session?.user?.name}</span>
+          {/* 🔥 nome corrigido */}
+          <span
+            style={{
+              color: "#fff", // 👈 AGORA VISÍVEL
+              fontWeight: "500",
+            }}
+          >
+            {session?.user?.name}
+          </span>
         </div>
+
+        {/* 🔘 botão perfil (extra) */}
+        <button
+          onClick={() => router.push("/profile")}
+          style={{
+            padding: "6px 14px",
+            borderRadius: "20px",
+            border: "1px solid rgba(255,255,255,0.2)",
+            background: "transparent",
+            color: "#fff",
+            cursor: "pointer",
+          }}
+        >
+          Perfil
+        </button>
 
         {/* 🚪 sair */}
         <button
