@@ -22,7 +22,7 @@ export default function MessageCard({ msg }) {
     fetch(`/api/users/${msg.username}`)
       .then((res) => res.json())
       .then((data) => {
-        if (data?.avatar_url) setAvatar(data.avatar_url);
+        if (data?.avatar) setAvatar(data.avatar);
       })
       .catch(() => {});
   }, [msg?.username]);
