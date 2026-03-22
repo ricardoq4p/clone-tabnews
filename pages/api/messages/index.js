@@ -1,6 +1,7 @@
 import connectToDatabase from "../../../lib/db";
 import Message from "../../../lib/models/Message";
 import Comment from "../../../lib/models/Comment";
+import User from "../../../lib/models/User"; // 🔥 NOVO
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
@@ -27,33 +28,34 @@ export default async function handler(req, res) {
     }
   }
 
-  // 🔹 POST → criar mensagem (SEGURA + TEMPO REAL)
+  // 🔹 POST → criar mensagem (COM AVATAR 🔥)
   if (req.method === "POST") {
     try {
       const session = await getServerSession(req, res, authOptions);
 
-      // 🔒 bloqueia não autenticados
       if (!session) {
         return res.status(401).json({ error: "Não autenticado" });
       }
 
       const { content } = req.body;
 
-      // 🔒 valida conteúdo
       if (!content || !content.trim()) {
         return res.status(400).json({ error: "Mensagem vazia" });
       }
 
-      // 🔒 garante usuário válido
-      const userName = session.user?.name;
+      const userEmail = session.user?.email;
 
-      if (!userName) {
+      if (!userEmail) {
         return res.status(400).json({ error: "Usuário inválido" });
       }
 
+      // 🔥 BUSCA USUÁRIO NO BANCO
+      const user = await User.findOne({ email: userEmail });
+
       const newMessage = await Message.create({
         content,
-        author: userName,
+        author: user?.name || "Anônimo",
+        avatar: user?.avatar || "", // 🔥 AQUI ESTÁ O AVATAR
         createdAt: new Date(),
       });
 
@@ -62,6 +64,7 @@ export default async function handler(req, res) {
 
       return res.status(201).json(newMessage);
     } catch (error) {
+      console.error(error);
       return res.status(500).json({ error: "Erro ao criar mensagem" });
     }
   }
@@ -102,15 +105,15 @@ export default async function handler(req, res) {
       // 🧹 remove comentários relacionados
       await Comment.deleteMany({ messageId: id });
 
-      // 🚀 TEMPO REAL (agora correto)
+      // 🚀 TEMPO REAL
       await pusher.trigger("feed", "delete-message", { id });
 
       return res.status(200).json({ success: true });
     } catch (error) {
+      console.error(error);
       return res.status(500).json({ error: "Erro ao deletar mensagem" });
     }
   }
 
-  // 🔥 fallback obrigatório
   return res.status(405).json({ error: "Método não permitido" });
 }
