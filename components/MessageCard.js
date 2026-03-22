@@ -10,11 +10,12 @@ export default function MessageCard({ msg }) {
   const { data: session } = useSession();
   const currentUser = session?.user?.name;
 
-  if (!msg) return null;
+  // 🛑 proteção total
+  if (!msg || !msg._id) return null;
 
   const isAuthor = msg?.author === currentUser;
 
-  // 🔥 buscar avatar
+  // 🔥 avatar
   useEffect(() => {
     if (!msg?.username) return;
 
@@ -26,21 +27,18 @@ export default function MessageCard({ msg }) {
       .catch(() => {});
   }, [msg?.username]);
 
-  // 🔹 carregar comentários iniciais
+  // 🔹 carregar comentários
   useEffect(() => {
-    if (!msg?._id) return;
-
     fetch(`/api/comments?messageId=${msg._id}`)
       .then((res) => res.json())
       .then((data) => {
         setComments(Array.isArray(data) ? data : []);
-      });
-  }, [msg?._id]);
+      })
+      .catch(() => setComments([]));
+  }, [msg._id]);
 
-  // 🚀 REALTIME (COMENTÁRIOS)
+  // 🚀 REALTIME
   useEffect(() => {
-    if (!msg?._id) return;
-
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
     });
@@ -49,18 +47,17 @@ export default function MessageCard({ msg }) {
 
     // 🟢 novo comentário
     channel.bind("new-comment", (data) => {
-      if (data.messageId === msg._id) {
+      if (data?.messageId === msg._id) {
         setComments((prev) => {
-          // evita duplicação
           if (prev.find((c) => c._id === data._id)) return prev;
           return [data, ...prev];
         });
       }
     });
 
-    // 🔴 deletar comentário
+    // 🔴 delete comentário
     channel.bind("delete-comment", (data) => {
-      setComments((prev) => prev.filter((c) => c._id !== data.id));
+      setComments((prev) => prev.filter((c) => c._id !== data?.id));
     });
 
     return () => {
@@ -68,37 +65,45 @@ export default function MessageCard({ msg }) {
       pusher.unsubscribe("comments");
       pusher.disconnect();
     };
-  }, [msg?._id]);
+  }, [msg._id]);
 
   // 📝 comentar
   const handleComment = async () => {
     if (!comment.trim()) return;
 
-    await fetch("/api/comments", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: comment,
-        messageId: msg._id,
-      }),
-    });
+    try {
+      await fetch("/api/comments", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          content: comment,
+          messageId: msg._id,
+        }),
+      });
 
-    setComment("");
+      setComment("");
+    } catch (err) {
+      console.error("Erro ao comentar:", err);
+    }
   };
 
   // 🗑️ deletar mensagem
   const handleDelete = async () => {
     if (!confirm("Deseja excluir?")) return;
 
-    await fetch("/api/messages", {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ id: msg._id }),
-    });
+    try {
+      await fetch("/api/messages", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: msg._id }),
+      });
+    } catch (err) {
+      console.error("Erro ao deletar:", err);
+    }
   };
 
   return (
@@ -114,7 +119,9 @@ export default function MessageCard({ msg }) {
       {/* 👤 header */}
       <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
         <img
-          src={avatar || `https://ui-avatars.com/api/?name=${msg.author}`}
+          src={
+            avatar || `https://ui-avatars.com/api/?name=${msg.author || "User"}`
+          }
           style={{
             width: "40px",
             height: "40px",
@@ -122,11 +129,13 @@ export default function MessageCard({ msg }) {
             objectFit: "cover",
           }}
         />
-        <span style={{ opacity: 0.7 }}>{msg.author}</span>
+        <span style={{ opacity: 0.7 }}>{msg.author || "Usuário"}</span>
       </div>
 
       {/* 💬 conteúdo */}
-      <p style={{ fontSize: "1.2rem", marginTop: "15px" }}>{msg.content}</p>
+      <p style={{ fontSize: "1.2rem", marginTop: "15px" }}>
+        {msg.content || ""}
+      </p>
 
       {/* 🗑️ excluir */}
       {isAuthor && (
@@ -145,7 +154,7 @@ export default function MessageCard({ msg }) {
         <button onClick={handleComment}>Comentar</button>
       </div>
 
-      {/* 💬 lista comentários */}
+      {/* 💬 lista */}
       <div style={{ marginTop: "10px" }}>
         {comments.map((c) => (
           <div key={c._id}>
