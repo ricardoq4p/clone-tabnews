@@ -7,6 +7,7 @@ import Pusher from "pusher-js";
 export default function Feed() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [userData, setUserData] = useState(null); // 🔥 NOVO
 
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -17,12 +18,21 @@ export default function Feed() {
     if (!session) router.push("/login");
   }, [session, status]);
 
+  // 🔥 buscar usuário (avatar)
+  useEffect(() => {
+    if (!session) return;
+
+    fetch("/api/users/me")
+      .then((res) => res.json())
+      .then((data) => setUserData(data))
+      .catch((err) => console.error("Erro ao buscar user:", err));
+  }, [session]);
+
   // ⛔ evita render quebrado
   if (status === "loading" || !session) return null;
 
   // 🚀 carregar mensagens + realtime
   useEffect(() => {
-    // 🔹 carregar mensagens iniciais
     fetch("/api/messages")
       .then((res) => res.json())
       .then((data) => {
@@ -34,14 +44,12 @@ export default function Feed() {
         }
       });
 
-    // 🚀 Pusher realtime
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
     });
 
     const channel = pusher.subscribe("feed");
 
-    // 🆕 nova mensagem
     channel.bind("new-message", (data) => {
       setMessages((prev) => {
         if (!data?._id) return prev;
@@ -53,7 +61,6 @@ export default function Feed() {
       });
     });
 
-    // 🗑️ deletar mensagem
     channel.bind("delete-message", (data) => {
       setMessages((prev) => prev.filter((msg) => msg._id !== data.id));
     });
@@ -88,12 +95,30 @@ export default function Feed() {
           top: "20px",
           right: "20px",
           display: "flex",
-          gap: "10px",
+          gap: "15px",
           alignItems: "center",
         }}
       >
-        <span style={{ opacity: 0.6 }}>{session?.user?.name}</span>
+        {/* 👤 avatar + nome */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <img
+            src={
+              userData?.avatar ||
+              `https://ui-avatars.com/api/?name=${session?.user?.name}`
+            }
+            alt="avatar"
+            style={{
+              width: "35px",
+              height: "35px",
+              borderRadius: "50%",
+              objectFit: "cover",
+            }}
+          />
 
+          <span style={{ opacity: 0.7 }}>{session?.user?.name}</span>
+        </div>
+
+        {/* 🚪 sair */}
         <button
           onClick={() => signOut({ callbackUrl: "/" })}
           style={{
