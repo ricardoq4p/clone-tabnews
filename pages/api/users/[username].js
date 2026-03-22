@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     return res.status(200).json({
       username: user.username,
       name: user.name,
-      avatar_url: user.avatar || null,
+      avatar: user.avatar || null, // 🔥 CORRIGIDO
     });
   } catch (err) {
     return res.status(500).json({ error: "Erro ao buscar usuário" });
