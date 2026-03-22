@@ -1,15 +1,14 @@
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function MessageCard({ msg }) {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
 
-  // 👤 usuário atual (simulação por enquanto)
-  const currentUser = "Ricardo"; // 🔥 troca pra "admin" se quiser testar
+  const { data: session } = useSession();
+  const currentUser = session?.user?.name;
 
-  // 🔒 regra de permissão
   const isAuthor = msg.author === currentUser;
-  const isAdmin = currentUser === "admin";
 
   // 🔹 carregar comentários
   useEffect(() => {
@@ -29,7 +28,6 @@ export default function MessageCard({ msg }) {
       },
       body: JSON.stringify({
         content: comment,
-        author: currentUser,
         messageId: msg._id,
       }),
     });
@@ -53,7 +51,6 @@ export default function MessageCard({ msg }) {
       },
       body: JSON.stringify({
         id: msg._id,
-        user: currentUser, // 🔥 envia usuário
       }),
     });
 
@@ -68,91 +65,36 @@ export default function MessageCard({ msg }) {
         borderRadius: "14px",
         background: "rgba(255,255,255,0.03)",
         border: "1px solid rgba(255,255,255,0.08)",
-        backdropFilter: "blur(6px)",
-        transition: "0.3s",
       }}
     >
-      {/* 📝 mensagem */}
-      <p
-        style={{ fontSize: "1.25rem", lineHeight: "1.7", marginBottom: "12px" }}
-      >
-        {msg.content}
-      </p>
+      <p style={{ fontSize: "1.25rem", marginBottom: "12px" }}>{msg.content}</p>
 
-      <span style={{ opacity: 0.4, fontSize: "0.9rem" }}>— {msg.author}</span>
+      <span style={{ opacity: 0.4 }}>— {msg.author}</span>
 
-      {/* 🔥 BOTÃO EXCLUIR (CONDICIONAL) */}
-      {(isAuthor || isAdmin) && (
+      {/* 🔥 botão só aparece pro autor */}
+      {isAuthor && (
         <div style={{ marginTop: "10px" }}>
-          <button
-            onClick={handleDelete}
-            style={{
-              background: "transparent",
-              border: "1px solid rgba(255,0,0,0.3)",
-              color: "#ff6b6b",
-              borderRadius: "20px",
-              padding: "5px 12px",
-              cursor: "pointer",
-              fontSize: "0.8rem",
-            }}
-          >
-            Excluir
-          </button>
+          <button onClick={handleDelete}>Excluir</button>
         </div>
       )}
 
-      {/* 💬 contador */}
-      <div style={{ marginTop: "10px", opacity: 0.4, fontSize: "0.8rem" }}>
-        {comments.length} comentário{comments.length !== 1 && "s"}
-      </div>
-
-      {/* ✍️ input */}
+      {/* 💬 input de comentário */}
       <div style={{ marginTop: "20px" }}>
         <input
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           placeholder="Escreva um comentário..."
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "10px",
-            border: "1px solid rgba(255,255,255,0.1)",
-            background: "rgba(255,255,255,0.02)",
-            color: "#fff",
-            marginBottom: "10px",
-            outline: "none",
-          }}
         />
 
-        <button
-          onClick={handleComment}
-          style={{
-            padding: "8px 18px",
-            borderRadius: "20px",
-            border: "1px solid rgba(255,255,255,0.2)",
-            background: "transparent",
-            color: "#fff",
-            cursor: "pointer",
-          }}
-        >
-          Comentar
-        </button>
+        <button onClick={handleComment}>Comentar</button>
       </div>
 
       {/* 📜 comentários */}
-      <div style={{ marginTop: "25px" }}>
+      <div style={{ marginTop: "20px" }}>
         {comments.map((c) => (
-          <div
-            key={c._id}
-            style={{
-              marginTop: "12px",
-              paddingTop: "12px",
-              borderTop: "1px solid rgba(255,255,255,0.05)",
-              opacity: 0.85,
-            }}
-          >
-            <p style={{ margin: 0 }}>{c.content}</p>
-            <small style={{ opacity: 0.5 }}>— {c.author}</small>
+          <div key={c._id}>
+            <p>{c.content}</p>
+            <small>— {c.author}</small>
           </div>
         ))}
       </div>

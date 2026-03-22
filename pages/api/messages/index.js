@@ -1,6 +1,8 @@
 import connectToDatabase from "../../../lib/db";
 import Message from "../../../lib/models/Message";
 import Comment from "../../../lib/models/Comment";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]";
 
 export default async function handler(req, res) {
   await connectToDatabase();
@@ -13,7 +15,14 @@ export default async function handler(req, res) {
 
   // 🔹 POST → criar mensagem
   if (req.method === "POST") {
-    const { content, author } = req.body;
+    const session = await getServerSession(req, res, authOptions);
+
+    if (!session) {
+      return res.status(401).json({ error: "Não autenticado" });
+    }
+
+    const user = session.user;
+    const { content } = req.body;
 
     if (!content) {
       return res.status(400).json({ error: "Mensagem vazia" });
@@ -21,19 +30,26 @@ export default async function handler(req, res) {
 
     const newMessage = await Message.create({
       content,
-      author: author || "Anônimo",
+      author: user.name || "Anônimo",
       createdAt: new Date(),
     });
 
     return res.status(201).json(newMessage);
   }
 
-  // 🔹 DELETE → apagar com regra de permissão
+  // 🔹 DELETE → apagar com segurança real
   if (req.method === "DELETE") {
-    const { id, user } = req.body;
+    const session = await getServerSession(req, res, authOptions);
 
-    if (!id || !user) {
-      return res.status(400).json({ error: "Dados inválidos" });
+    if (!session) {
+      return res.status(401).json({ error: "Não autenticado" });
+    }
+
+    const user = session.user;
+    const { id } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: "ID obrigatório" });
     }
 
     const message = await Message.findById(id);
@@ -42,18 +58,15 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Mensagem não encontrada" });
     }
 
-    // 🔒 REGRA DE PERMISSÃO
-    const isAuthor = message.author === user;
-    const isAdmin = user === "admin";
+    // 🔒 REGRA DE PERMISSÃO REAL
+    const isAuthor = message.author === user.name;
+    const isAdmin = user.role === "admin"; // futuramente
 
     if (!isAuthor && !isAdmin) {
-      return res.status(403).json({ error: "Sem permissão para excluir" });
+      return res.status(403).json({ error: "Sem permissão" });
     }
 
-    // 🗑️ remove mensagem
     await Message.findByIdAndDelete(id);
-
-    // 🧹 remove comentários relacionados
     await Comment.deleteMany({ messageId: id });
 
     return res.status(200).json({ success: true });
