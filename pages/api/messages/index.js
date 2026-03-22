@@ -3,6 +3,16 @@ import Message from "../../../lib/models/Message";
 import Comment from "../../../lib/models/Comment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
+import Pusher from "pusher";
+
+// 🚀 Configuração do Pusher
+const pusher = new Pusher({
+  appId: process.env.PUSHER_APP_ID,
+  key: process.env.PUSHER_KEY,
+  secret: process.env.PUSHER_SECRET,
+  cluster: process.env.PUSHER_CLUSTER,
+  useTLS: true,
+});
 
 export default async function handler(req, res) {
   await connectToDatabase();
@@ -13,7 +23,7 @@ export default async function handler(req, res) {
     return res.status(200).json(messages);
   }
 
-  // 🔹 POST → criar mensagem (SEGURA)
+  // 🔹 POST → criar mensagem (SEGURA + TEMPO REAL)
   if (req.method === "POST") {
     const session = await getServerSession(req, res, authOptions);
 
@@ -38,9 +48,12 @@ export default async function handler(req, res) {
 
     const newMessage = await Message.create({
       content,
-      author: userName, // 🔥 sempre autenticado
+      author: userName,
       createdAt: new Date(),
     });
+
+    // 🚀 TEMPO REAL (AQUI ESTÁ A MÁGICA)
+    await pusher.trigger("feed", "new-message", newMessage);
 
     return res.status(201).json(newMessage);
   }
@@ -68,7 +81,7 @@ export default async function handler(req, res) {
 
     // 🔒 regra de permissão
     const isAuthor = message.author === user.name;
-    const isAdmin = user.role === "admin"; // futuro
+    const isAdmin = user.role === "admin";
 
     if (!isAuthor && !isAdmin) {
       return res.status(403).json({ error: "Sem permissão" });
