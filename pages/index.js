@@ -44,22 +44,38 @@ export default function Home() {
         Entre. Observe. Permaneça.
       </p>
 
-      {/* BOTÃO */}
-      <Link href="/feed">
-        <button
-          style={{
-            padding: "10px 22px",
-            background: "transparent",
-            color: "#fff",
-            border: "1px solid rgba(255,255,255,0.3)",
-            borderRadius: "20px",
-            cursor: "pointer",
-            transition: "0.3s",
-          }}
-        >
-          Entrar
-        </button>
-      </Link>
+      {/* BOTÕES */}
+      <div style={{ display: "flex", gap: "15px" }}>
+        <Link href="/login">
+          <button
+            style={{
+              padding: "10px 22px",
+              background: "transparent",
+              color: "#fff",
+              border: "1px solid rgba(255,255,255,0.3)",
+              borderRadius: "20px",
+              cursor: "pointer",
+            }}
+          >
+            Entrar
+          </button>
+        </Link>
+
+        <Link href="/register">
+          <button
+            style={{
+              padding: "10px 22px",
+              background: "#fff",
+              color: "#000",
+              borderRadius: "20px",
+              cursor: "pointer",
+              border: "none",
+            }}
+          >
+            Criar conta
+          </button>
+        </Link>
+      </div>
     </div>
   );
 }
