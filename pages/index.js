@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Home() {
   return (
     <div
@@ -43,7 +45,7 @@ export default function Home() {
       </p>
 
       {/* BOTÃO */}
-      <a href="/login">
+      <Link href="/feed">
         <button
           style={{
             padding: "10px 22px",
@@ -57,7 +59,7 @@ export default function Home() {
         >
           Entrar
         </button>
-      </a>
+      </Link>
     </div>
   );
 }
