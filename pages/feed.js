@@ -1,12 +1,28 @@
 import { useEffect, useState } from "react";
 import MessageCard from "../components/MessageCard";
 import { signOut, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 
 export default function Feed() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
 
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
+  const router = useRouter();
+
+  // 🔒 redireciona corretamente
+  useEffect(() => {
+    if (status === "loading") return;
+
+    if (!session) {
+      router.push("/login");
+    }
+  }, [session, status]);
+
+  // ⏳ evita render antes da validação
+  if (status === "loading" || !session) {
+    return null;
+  }
 
   useEffect(() => {
     fetch("/api/messages")
@@ -36,7 +52,7 @@ export default function Feed() {
 
   return (
     <>
-      {/* 🔴 HEADER (usuario + sair) */}
+      {/* 🔴 HEADER */}
       <div
         style={{
           position: "absolute",
@@ -76,46 +92,21 @@ export default function Feed() {
         }}
       >
         <div style={{ maxWidth: "700px", margin: "0 auto" }}>
-          {/* Título */}
           <div style={{ textAlign: "center", marginBottom: "50px" }}>
-            <h1 style={{ fontWeight: "400", letterSpacing: "1px" }}>Feed ✨</h1>
+            <h1>Feed ✨</h1>
             <p style={{ opacity: 0.5 }}>Observe. Sinta. Permaneça.</p>
           </div>
 
-          {/* INPUT */}
           <div style={{ marginBottom: "40px" }}>
             <textarea
               placeholder="Escreva uma mensagem..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "15px",
-                borderRadius: "10px",
-                border: "1px solid rgba(255,255,255,0.1)",
-                background: "rgba(255,255,255,0.03)",
-                color: "#fff",
-                marginBottom: "10px",
-                outline: "none",
-              }}
             />
 
-            <button
-              onClick={handleSubmit}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "20px",
-                border: "1px solid rgba(255,255,255,0.2)",
-                background: "transparent",
-                color: "#fff",
-                cursor: "pointer",
-              }}
-            >
-              Publicar ✨
-            </button>
+            <button onClick={handleSubmit}>Publicar ✨</button>
           </div>
 
-          {/* POSTS */}
           {messages.map((msg) => (
             <MessageCard key={msg._id} msg={msg} />
           ))}
