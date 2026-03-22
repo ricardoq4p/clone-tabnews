@@ -10,14 +10,32 @@ export default function Profile() {
   const [avatar, setAvatar] = useState("");
   const [uploading, setUploading] = useState(false);
 
+  // 🔒 proteção de rota
   useEffect(() => {
     if (status === "loading") return;
     if (!session) router.push("/login");
   }, [session, status]);
 
-  if (!session) return null;
+  // 🔥 carregar avatar do banco
+  useEffect(() => {
+    if (!session) return;
 
+    fetch("/api/users/me")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data?.avatar) {
+          setAvatar(data.avatar);
+        }
+      })
+      .catch((err) => console.error("Erro ao carregar avatar:", err));
+  }, [session]);
+
+  if (status === "loading" || !session) return null;
+
+  // 🚀 upload + compressão
   const handleImage = async (file) => {
+    if (!file) return;
+
     try {
       setUploading(true);
 
@@ -45,6 +63,7 @@ export default function Profile() {
       const data = await res.json();
       const imageUrl = data.secure_url;
 
+      // 💾 salvar no banco (ATENÇÃO: users)
       await fetch("/api/user/avatar", {
         method: "POST",
         headers: {
@@ -55,7 +74,7 @@ export default function Profile() {
 
       setAvatar(imageUrl);
     } catch (err) {
-      console.error(err);
+      console.error("Erro no upload:", err);
     } finally {
       setUploading(false);
     }
@@ -73,8 +92,11 @@ export default function Profile() {
     >
       <h1>Perfil 👤</h1>
 
+      {/* 👤 avatar */}
       <img
-        src={avatar || "https://via.placeholder.com/120"}
+        src={
+          avatar || `https://ui-avatars.com/api/?name=${session?.user?.name}`
+        }
         alt="avatar"
         style={{
           width: "120px",
@@ -85,14 +107,16 @@ export default function Profile() {
         }}
       />
 
+      {/* 📤 upload */}
       <input
         type="file"
         accept="image/*"
-        onChange={(e) => handleImage(e.target.files[0])}
+        onChange={(e) => handleImage(e.target.files?.[0])}
       />
 
       {uploading && <p>Enviando...</p>}
 
+      {/* 👤 dados */}
       <p>
         <strong>Nome:</strong> {session.user.name}
       </p>
