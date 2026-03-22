@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import MessageCard from "../components/MessageCard";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
+import Pusher from "pusher-js";
 
 export default function Feed() {
   const [messages, setMessages] = useState([]);
@@ -10,26 +11,44 @@ export default function Feed() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // 🔒 redireciona corretamente
+  // 🔒 proteção de rota
   useEffect(() => {
     if (status === "loading") return;
-
-    if (!session) {
-      router.push("/login");
-    }
+    if (!session) router.push("/login");
   }, [session, status]);
 
-  // ⏳ evita render antes da validação
-  if (status === "loading" || !session) {
-    return null;
-  }
+  if (status === "loading" || !session) return null;
 
+  // 🚀 carregar + realtime
   useEffect(() => {
+    // 🔹 carregar mensagens iniciais
     fetch("/api/messages")
       .then((res) => res.json())
       .then((data) => setMessages(data));
+
+    // 🚀 Pusher realtime
+    const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
+      cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+    });
+
+    const channel = pusher.subscribe("feed");
+
+    channel.bind("new-message", (data) => {
+      setMessages((prev) => {
+        // evita duplicar mensagem
+        const exists = prev.find((m) => m._id === data._id);
+        if (exists) return prev;
+        return [data, ...prev];
+      });
+    });
+
+    return () => {
+      channel.unbind_all();
+      channel.unsubscribe();
+    };
   }, []);
 
+  // 📝 enviar mensagem
   const handleSubmit = async () => {
     if (!newMessage.trim()) return;
 
@@ -38,16 +57,12 @@ export default function Feed() {
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        content: newMessage,
-      }),
+      body: JSON.stringify({ content: newMessage }),
     });
 
     setNewMessage("");
 
-    const res = await fetch("/api/messages");
-    const data = await res.json();
-    setMessages(data);
+    // ❌ NÃO precisa mais refetch (realtime resolve)
   };
 
   return (
@@ -92,21 +107,46 @@ export default function Feed() {
         }}
       >
         <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+          {/* título */}
           <div style={{ textAlign: "center", marginBottom: "50px" }}>
             <h1>Feed ✨</h1>
             <p style={{ opacity: 0.5 }}>Observe. Sinta. Permaneça.</p>
           </div>
 
+          {/* input */}
           <div style={{ marginBottom: "40px" }}>
             <textarea
               placeholder="Escreva uma mensagem..."
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
+              style={{
+                width: "100%",
+                padding: "15px",
+                borderRadius: "10px",
+                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(255,255,255,0.03)",
+                color: "#fff",
+                marginBottom: "10px",
+                outline: "none",
+              }}
             />
 
-            <button onClick={handleSubmit}>Publicar ✨</button>
+            <button
+              onClick={handleSubmit}
+              style={{
+                padding: "10px 20px",
+                borderRadius: "20px",
+                border: "1px solid rgba(255,255,255,0.2)",
+                background: "transparent",
+                color: "#fff",
+                cursor: "pointer",
+              }}
+            >
+              Publicar ✨
+            </button>
           </div>
 
+          {/* mensagens */}
           {messages.map((msg) => (
             <MessageCard key={msg._id} msg={msg} />
           ))}
