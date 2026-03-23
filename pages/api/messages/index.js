@@ -20,7 +20,7 @@ export default async function handler(req, res) {
   // 🔹 GET (mensagens)
   if (req.method === "GET") {
     try {
-      const messages = await Message.find().sort({ _id: -1 });
+      const messages = await Message.find().sort({ createdAt: -1 });
       return res.status(200).json(messages);
     } catch {
       return res.status(500).json({ error: "Erro ao buscar mensagens" });
@@ -44,18 +44,20 @@ export default async function handler(req, res) {
       }
 
       // 🔥 BUSCA USUÁRIO REAL NO BANCO
-      const user = await User.findOne({ email: session.user.email });
+      const user = await User.findOne({ email: session.user.email }).lean();
 
       if (!user) {
         return res.status(404).json({ error: "Usuário não encontrado" });
       }
 
-      const newMessage = await Message.create({
+      const newMessage = new Message({
         content,
         author: session.user.name,
-        username: user.username, // 👈 CORRETO AGORA
+        username: user.username,
         createdAt: new Date(),
       });
+
+      await newMessage.save();
 
       // 🚀 realtime feed
       await pusher.trigger("feed", "new-message", newMessage);
