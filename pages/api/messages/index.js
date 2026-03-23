@@ -4,7 +4,6 @@ import Comment from "../../../lib/models/Comment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
-import User from "../../../lib/models/User";
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
@@ -22,12 +21,12 @@ export default async function handler(req, res) {
     try {
       const messages = await Message.find().sort({ createdAt: -1 });
       return res.status(200).json(messages);
-    } catch {
+    } catch (err) {
+      console.error("🔥 ERRO GET:", err);
       return res.status(500).json({ error: "Erro ao buscar mensagens" });
     }
   }
 
-  // 🔹 POST (criar mensagem)
   // 🔹 POST (criar mensagem)
   if (req.method === "POST") {
     try {
@@ -43,28 +42,26 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Mensagem vazia" });
       }
 
-      // 🔥 BUSCA USUÁRIO REAL NO BANCO
-      const user = await User.findOne({ email: session.user.email }).lean();
+      // 🔥 GERA USERNAME SEM DEPENDER DO BANCO
+      const username = session.user.email.split("@")[0];
 
-      if (!user) {
-        return res.status(404).json({ error: "Usuário não encontrado" });
-      }
+      console.log("🔥 USERNAME GERADO:", username);
 
       const newMessage = new Message({
         content,
         author: session.user.name,
-        username: user.username,
+        username, // 👈 AGORA SEMPRE EXISTE
         createdAt: new Date(),
       });
 
       await newMessage.save();
 
-      // 🚀 realtime feed
+      // 🚀 realtime
       await pusher.trigger("feed", "new-message", newMessage);
 
       return res.status(201).json(newMessage);
     } catch (err) {
-      console.error(err);
+      console.error("🔥 ERRO POST:", err);
       return res.status(500).json({ error: "Erro ao criar mensagem" });
     }
   }
@@ -99,7 +96,8 @@ export default async function handler(req, res) {
       await pusher.trigger("feed", "delete-message", { id });
 
       return res.status(200).json({ success: true });
-    } catch {
+    } catch (err) {
+      console.error("🔥 ERRO DELETE:", err);
       return res.status(500).json({ error: "Erro ao deletar mensagem" });
     }
   }
