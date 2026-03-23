@@ -64,13 +64,17 @@ export default function Profile() {
       const imageUrl = data.secure_url;
 
       // 🔥 CORREÇÃO AQUI (users)
-      await fetch("/api/users/avatar", {
+      const res2 = await fetch("/api/users/avatar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ avatar: imageUrl }),
       });
+
+      const data2 = await res2.json();
+
+      console.log("🔥 RESPOSTA AVATAR:", data2);
 
       setAvatar(imageUrl);
     } catch (err) {
