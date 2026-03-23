@@ -4,6 +4,7 @@ import Comment from "../../../lib/models/Comment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
+import User from "../../../lib/models/User";
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
@@ -27,6 +28,7 @@ export default async function handler(req, res) {
   }
 
   // 🔹 POST (criar mensagem)
+  // 🔹 POST (criar mensagem)
   if (req.method === "POST") {
     try {
       const session = await getServerSession(req, res, authOptions);
@@ -41,12 +43,17 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Mensagem vazia" });
       }
 
-      const username = session.user.email.split("@")[0];
+      // 🔥 BUSCA USUÁRIO REAL NO BANCO
+      const user = await User.findOne({ email: session.user.email });
+
+      if (!user) {
+        return res.status(404).json({ error: "Usuário não encontrado" });
+      }
 
       const newMessage = await Message.create({
         content,
         author: session.user.name,
-        username,
+        username: user.username, // 👈 CORRETO AGORA
         createdAt: new Date(),
       });
 
@@ -54,7 +61,8 @@ export default async function handler(req, res) {
       await pusher.trigger("feed", "new-message", newMessage);
 
       return res.status(201).json(newMessage);
-    } catch {
+    } catch (err) {
+      console.error(err);
       return res.status(500).json({ error: "Erro ao criar mensagem" });
     }
   }
