@@ -14,6 +14,9 @@ const pusher = new Pusher({
 });
 
 export default async function handler(req, res) {
+  // 🔥 LOG PRINCIPAL (TESTE DEFINITIVO)
+  console.log("🚨 API MESSAGES INDEX EXECUTANDO 🚨");
+
   await connectToDatabase();
 
   // 🔹 GET (mensagens)
@@ -42,7 +45,10 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Mensagem vazia" });
       }
 
-      // 🔥 GERA USERNAME SEM DEPENDER DO BANCO
+      // 🔥 DEBUG
+      console.log("🔥 SESSION:", session);
+
+      // 🔥 GERA USERNAME
       const username = session.user.email.split("@")[0];
 
       console.log("🔥 USERNAME GERADO:", username);
@@ -50,11 +56,13 @@ export default async function handler(req, res) {
       const newMessage = new Message({
         content,
         author: session.user.name,
-        username, // 👈 AGORA SEMPRE EXISTE
+        username,
         createdAt: new Date(),
       });
 
       await newMessage.save();
+
+      console.log("🔥 MENSAGEM SALVA:", newMessage);
 
       // 🚀 realtime
       await pusher.trigger("feed", "new-message", newMessage);
@@ -91,6 +99,8 @@ export default async function handler(req, res) {
 
       await Message.findByIdAndDelete(id);
       await Comment.deleteMany({ messageId: id });
+
+      console.log("🔥 MENSAGEM DELETADA:", id);
 
       // 🚀 realtime delete
       await pusher.trigger("feed", "delete-message", { id });
