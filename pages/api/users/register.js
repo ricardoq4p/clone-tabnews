@@ -1,6 +1,6 @@
 import { hash } from "bcryptjs";
-import connectToDatabase from "../../lib/db";
-import User from "../../lib/models/User";
+import connectToDatabase from "../../../lib/db";
+import User from "../../../lib/models/User";
 import nodemailer from "nodemailer";
 
 export default async function handler(req, res) {

@@ -1,5 +1,5 @@
-import connectToDatabase from "../../../lib/db";
-import Comment from "../../../lib/models/Comment";
+import connectToDatabase from "../../../../lib/db";
+import Comment from "../../../../lib/models/Comment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";

@@ -1,5 +1,5 @@
-import connectToDatabase from "../../../lib/db";
-import User from "../../../lib/models/User";
+import connectToDatabase from "../../../../lib/db";
+import User from "../../../../lib/models/User";
 
 export default async function handler(req, res) {
   await connectToDatabase();
