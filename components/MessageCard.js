@@ -8,12 +8,12 @@ export default function MessageCard({ msg }) {
   const [avatar, setAvatar] = useState("");
 
   const { data: session } = useSession();
-  const currentUser = session?.user?.name;
+  const currentUserId = session?.user?.id;
 
   // 🛑 proteção
   if (!msg || !msg._id) return null;
 
-  const isAuthor = msg?.author === currentUser;
+  const isAuthor = msg?.userId?._id === currentUserId;
 
   // 🕒 FORMATAR DATA (SÃO PAULO)
   const formatDate = (date) => {
@@ -34,38 +34,18 @@ export default function MessageCard({ msg }) {
     return `${data} às ${hora}`;
   };
 
-  // 🔥 AVATAR
+  // 🔥 AVATAR (AGORA USANDO USERID)
   useEffect(() => {
-    if (!msg?.username) {
+    if (msg?.userId?.avatar) {
+      setAvatar(msg.userId.avatar);
+    } else {
       setAvatar(
         `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          msg.author || "User",
+          msg?.userId?.name || "User",
         )}`,
       );
-      return;
     }
-
-    fetch(`/api/users/${msg.username}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data?.avatar) {
-          setAvatar(data.avatar);
-        } else {
-          setAvatar(
-            `https://ui-avatars.com/api/?name=${encodeURIComponent(
-              msg.author || "User",
-            )}`,
-          );
-        }
-      })
-      .catch(() => {
-        setAvatar(
-          `https://ui-avatars.com/api/?name=${encodeURIComponent(
-            msg.author || "User",
-          )}`,
-        );
-      });
-  }, [msg?.username, msg?.author]);
+  }, [msg?.userId]);
 
   // 🔹 carregar comentários
   useEffect(() => {
@@ -167,7 +147,7 @@ export default function MessageCard({ msg }) {
           }}
         />
         <div>
-          <span style={{ opacity: 0.7 }}>{msg.author || "Usuário"}</span>
+          <span style={{ opacity: 0.7 }}>{msg.userId?.name || "Usuário"}</span>
 
           {/* 🕒 DATA */}
           <div style={{ fontSize: "12px", opacity: 0.5 }}>

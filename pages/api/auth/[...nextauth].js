@@ -4,7 +4,6 @@ import { compare } from "bcryptjs";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
 
-// 🔥 EXPORTA A CONFIG
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -40,7 +39,7 @@ export const authOptions = {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
-          role: user.role || "user", // 🔥 já prepara admin
+          role: user.role || "user",
         };
       },
     }),
@@ -50,15 +49,21 @@ export const authOptions = {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = user.role; // 🔥 importante
+        token.role = user.role;
       }
+
+      // 🔥 fallback (evita bug em produção)
+      if (!token.id && token.sub) {
+        token.id = token.sub;
+      }
+
       return token;
     },
 
     async session({ session, token }) {
       if (session?.user) {
         session.user.id = token.id;
-        session.user.role = token.role; // 🔥 importante
+        session.user.role = token.role;
       }
       return session;
     },
@@ -76,5 +81,4 @@ export const authOptions = {
   secret: process.env.NEXTAUTH_SECRET,
 };
 
-// 🔥 EXPORT DEFAULT
 export default NextAuth(authOptions);

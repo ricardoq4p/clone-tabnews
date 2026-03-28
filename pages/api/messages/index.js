@@ -14,7 +14,6 @@ const pusher = new Pusher({
 });
 
 export default async function handler(req, res) {
-  // 🔥 LOG PRINCIPAL (TESTE DEFINITIVO)
   console.log("🚨 API MESSAGES INDEX EXECUTANDO 🚨");
 
   await connectToDatabase();
@@ -22,7 +21,10 @@ export default async function handler(req, res) {
   // 🔹 GET (mensagens)
   if (req.method === "GET") {
     try {
-      const messages = await Message.find().sort({ createdAt: -1 });
+      const messages = await Message.find()
+        .populate("userId", "name username avatar") // 🔥 AQUI É O SEGREDO
+        .sort({ createdAt: -1 });
+
       return res.status(200).json(messages);
     } catch (err) {
       console.error("🔥 ERRO GET:", err);
@@ -45,29 +47,27 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Mensagem vazia" });
       }
 
-      // 🔥 DEBUG
       console.log("🔥 SESSION:", session);
-
-      // 🔥 GERA USERNAME
-      const username = session.user.email.split("@")[0];
-
-      console.log("🔥 USERNAME GERADO:", username);
 
       const newMessage = new Message({
         content,
-        author: session.user.name,
-        username,
-        createdAt: new Date(),
+        userId: session.user.id, // 🔥 NOVO PADRÃO
       });
 
       await newMessage.save();
 
-      console.log("🔥 MENSAGEM SALVA:", newMessage);
+      // 🔥 já retorna populado
+      const populatedMessage = await newMessage.populate(
+        "userId",
+        "name username avatar",
+      );
+
+      console.log("🔥 MENSAGEM SALVA:", populatedMessage);
 
       // 🚀 realtime
-      await pusher.trigger("feed", "new-message", newMessage);
+      await pusher.trigger("feed", "new-message", populatedMessage);
 
-      return res.status(201).json(newMessage);
+      return res.status(201).json(populatedMessage);
     } catch (err) {
       console.error("🔥 ERRO POST:", err);
       return res.status(500).json({ error: "Erro ao criar mensagem" });
@@ -91,7 +91,8 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: "Mensagem não encontrada" });
       }
 
-      const isAuthor = message.author === session.user.name;
+      // 🔥 validação correta agora
+      const isAuthor = message.userId.toString() === session.user.id;
 
       if (!isAuthor) {
         return res.status(403).json({ error: "Sem permissão" });
