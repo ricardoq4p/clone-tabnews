@@ -15,10 +15,28 @@ export default function MessageCard({ msg }) {
 
   const isAuthor = msg?.author === currentUser;
 
-  // 🔥 AVATAR (CORRIGIDO + FALLBACK)
+  // 🕒 FORMATAR DATA (SÃO PAULO)
+  const formatDate = (date) => {
+    if (!date) return "";
+
+    const d = new Date(date);
+
+    const data = d.toLocaleDateString("pt-BR", {
+      timeZone: "America/Sao_Paulo",
+    });
+
+    const hora = d.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "America/Sao_Paulo",
+    });
+
+    return `${data} às ${hora}`;
+  };
+
+  // 🔥 AVATAR
   useEffect(() => {
     if (!msg?.username) {
-      // fallback: usa iniciais
       setAvatar(
         `https://ui-avatars.com/api/?name=${encodeURIComponent(
           msg.author || "User",
@@ -33,7 +51,6 @@ export default function MessageCard({ msg }) {
         if (data?.avatar) {
           setAvatar(data.avatar);
         } else {
-          // fallback se não tiver avatar no banco
           setAvatar(
             `https://ui-avatars.com/api/?name=${encodeURIComponent(
               msg.author || "User",
@@ -68,7 +85,6 @@ export default function MessageCard({ msg }) {
 
     const channel = pusher.subscribe("comments");
 
-    // 🟢 novo comentário
     channel.bind("new-comment", (data) => {
       if (data?.messageId === msg._id) {
         setComments((prev) => {
@@ -78,7 +94,6 @@ export default function MessageCard({ msg }) {
       }
     });
 
-    // 🔴 delete comentário
     channel.bind("delete-comment", (data) => {
       setComments((prev) => prev.filter((c) => c._id !== data?.id));
     });
@@ -151,7 +166,14 @@ export default function MessageCard({ msg }) {
             objectFit: "cover",
           }}
         />
-        <span style={{ opacity: 0.7 }}>{msg.author || "Usuário"}</span>
+        <div>
+          <span style={{ opacity: 0.7 }}>{msg.author || "Usuário"}</span>
+
+          {/* 🕒 DATA */}
+          <div style={{ fontSize: "12px", opacity: 0.5 }}>
+            {formatDate(msg.createdAt)}
+          </div>
+        </div>
       </div>
 
       {/* 💬 conteúdo */}
@@ -181,7 +203,9 @@ export default function MessageCard({ msg }) {
         {comments.map((c) => (
           <div key={c._id}>
             <p>{c.content}</p>
-            <small>— {c.author}</small>
+            <small>
+              — {c.author} • {formatDate(c.createdAt)}
+            </small>
           </div>
         ))}
       </div>
