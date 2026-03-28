@@ -1,6 +1,6 @@
-import connectToDatabase from "../../../lib/db";
-import Message from "../../../lib/models/Message";
-import Comment from "../../../lib/models/Comment";
+import connectToDatabase from "@/lib/db";
+import Message from "@/lib/models/Message";
+import Comment from "@/lib/models/Comment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
