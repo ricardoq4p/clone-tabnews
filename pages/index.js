@@ -2,6 +2,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/router";
 import Link from "next/link";
+import AuthLayout from "../components/AuthLayout";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -27,99 +28,49 @@ export default function Login() {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "radial-gradient(circle at center, #1a1a1a 0%, #000 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        color: "#fff",
-        fontFamily: "sans-serif",
-      }}
-    >
-      <form
-        onSubmit={handleSubmit}
-        style={{
-          width: "100%",
-          maxWidth: "400px",
-          padding: "40px",
-          borderRadius: "16px",
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          backdropFilter: "blur(10px)",
-        }}
-      >
-        <h2 style={{ marginBottom: "20px", textAlign: "center" }}>Entrar ✨</h2>
+    <AuthLayout title="Entrar ✨">
+      {error && (
+        <div className="mb-4 p-3 rounded bg-red-500/20 text-red-300 text-sm">
+          {error}
+        </div>
+      )}
 
-        {/* EMAIL */}
+      <form onSubmit={handleSubmit} className="space-y-4">
         <input
           type="email"
           placeholder="Seu email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
-          style={{
-            width: "100%",
-            padding: "12px",
-            marginBottom: "12px",
-            borderRadius: "8px",
-            border: "1px solid rgba(255,255,255,0.1)",
-            background: "rgba(255,255,255,0.02)",
-            color: "#fff",
-            outline: "none",
-          }}
+          className="w-full p-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
         />
 
-        {/* SENHA */}
         <input
           type="password"
           placeholder="Sua senha"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          style={{
-            width: "100%",
-            padding: "12px",
-            marginBottom: "12px",
-            borderRadius: "8px",
-            border: "1px solid rgba(255,255,255,0.1)",
-            background: "rgba(255,255,255,0.02)",
-            color: "#fff",
-            outline: "none",
-          }}
+          className="w-full p-3 rounded-lg bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-white/20"
         />
 
-        {/* ERRO */}
-        {error && (
-          <p style={{ color: "#ff6b6b", marginBottom: "10px" }}>{error}</p>
-        )}
-
-        {/* BOTÃO */}
         <button
           type="submit"
-          style={{
-            width: "100%",
-            padding: "12px",
-            borderRadius: "20px",
-            border: "1px solid rgba(255,255,255,0.2)",
-            background: "transparent",
-            color: "#fff",
-            cursor: "pointer",
-            marginTop: "10px",
-          }}
+          className="w-full p-3 rounded-lg border border-white/20 text-white bg-white/5 hover:bg-white/10 transition"
         >
           Entrar
         </button>
-
-        {/* LINK */}
-        <p style={{ marginTop: "20px", textAlign: "center", opacity: 0.6 }}>
-          Não tem conta?{" "}
-          <Link href="/register" style={{ color: "#fff" }}>
-            Criar conta
-          </Link>
-        </p>
       </form>
-    </div>
+
+      <p className="text-sm mt-4 text-center text-gray-400">
+        Não tem conta?{" "}
+        <Link
+          href="/register"
+          className="text-gray-300 hover:text-white underline"
+        >
+          Criar conta
+        </Link>
+      </p>
+    </AuthLayout>
   );
 }
