@@ -13,9 +13,10 @@ export default function MessageCard({ msg }) {
   // 🛑 proteção
   if (!msg || !msg._id) return null;
 
-  const isAuthor = msg?.userId?._id === currentUserId;
+  // ⚠️ se você não usa userId no message, pode remover isso depois
+  const isAuthor = false;
 
-  // 🕒 FORMATAR DATA (SÃO PAULO)
+  // 🕒 FORMATAR DATA
   const formatDate = (date) => {
     if (!date) return "";
 
@@ -34,18 +35,14 @@ export default function MessageCard({ msg }) {
     return `${data} às ${hora}`;
   };
 
-  // 🔥 AVATAR (AGORA USANDO USERID)
+  // 🔥 AVATAR (USANDO AUTHOR)
   useEffect(() => {
-    if (msg?.userId?.avatar) {
-      setAvatar(msg.userId.avatar);
-    } else {
-      setAvatar(
-        `https://ui-avatars.com/api/?name=${encodeURIComponent(
-          msg?.userId?.name || "User",
-        )}`,
-      );
-    }
-  }, [msg?.userId]);
+    setAvatar(
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(
+        msg?.author || "User",
+      )}`,
+    );
+  }, [msg]);
 
   // 🔹 carregar comentários
   useEffect(() => {
@@ -57,7 +54,7 @@ export default function MessageCard({ msg }) {
       .catch(() => setComments([]));
   }, [msg._id]);
 
-  // 🚀 REALTIME
+  // 🚀 REALTIME (Pusher)
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
@@ -107,7 +104,7 @@ export default function MessageCard({ msg }) {
     }
   };
 
-  // 🗑️ deletar mensagem
+  // 🗑️ deletar mensagem (desativado por enquanto)
   const handleDelete = async () => {
     if (!confirm("Deseja excluir?")) return;
 
@@ -147,7 +144,8 @@ export default function MessageCard({ msg }) {
           }}
         />
         <div>
-          <span style={{ opacity: 0.7 }}>{msg.userId?.name || "Usuário"}</span>
+          {/* ✅ AQUI ESTÁ A CORREÇÃO */}
+          <span style={{ opacity: 0.7 }}>{msg.author || "Usuário"}</span>
 
           {/* 🕒 DATA */}
           <div style={{ fontSize: "12px", opacity: 0.5 }}>
@@ -161,7 +159,7 @@ export default function MessageCard({ msg }) {
         {msg.content || ""}
       </p>
 
-      {/* 🗑️ excluir */}
+      {/* 🗑️ excluir (opcional depois) */}
       {isAuthor && (
         <button onClick={handleDelete} style={{ marginTop: "10px" }}>
           Excluir
