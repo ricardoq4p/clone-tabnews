@@ -13,32 +13,42 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+function normalizeMessage(message) {
+  const plainMessage = typeof message?.toObject === "function" ? message.toObject() : message;
+  const authorName = plainMessage?.userId?.name || plainMessage?.author || "Usuario";
+  const authorAvatar = plainMessage?.userId?.avatar || plainMessage?.avatar || "";
+
+  return {
+    ...plainMessage,
+    author: authorName,
+    avatar: authorAvatar,
+  };
+}
+
 export default async function handler(req, res) {
-  console.log("🚨 API MESSAGES INDEX EXECUTANDO 🚨");
+  console.log("API MESSAGES INDEX EXECUTANDO");
 
   await connectToDatabase();
 
-  // 🔹 GET (mensagens)
   if (req.method === "GET") {
     try {
       const messages = await Message.find()
-        .populate("userId", "name username avatar") // 🔥 AQUI É O SEGREDO
+        .populate("userId", "name username avatar")
         .sort({ createdAt: -1 });
 
-      return res.status(200).json(messages);
+      return res.status(200).json(messages.map(normalizeMessage));
     } catch (err) {
-      console.error("🔥 ERRO GET:", err);
+      console.error("ERRO GET:", err);
       return res.status(500).json({ error: "Erro ao buscar mensagens" });
     }
   }
 
-  // 🔹 POST (criar mensagem)
   if (req.method === "POST") {
     try {
       const session = await getServerSession(req, res, authOptions);
 
       if (!session) {
-        return res.status(401).json({ error: "Não autenticado" });
+        return res.status(401).json({ error: "Nao autenticado" });
       }
 
       const { content } = req.body;
@@ -47,71 +57,56 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Mensagem vazia" });
       }
 
-      console.log("🔥 SESSION:", session);
-
       const newMessage = new Message({
         content,
-        userId: session.user.id, // 🔥 NOVO PADRÃO
+        userId: session.user.id,
       });
 
       await newMessage.save();
 
-      // 🔥 já retorna populado
-      const populatedMessage = await newMessage.populate(
-        "userId",
-        "name username avatar",
-      );
+      const populatedMessage = await newMessage.populate("userId", "name username avatar");
+      const normalizedMessage = normalizeMessage(populatedMessage);
 
-      console.log("🔥 MENSAGEM SALVA:", populatedMessage);
+      await pusher.trigger("feed", "new-message", normalizedMessage);
 
-      // 🚀 realtime
-      await pusher.trigger("feed", "new-message", populatedMessage);
-
-      return res.status(201).json(populatedMessage);
+      return res.status(201).json(normalizedMessage);
     } catch (err) {
-      console.error("🔥 ERRO POST:", err);
+      console.error("ERRO POST:", err);
       return res.status(500).json({ error: "Erro ao criar mensagem" });
     }
   }
 
-  // 🔹 DELETE (mensagem)
   if (req.method === "DELETE") {
     try {
       const session = await getServerSession(req, res, authOptions);
 
       if (!session) {
-        return res.status(401).json({ error: "Não autenticado" });
+        return res.status(401).json({ error: "Nao autenticado" });
       }
 
       const { id } = req.body;
-
       const message = await Message.findById(id);
 
       if (!message) {
-        return res.status(404).json({ error: "Mensagem não encontrada" });
+        return res.status(404).json({ error: "Mensagem nao encontrada" });
       }
 
-      // 🔥 validação correta agora
       const isAuthor = message.userId.toString() === session.user.id;
 
       if (!isAuthor) {
-        return res.status(403).json({ error: "Sem permissão" });
+        return res.status(403).json({ error: "Sem permissao" });
       }
 
       await Message.findByIdAndDelete(id);
       await Comment.deleteMany({ messageId: id });
-
-      console.log("🔥 MENSAGEM DELETADA:", id);
-
-      // 🚀 realtime delete
       await pusher.trigger("feed", "delete-message", { id });
 
       return res.status(200).json({ success: true });
     } catch (err) {
-      console.error("🔥 ERRO DELETE:", err);
+      console.error("ERRO DELETE:", err);
       return res.status(500).json({ error: "Erro ao deletar mensagem" });
     }
   }
 
-  return res.status(405).json({ error: "Método não permitido" });
+  return res.status(405).json({ error: "Metodo nao permitido" });
 }
