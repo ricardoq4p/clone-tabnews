@@ -10,24 +10,24 @@ export default async function handler(req, res) {
     const session = await getServerSession(req, res, authOptions);
 
     if (!session) {
-      return res.status(401).json({ error: "Não autenticado" });
+      return res.status(401).json({ error: "Nao autenticado" });
     }
 
     const user = await User.findOne({ email: session.user.email });
 
     if (!user) {
-      return res.status(404).json({ error: "Usuário não encontrado" });
+      return res.status(404).json({ error: "Usuario nao encontrado" });
     }
 
-    // 🔥 retorno padronizado
     return res.status(200).json({
       name: user.name,
       email: user.email,
       username: user.username,
-      avatar: user.avatar || null, // 🔥 GARANTE CONSISTÊNCIA
+      avatar: user.avatar || null,
+      calorieGoal: user.calorieGoal || 1200,
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ error: "Erro ao buscar usuário" });
+    return res.status(500).json({ error: "Erro ao buscar usuario" });
   }
 }
