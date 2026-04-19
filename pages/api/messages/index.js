@@ -4,6 +4,11 @@ import Comment from "@/lib/models/Comment";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
+import {
+  generatePanteraReply,
+  hasPanteraMention,
+  PANTERA_PROFILE,
+} from "@/lib/pantera-ai";
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
@@ -23,6 +28,35 @@ function normalizeMessage(message) {
     author: authorName,
     avatar: authorAvatar,
   };
+}
+
+async function maybeReplyAsPantera({ message }) {
+  if (!hasPanteraMention(message.content)) {
+    return;
+  }
+
+  try {
+    const replyText = await generatePanteraReply({
+      authorName: message.author,
+      message,
+      comments: [],
+      mentionSource: {
+        type: "post",
+        content: message.content,
+      },
+    });
+
+    const panteraComment = await Comment.create({
+      content: replyText,
+      author: PANTERA_PROFILE.name,
+      avatar: PANTERA_PROFILE.avatar,
+      messageId: message._id.toString(),
+    });
+
+    await pusher.trigger("comments", "new-comment", panteraComment);
+  } catch (err) {
+    console.error("ERRO PANTERA POST:", err);
+  }
 }
 
 export default async function handler(req, res) {
@@ -68,6 +102,7 @@ export default async function handler(req, res) {
       const normalizedMessage = normalizeMessage(populatedMessage);
 
       await pusher.trigger("feed", "new-message", normalizedMessage);
+      await maybeReplyAsPantera({ message: normalizedMessage });
 
       return res.status(201).json(normalizedMessage);
     } catch (err) {
