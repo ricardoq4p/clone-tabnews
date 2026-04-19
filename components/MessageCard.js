@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Pusher from "pusher-js";
 
@@ -17,12 +17,10 @@ export default function MessageCard({ msg }) {
   const messageUserId = typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
   const isAuthor = Boolean(messageUserId && session?.user?.id === messageUserId);
   const authorName = msg.userId?.name || msg.author || "Usuario";
-  const authorAvatar = useMemo(() => {
-    if (msg.userId?.avatar) return msg.userId.avatar;
-    if (msg.avatar) return msg.avatar;
-
-    return `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=0f172a&color=ffffff`;
-  }, [authorName, msg.avatar, msg.userId?.avatar]);
+  const authorAvatar =
+    msg.userId?.avatar ||
+    msg.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=0f172a&color=ffffff`;
 
   const commentsCountLabel = `${comments.length} ${comments.length === 1 ? "comentario" : "comentarios"}`;
 
