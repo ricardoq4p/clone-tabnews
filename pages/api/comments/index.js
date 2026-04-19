@@ -1,9 +1,15 @@
 import connectToDatabase from "@/lib/db";
 import Comment from "@/lib/models/Comment";
+import Message from "@/lib/models/Message";
 import User from "@/lib/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
+import {
+  generatePanteraReply,
+  hasPanteraMention,
+  PANTERA_PROFILE,
+} from "@/lib/pantera-ai";
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
@@ -23,6 +29,56 @@ function normalizeComment(comment) {
     author: authorName,
     avatar: authorAvatar,
   };
+}
+
+async function maybeReplyAsPantera({ comment, authorName }) {
+  if (!hasPanteraMention(comment.content)) {
+    return;
+  }
+
+  try {
+    const [message, threadComments] = await Promise.all([
+      Message.findById(comment.messageId)
+        .populate("userId", "name avatar")
+        .lean(),
+      Comment.find({ messageId: comment.messageId }).sort({ createdAt: -1 }).limit(8).lean(),
+    ]);
+
+    if (!message) {
+      return;
+    }
+
+    const normalizedMessage = {
+      ...message,
+      author: message?.userId?.name || message?.author || "Usuario",
+    };
+
+    const normalizedThreadComments = threadComments.map((item) => ({
+      ...item,
+      author: item.author || "Usuario",
+    }));
+
+    const replyText = await generatePanteraReply({
+      authorName,
+      message: normalizedMessage,
+      comments: normalizedThreadComments,
+      mentionSource: {
+        type: "comment",
+        content: comment.content,
+      },
+    });
+
+    const panteraComment = await Comment.create({
+      content: replyText,
+      author: PANTERA_PROFILE.name,
+      avatar: PANTERA_PROFILE.avatar,
+      messageId: comment.messageId,
+    });
+
+    await pusher.trigger("comments", "new-comment", panteraComment);
+  } catch (err) {
+    console.error("ERRO PANTERA COMMENT:", err);
+  }
 }
 
 export default async function handler(req, res) {
@@ -62,9 +118,10 @@ export default async function handler(req, res) {
       }
 
       const currentUser = await User.findOne({ email: session.user.email }).select("_id name avatar");
+      const authorName = currentUser?.name || session.user.name || "Usuario";
       const newComment = await Comment.create({
         content: content.trim(),
-        author: currentUser?.name || session.user.name || "Usuario",
+        author: authorName,
         avatar: currentUser?.avatar || "",
         userId: currentUser?._id,
         messageId,
@@ -74,6 +131,7 @@ export default async function handler(req, res) {
       const normalizedComment = normalizeComment(populatedComment);
 
       await pusher.trigger("comments", "new-comment", normalizedComment);
+      await maybeReplyAsPantera({ comment: normalizedComment, authorName });
 
       return res.status(201).json(normalizedComment);
     } catch (err) {
