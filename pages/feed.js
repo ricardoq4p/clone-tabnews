@@ -12,13 +12,11 @@ export default function Feed() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
-  // 🔒 proteção de rota
   useEffect(() => {
     if (status === "loading") return;
     if (!session) router.push("/login");
-  }, [session, status]);
+  }, [session, status, router]);
 
-  // 🔥 buscar usuário
   useEffect(() => {
     if (!session) return;
 
@@ -28,7 +26,6 @@ export default function Feed() {
       .catch(() => {});
   }, [session]);
 
-  // 🚀 carregar mensagens + realtime (ANTES DO RETURN)
   useEffect(() => {
     fetch("/api/messages")
       .then((res) => res.json())
@@ -43,34 +40,27 @@ export default function Feed() {
 
     const channel = pusher.subscribe("feed");
 
-    // 🟢 nova mensagem
     channel.bind("new-message", (data) => {
       setMessages((prev) => {
         if (!data?._id) return prev;
-
-        const exists = prev.find((m) => m._id === data._id);
-        if (exists) return prev;
-
+        if (prev.find((message) => message._id === data._id)) return prev;
         return [data, ...prev];
       });
     });
 
-    // 🔴 deletar mensagem
     channel.bind("delete-message", (data) => {
-      setMessages((prev) => prev.filter((msg) => msg._id !== data.id));
+      setMessages((prev) => prev.filter((message) => message._id !== data.id));
     });
 
     return () => {
       channel.unbind_all();
       pusher.unsubscribe("feed");
-      pusher.disconnect(); // 🔥 ESSENCIAL
+      pusher.disconnect();
     };
   }, []);
 
-  // ⛔ só depois dos hooks
   if (status === "loading" || !session) return null;
 
-  // 📝 publicar
   const handleSubmit = async () => {
     if (!newMessage.trim()) return;
 
@@ -89,133 +79,86 @@ export default function Feed() {
     }
   };
 
+  const avatarUrl =
+    userData?.avatar ||
+    `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.user?.name || "User")}&background=0f172a&color=ffffff`;
+
   return (
-    <>
-      {/* 🔴 HEADER */}
-      <div
-        style={{
-          position: "absolute",
-          top: "20px",
-          right: "20px",
-          display: "flex",
-          gap: "15px",
-          alignItems: "center",
-        }}
-      >
-        <div
-          onClick={() => router.push("/profile")}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            cursor: "pointer",
-          }}
-        >
-          <img
-            src={
-              userData?.avatar ||
-              `https://ui-avatars.com/api/?name=${session?.user?.name}`
-            }
-            alt="avatar"
-            style={{
-              width: "35px",
-              height: "35px",
-              borderRadius: "50%",
-              objectFit: "cover",
-            }}
+    <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-5xl">
+        <header className="glass-panel mb-6 rounded-[28px] px-5 py-4 sm:px-6">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
+                Feed em tempo real
+              </p>
+              <h1 className="mt-2 text-3xl font-semibold text-white">Seu espaco de publicacao</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
+                Compartilhe ideias, acompanhe novas mensagens ao vivo e mantenha a conversa fluindo com uma interface mais limpa.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                onClick={() => router.push("/profile")}
+                className="secondary-button gap-3 rounded-full px-3 py-2"
+              >
+                <img
+                  src={avatarUrl}
+                  alt="avatar"
+                  className="h-10 w-10 rounded-full object-cover"
+                />
+                <span className="max-w-[120px] truncate text-sm">{session?.user?.name}</span>
+              </button>
+
+              <button onClick={() => router.push("/profile")} className="secondary-button rounded-full px-4 py-2 text-sm">
+                Perfil
+              </button>
+
+              <button
+                onClick={() => signOut({ callbackUrl: "/" })}
+                className="secondary-button rounded-full px-4 py-2 text-sm"
+              >
+                Sair
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <section className="glass-panel mb-6 rounded-[28px] p-5 sm:p-6">
+          <div className="mb-4 flex items-start gap-3">
+            <img src={avatarUrl} alt="avatar" className="h-11 w-11 rounded-full object-cover" />
+            <div>
+              <p className="font-medium text-white">{session?.user?.name}</p>
+              <p className="text-sm text-slate-400">O que voce quer compartilhar agora?</p>
+            </div>
+          </div>
+
+          <textarea
+            placeholder="Escreva uma mensagem para a comunidade..."
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            className="field-input min-h-[140px] resize-y"
           />
 
-          <span style={{ color: "#fff", fontWeight: "500" }}>
-            {session?.user?.name}
-          </span>
-        </div>
-
-        <button
-          onClick={() => router.push("/profile")}
-          style={{
-            padding: "6px 14px",
-            borderRadius: "20px",
-            border: "1px solid rgba(255,255,255,0.2)",
-            background: "transparent",
-            color: "#fff",
-            cursor: "pointer",
-          }}
-        >
-          Perfil
-        </button>
-
-        <button
-          onClick={() => signOut({ callbackUrl: "/" })}
-          style={{
-            padding: "6px 14px",
-            borderRadius: "20px",
-            border: "1px solid rgba(255,255,255,0.2)",
-            background: "transparent",
-            color: "#fff",
-            cursor: "pointer",
-          }}
-        >
-          Sair
-        </button>
-      </div>
-
-      {/* 🧠 CONTEÚDO */}
-      <div
-        style={{
-          minHeight: "100vh",
-          background:
-            "radial-gradient(circle at center, #1a1a1a 0%, #000 100%)",
-          color: "#fff",
-          padding: "60px 20px",
-          fontFamily: "sans-serif",
-        }}
-      >
-        <div style={{ maxWidth: "700px", margin: "0 auto" }}>
-          {/* título */}
-          <div style={{ textAlign: "center", marginBottom: "50px" }}>
-            <h1>Feed ✨</h1>
-            <p style={{ opacity: 0.5 }}>Observe. Sinta. Permaneça.</p>
-          </div>
-
-          {/* input */}
-          <div style={{ marginBottom: "40px" }}>
-            <textarea
-              placeholder="Escreva uma mensagem..."
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              style={{
-                width: "100%",
-                padding: "15px",
-                borderRadius: "10px",
-                border: "1px solid rgba(255,255,255,0.1)",
-                background: "rgba(255,255,255,0.03)",
-                color: "#fff",
-                marginBottom: "10px",
-                outline: "none",
-              }}
-            />
-
-            <button
-              onClick={handleSubmit}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "20px",
-                border: "1px solid rgba(255,255,255,0.2)",
-                background: "transparent",
-                color: "#fff",
-                cursor: "pointer",
-              }}
-            >
-              Publicar ✨
+          <div className="mt-4 flex items-center justify-between gap-4">
+            <p className="text-sm text-slate-500">As novas publicacoes aparecem em tempo real para todos.</p>
+            <button onClick={handleSubmit} className="primary-button px-5 py-3">
+              Publicar
             </button>
           </div>
+        </section>
 
-          {/* mensagens */}
-          {messages.map((msg) =>
-            msg?._id ? <MessageCard key={msg._id} msg={msg} /> : null,
+        <section className="space-y-4">
+          {messages.length === 0 ? (
+            <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
+              Nenhuma mensagem ainda. Seja a primeira pessoa a publicar.
+            </div>
+          ) : (
+            messages.map((msg) => (msg?._id ? <MessageCard key={msg._id} msg={msg} /> : null))
           )}
-        </div>
+        </section>
       </div>
-    </>
+    </div>
   );
 }
