@@ -7,44 +7,34 @@ export default function MessageCard({ msg }) {
   const [comments, setComments] = useState([]);
   const [avatar, setAvatar] = useState("");
 
-  const { data: session } = useSession();
-  const currentUserId = session?.user?.id;
+  useSession();
 
-  // 🛑 proteção
   if (!msg || !msg._id) return null;
 
-  // ⚠️ se você não usa userId no message, pode remover isso depois
   const isAuthor = false;
 
-  // 🕒 FORMATAR DATA
   const formatDate = (date) => {
     if (!date) return "";
 
-    const d = new Date(date);
-
-    const data = d.toLocaleDateString("pt-BR", {
+    const parsedDate = new Date(date);
+    const formattedDate = parsedDate.toLocaleDateString("pt-BR", {
       timeZone: "America/Sao_Paulo",
     });
-
-    const hora = d.toLocaleTimeString("pt-BR", {
+    const formattedTime = parsedDate.toLocaleTimeString("pt-BR", {
       hour: "2-digit",
       minute: "2-digit",
       timeZone: "America/Sao_Paulo",
     });
 
-    return `${data} às ${hora}`;
+    return `${formattedDate} as ${formattedTime}`;
   };
 
-  // 🔥 AVATAR (USANDO AUTHOR)
   useEffect(() => {
     setAvatar(
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        msg?.author || "User",
-      )}`,
+      `https://ui-avatars.com/api/?name=${encodeURIComponent(msg?.author || "User")}&background=0f172a&color=ffffff`,
     );
   }, [msg]);
 
-  // 🔹 carregar comentários
   useEffect(() => {
     fetch(`/api/comments?messageId=${msg._id}`)
       .then((res) => res.json())
@@ -54,7 +44,6 @@ export default function MessageCard({ msg }) {
       .catch(() => setComments([]));
   }, [msg._id]);
 
-  // 🚀 REALTIME (Pusher)
   useEffect(() => {
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
@@ -65,14 +54,14 @@ export default function MessageCard({ msg }) {
     channel.bind("new-comment", (data) => {
       if (data?.messageId === msg._id) {
         setComments((prev) => {
-          if (prev.find((c) => c._id === data._id)) return prev;
+          if (prev.find((currentComment) => currentComment._id === data._id)) return prev;
           return [data, ...prev];
         });
       }
     });
 
     channel.bind("delete-comment", (data) => {
-      setComments((prev) => prev.filter((c) => c._id !== data?.id));
+      setComments((prev) => prev.filter((currentComment) => currentComment._id !== data?.id));
     });
 
     return () => {
@@ -82,7 +71,6 @@ export default function MessageCard({ msg }) {
     };
   }, [msg._id]);
 
-  // 📝 comentar
   const handleComment = async () => {
     if (!comment.trim()) return;
 
@@ -104,7 +92,6 @@ export default function MessageCard({ msg }) {
     }
   };
 
-  // 🗑️ deletar mensagem (desativado por enquanto)
   const handleDelete = async () => {
     if (!confirm("Deseja excluir?")) return;
 
@@ -122,71 +109,58 @@ export default function MessageCard({ msg }) {
   };
 
   return (
-    <div
-      style={{
-        marginBottom: "40px",
-        padding: "30px",
-        borderRadius: "14px",
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.08)",
-      }}
-    >
-      {/* 👤 header */}
-      <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-        <img
-          src={avatar}
-          alt="avatar"
-          style={{
-            width: "40px",
-            height: "40px",
-            borderRadius: "50%",
-            objectFit: "cover",
-          }}
-        />
-        <div>
-          {/* ✅ AQUI ESTÁ A CORREÇÃO */}
-          <span style={{ opacity: 0.7 }}>{msg.author || "Usuário"}</span>
-
-          {/* 🕒 DATA */}
-          <div style={{ fontSize: "12px", opacity: 0.5 }}>
-            {formatDate(msg.createdAt)}
+    <article className="glass-panel rounded-[28px] p-5 sm:p-6">
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <img src={avatar} alt="avatar" className="h-11 w-11 rounded-full object-cover" />
+          <div>
+            <p className="font-medium text-white">{msg.author || "Usuario"}</p>
+            <p className="text-sm text-slate-500">{formatDate(msg.createdAt)}</p>
           </div>
         </div>
+
+        {isAuthor ? (
+          <button onClick={handleDelete} className="secondary-button rounded-full px-4 py-2 text-sm">
+            Excluir
+          </button>
+        ) : null}
       </div>
 
-      {/* 💬 conteúdo */}
-      <p style={{ fontSize: "1.2rem", marginTop: "15px" }}>
+      <p className="mt-4 whitespace-pre-wrap text-[1.05rem] leading-7 text-slate-200">
         {msg.content || ""}
       </p>
 
-      {/* 🗑️ excluir (opcional depois) */}
-      {isAuthor && (
-        <button onClick={handleDelete} style={{ marginTop: "10px" }}>
-          Excluir
-        </button>
-      )}
+      <div className="mt-6 rounded-3xl border border-white/8 bg-slate-950/30 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+            placeholder="Escreva um comentario..."
+            className="field-input flex-1"
+          />
+          <button onClick={handleComment} className="primary-button px-5 py-3 sm:w-auto">
+            Comentar
+          </button>
+        </div>
 
-      {/* ✍️ comentar */}
-      <div style={{ marginTop: "15px" }}>
-        <input
-          value={comment}
-          onChange={(e) => setComment(e.target.value)}
-          placeholder="Comentar..."
-        />
-        <button onClick={handleComment}>Comentar</button>
+        <div className="mt-4 space-y-3">
+          {comments.length === 0 ? (
+            <p className="text-sm text-slate-500">Ainda nao ha comentarios nesta mensagem.</p>
+          ) : (
+            comments.map((currentComment) => (
+              <div
+                key={currentComment._id}
+                className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
+              >
+                <p className="text-sm leading-6 text-slate-200">{currentComment.content}</p>
+                <p className="mt-2 text-xs text-slate-500">
+                  {currentComment.author} • {formatDate(currentComment.createdAt)}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
       </div>
-
-      {/* 💬 lista */}
-      <div style={{ marginTop: "10px" }}>
-        {comments.map((c) => (
-          <div key={c._id}>
-            <p>{c.content}</p>
-            <small>
-              — {c.author} • {formatDate(c.createdAt)}
-            </small>
-          </div>
-        ))}
-      </div>
-    </div>
+    </article>
   );
 }
