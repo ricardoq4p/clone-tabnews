@@ -39,8 +39,8 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Entre e acompanhe as conversas que importam."
-      subtitle="Um ponto de entrada mais claro, com identidade mais forte e foco total em leitura, publicacao e interacao."
+      title="Entre, publique e chame a Pantera IA quando quiser."
+      subtitle="A comunidade agora pode acionar a inteligencia da casa com @pantera para receber respostas automaticas dentro do proprio feed."
       footer={
         <p className="text-center text-sm text-slate-400">
           Nao tem conta? {" "}
