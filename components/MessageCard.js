@@ -1,17 +1,20 @@
-import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useMemo, useState } from "react";
 import Pusher from "pusher-js";
 
 export default function MessageCard({ msg }) {
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
-  const [avatar, setAvatar] = useState("");
-
-  useSession();
 
   if (!msg || !msg._id) return null;
 
   const isAuthor = false;
+  const authorName = msg.userId?.name || msg.author || "Usuario";
+  const authorAvatar = useMemo(() => {
+    if (msg.userId?.avatar) return msg.userId.avatar;
+    if (msg.avatar) return msg.avatar;
+
+    return `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=0f172a&color=ffffff`;
+  }, [authorName, msg.avatar, msg.userId?.avatar]);
 
   const formatDate = (date) => {
     if (!date) return "";
@@ -28,12 +31,6 @@ export default function MessageCard({ msg }) {
 
     return `${formattedDate} as ${formattedTime}`;
   };
-
-  useEffect(() => {
-    setAvatar(
-      `https://ui-avatars.com/api/?name=${encodeURIComponent(msg?.author || "User")}&background=0f172a&color=ffffff`,
-    );
-  }, [msg]);
 
   useEffect(() => {
     fetch(`/api/comments?messageId=${msg._id}`)
@@ -112,9 +109,9 @@ export default function MessageCard({ msg }) {
     <article className="glass-panel rounded-[28px] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <img src={avatar} alt="avatar" className="h-11 w-11 rounded-full object-cover" />
+          <img src={authorAvatar} alt="avatar" className="h-11 w-11 rounded-full object-cover" />
           <div>
-            <p className="font-medium text-white">{msg.author || "Usuario"}</p>
+            <p className="font-medium text-white">{authorName}</p>
             <p className="text-sm text-slate-500">{formatDate(msg.createdAt)}</p>
           </div>
         </div>
