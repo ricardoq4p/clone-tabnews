@@ -1,13 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSession } from "next-auth/react";
 import Pusher from "pusher-js";
 
 export default function MessageCard({ msg }) {
+  const { data: session } = useSession();
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
+  const [commentsOpen, setCommentsOpen] = useState(true);
+  const [commentsLoading, setCommentsLoading] = useState(true);
+  const [commentSubmitting, setCommentSubmitting] = useState(false);
+  const [commentError, setCommentError] = useState("");
+  const [deleting, setDeleting] = useState(false);
 
   if (!msg || !msg._id) return null;
 
-  const isAuthor = false;
+  const messageUserId = typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
+  const isAuthor = Boolean(messageUserId && session?.user?.id === messageUserId);
   const authorName = msg.userId?.name || msg.author || "Usuario";
   const authorAvatar = useMemo(() => {
     if (msg.userId?.avatar) return msg.userId.avatar;
@@ -15,6 +23,8 @@ export default function MessageCard({ msg }) {
 
     return `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=0f172a&color=ffffff`;
   }, [authorName, msg.avatar, msg.userId?.avatar]);
+
+  const commentsCountLabel = `${comments.length} ${comments.length === 1 ? "comentario" : "comentarios"}`;
 
   const formatDate = (date) => {
     if (!date) return "";
@@ -33,12 +43,15 @@ export default function MessageCard({ msg }) {
   };
 
   useEffect(() => {
+    setCommentsLoading(true);
+
     fetch(`/api/comments?messageId=${msg._id}`)
       .then((res) => res.json())
       .then((data) => {
         setComments(Array.isArray(data) ? data : []);
       })
-      .catch(() => setComments([]));
+      .catch(() => setComments([]))
+      .finally(() => setCommentsLoading(false));
   }, [msg._id]);
 
   useEffect(() => {
@@ -58,7 +71,9 @@ export default function MessageCard({ msg }) {
     });
 
     channel.bind("delete-comment", (data) => {
-      setComments((prev) => prev.filter((currentComment) => currentComment._id !== data?.id));
+      if (data?.messageId === msg._id || !data?.messageId) {
+        setComments((prev) => prev.filter((currentComment) => currentComment._id !== data?.id));
+      }
     });
 
     return () => {
@@ -68,11 +83,16 @@ export default function MessageCard({ msg }) {
     };
   }, [msg._id]);
 
-  const handleComment = async () => {
-    if (!comment.trim()) return;
+  const handleComment = async (e) => {
+    e.preventDefault();
+
+    if (!comment.trim() || commentSubmitting) return;
 
     try {
-      await fetch("/api/comments", {
+      setCommentSubmitting(true);
+      setCommentError("");
+
+      const response = await fetch("/api/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -83,25 +103,41 @@ export default function MessageCard({ msg }) {
         }),
       });
 
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || "Nao foi possivel enviar o comentario.");
+      }
+
       setComment("");
+      setCommentsOpen(true);
     } catch (err) {
-      console.error("Erro ao comentar:", err);
+      setCommentError(err.message || "Nao foi possivel enviar o comentario.");
+    } finally {
+      setCommentSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
-    if (!confirm("Deseja excluir?")) return;
+    if (!confirm("Deseja excluir esta mensagem?")) return;
 
     try {
-      await fetch("/api/messages", {
+      setDeleting(true);
+
+      const response = await fetch("/api/messages", {
         method: "DELETE",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ id: msg._id }),
       });
+
+      if (!response.ok) {
+        throw new Error("Nao foi possivel excluir a mensagem.");
+      }
     } catch (err) {
       console.error("Erro ao deletar:", err);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -116,11 +152,20 @@ export default function MessageCard({ msg }) {
           </div>
         </div>
 
-        {isAuthor ? (
-          <button onClick={handleDelete} className="secondary-button rounded-full px-4 py-2 text-sm">
-            Excluir
-          </button>
-        ) : null}
+        <div className="flex items-center gap-2">
+          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400">
+            {commentsCountLabel}
+          </span>
+          {isAuthor ? (
+            <button
+              onClick={handleDelete}
+              disabled={deleting}
+              className="secondary-button rounded-full px-4 py-2 text-sm"
+            >
+              {deleting ? "Excluindo..." : "Excluir"}
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <p className="mt-4 whitespace-pre-wrap text-[1.05rem] leading-7 text-slate-200">
@@ -128,35 +173,74 @@ export default function MessageCard({ msg }) {
       </p>
 
       <div className="mt-6 rounded-3xl border border-white/8 bg-slate-950/30 p-4">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="mb-4 flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-white">Conversa</p>
+            <p className="text-xs text-slate-500">Responda e acompanhe em tempo real.</p>
+          </div>
+          <button
+            onClick={() => setCommentsOpen((currentValue) => !currentValue)}
+            className="secondary-button rounded-full px-4 py-2 text-sm"
+          >
+            {commentsOpen ? "Ocultar" : "Mostrar"}
+          </button>
+        </div>
+
+        <form onSubmit={handleComment} className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <input
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Escreva um comentario..."
             className="field-input flex-1"
           />
-          <button onClick={handleComment} className="primary-button px-5 py-3 sm:w-auto">
-            Comentar
+          <button type="submit" disabled={commentSubmitting} className="primary-button px-5 py-3 sm:w-auto">
+            {commentSubmitting ? "Enviando..." : "Comentar"}
           </button>
-        </div>
+        </form>
 
-        <div className="mt-4 space-y-3">
-          {comments.length === 0 ? (
-            <p className="text-sm text-slate-500">Ainda nao ha comentarios nesta mensagem.</p>
-          ) : (
-            comments.map((currentComment) => (
-              <div
-                key={currentComment._id}
-                className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
-              >
-                <p className="text-sm leading-6 text-slate-200">{currentComment.content}</p>
-                <p className="mt-2 text-xs text-slate-500">
-                  {currentComment.author} • {formatDate(currentComment.createdAt)}
-                </p>
-              </div>
-            ))
-          )}
-        </div>
+        {commentError ? (
+          <p className="mt-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {commentError}
+          </p>
+        ) : null}
+
+        {commentsOpen ? (
+          <div className="mt-4 space-y-3">
+            {commentsLoading ? (
+              <p className="text-sm text-slate-500">Carregando comentarios...</p>
+            ) : comments.length === 0 ? (
+              <p className="text-sm text-slate-500">Ainda nao ha comentarios nesta mensagem.</p>
+            ) : (
+              comments.map((currentComment) => {
+                const currentCommentAuthor = currentComment.author || currentComment.userId?.name || "Usuario";
+                const currentCommentAvatar =
+                  currentComment.avatar ||
+                  currentComment.userId?.avatar ||
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(currentCommentAuthor)}&background=0f172a&color=ffffff`;
+
+                return (
+                  <div
+                    key={currentComment._id}
+                    className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={currentCommentAvatar}
+                        alt="avatar do comentario"
+                        className="h-9 w-9 rounded-full object-cover"
+                      />
+                      <div>
+                        <p className="text-sm font-medium text-slate-200">{currentCommentAuthor}</p>
+                        <p className="text-xs text-slate-500">{formatDate(currentComment.createdAt)}</p>
+                      </div>
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-slate-200">{currentComment.content}</p>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        ) : null}
       </div>
     </article>
   );
