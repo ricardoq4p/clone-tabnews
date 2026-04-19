@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import MessageCard from "../components/MessageCard";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -65,8 +65,6 @@ export default function Feed() {
     };
   }, []);
 
-  if (status === "loading" || !session) return null;
-
   const handleSubmit = async () => {
     if (!newMessage.trim() || publishing) return;
 
@@ -99,11 +97,14 @@ export default function Feed() {
     userData?.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.user?.name || "User")}&background=0f172a&color=ffffff`;
 
-  const messagesLabel = useMemo(() => {
-    if (messages.length === 0) return "Nenhuma publicacao ainda";
-    if (messages.length === 1) return "1 publicacao na conversa";
-    return `${messages.length} publicacoes na conversa`;
-  }, [messages.length]);
+  let messagesLabel = "Nenhuma publicacao ainda";
+  if (messages.length === 1) {
+    messagesLabel = "1 publicacao na conversa";
+  } else if (messages.length > 1) {
+    messagesLabel = `${messages.length} publicacoes na conversa`;
+  }
+
+  if (status === "loading" || !session) return null;
 
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
