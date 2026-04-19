@@ -7,7 +7,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-10 px-6 py-10 lg:flex-row lg:items-center lg:px-10">
         <section className="max-w-xl">
           <span className="mb-4 inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
-            Clone TabNews
+            Comunidade Pantera
           </span>
           <h1 className="max-w-lg text-4xl font-bold leading-tight text-white sm:text-5xl">
             {title}
@@ -16,17 +16,21 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
             {subtitle}
           </p>
 
+          <div className="mt-6 inline-flex rounded-full border border-emerald-300/20 bg-emerald-400/10 px-4 py-2 text-sm font-medium text-emerald-200">
+            Novidade: mencione @pantera em um post ou comentario e a Pantera IA responde no proprio site.
+          </div>
+
           <div className="mt-8 grid gap-3 text-sm text-slate-300 sm:grid-cols-2">
             <div className="glass-panel rounded-2xl p-4">
               <p className="font-semibold text-white">Feed em tempo real</p>
               <p className="mt-1 text-slate-400">
-                Publique, responda e acompanhe a conversa sem recarregar a página.
+                Publique, responda e acompanhe a conversa sem recarregar a pagina.
               </p>
             </div>
             <div className="glass-panel rounded-2xl p-4">
-              <p className="font-semibold text-white">Experiência mais limpa</p>
+              <p className="font-semibold text-white">Pantera IA por mencao</p>
               <p className="mt-1 text-slate-400">
-                Interface mais clara para deixar o foco no conteúdo e não no ruído visual.
+                Chame a inteligencia da casa com @pantera e receba resposta automatica na conversa.
               </p>
             </div>
           </div>
