@@ -25,59 +25,71 @@ export default function Login() {
       });
 
       if (result?.error) {
-        setError("Email ou senha inválidos");
-      } else {
-        router.replace("/feed");
+        setError("Email ou senha invalidos.");
+        return;
       }
-    } catch (err) {
-      setError("Erro ao fazer login");
+
+      router.replace("/feed");
+    } catch {
+      setError("Erro ao fazer login. Tente novamente.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <AuthLayout title="Entrar">
-      {error && (
-        <div className="mb-4 p-3 rounded bg-red-100 text-red-700 text-sm">
+    <AuthLayout
+      title="Entre e acompanhe as conversas que importam."
+      subtitle="Um ponto de entrada mais claro, com identidade mais forte e foco total em leitura, publicacao e interacao."
+      footer={
+        <p className="text-center text-sm text-slate-400">
+          Nao tem conta? {" "}
+          <Link href="/register" className="font-medium text-cyan-200 transition hover:text-cyan-100">
+            Criar conta
+          </Link>
+        </p>
+      }
+    >
+      <div className="mb-6">
+        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Acessar conta</p>
+        <h2 className="mt-2 text-2xl font-semibold text-white">Bem-vindo de volta</h2>
+      </div>
+
+      {error ? (
+        <div className="mb-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
           {error}
         </div>
-      )}
+      ) : null}
 
       <form onSubmit={handleSubmit} className="space-y-4">
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-        />
+        <label className="block text-sm text-slate-300">
+          <span className="mb-2 block">Email</span>
+          <input
+            type="email"
+            placeholder="voce@exemplo.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            className="field-input"
+          />
+        </label>
 
-        <input
-          type="password"
-          placeholder="Senha"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-          className="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-        />
+        <label className="block text-sm text-slate-300">
+          <span className="mb-2 block">Senha</span>
+          <input
+            type="password"
+            placeholder="Digite sua senha"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            className="field-input"
+          />
+        </label>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-black text-white p-3 rounded-lg hover:opacity-80 transition disabled:opacity-50"
-        >
+        <button type="submit" disabled={loading} className="primary-button w-full">
           {loading ? "Entrando..." : "Entrar"}
         </button>
       </form>
-
-      <p className="text-sm mt-4 text-center">
-        Não tem conta?{" "}
-        <Link href="/register" className="text-blue-500 hover:underline">
-          Cadastre-se
-        </Link>
-      </p>
     </AuthLayout>
   );
 }
