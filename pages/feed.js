@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import MessageCard from "../components/MessageCard";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -8,6 +8,9 @@ export default function Feed() {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [userData, setUserData] = useState(null);
+  const [feedLoading, setFeedLoading] = useState(true);
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState("");
 
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -27,12 +30,15 @@ export default function Feed() {
   }, [session]);
 
   useEffect(() => {
+    setFeedLoading(true);
+
     fetch("/api/messages")
       .then((res) => res.json())
       .then((data) => {
         setMessages(Array.isArray(data) ? data : []);
       })
-      .catch(() => setMessages([]));
+      .catch(() => setMessages([]))
+      .finally(() => setFeedLoading(false));
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
@@ -62,10 +68,13 @@ export default function Feed() {
   if (status === "loading" || !session) return null;
 
   const handleSubmit = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || publishing) return;
 
     try {
-      await fetch("/api/messages", {
+      setPublishing(true);
+      setPublishError("");
+
+      const response = await fetch("/api/messages", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -73,15 +82,28 @@ export default function Feed() {
         body: JSON.stringify({ content: newMessage }),
       });
 
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || "Nao foi possivel publicar a mensagem.");
+      }
+
       setNewMessage("");
     } catch (err) {
-      console.error("Erro ao publicar:", err);
+      setPublishError(err.message || "Nao foi possivel publicar a mensagem.");
+    } finally {
+      setPublishing(false);
     }
   };
 
   const avatarUrl =
     userData?.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.user?.name || "User")}&background=0f172a&color=ffffff`;
+
+  const messagesLabel = useMemo(() => {
+    if (messages.length === 0) return "Nenhuma publicacao ainda";
+    if (messages.length === 1) return "1 publicacao na conversa";
+    return `${messages.length} publicacoes na conversa`;
+  }, [messages.length]);
 
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
@@ -141,16 +163,37 @@ export default function Feed() {
             className="field-input min-h-[140px] resize-y"
           />
 
-          <div className="mt-4 flex items-center justify-between gap-4">
-            <p className="text-sm text-slate-500">As novas publicacoes aparecem em tempo real para todos.</p>
-            <button onClick={handleSubmit} className="primary-button px-5 py-3">
-              Publicar
+          {publishError ? (
+            <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+              {publishError}
+            </p>
+          ) : null}
+
+          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-slate-500">As novas publicacoes aparecem em tempo real para todos.</p>
+              <p className="mt-1 text-xs text-slate-600">Dica: escreva com contexto para gerar respostas melhores.</p>
+            </div>
+            <button onClick={handleSubmit} disabled={publishing} className="primary-button px-5 py-3">
+              {publishing ? "Publicando..." : "Publicar"}
             </button>
           </div>
         </section>
 
+        <section className="mb-4 flex items-center justify-between gap-3 px-1">
+          <div>
+            <p className="text-sm font-medium text-white">Timeline</p>
+            <p className="text-sm text-slate-500">{messagesLabel}</p>
+          </div>
+          {feedLoading ? <span className="text-sm text-slate-500">Atualizando...</span> : null}
+        </section>
+
         <section className="space-y-4">
-          {messages.length === 0 ? (
+          {feedLoading ? (
+            <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
+              Carregando publicacoes...
+            </div>
+          ) : messages.length === 0 ? (
             <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
               Nenhuma mensagem ainda. Seja a primeira pessoa a publicar.
             </div>
