@@ -1,7 +1,7 @@
 {
   "name": "clone-tabnews",
   "version": "1.0.0",
-  "description": "Implementação do https://www.tabnews.com.br para o https://curso.dev",
+  "description": "Implementacao do https://www.tabnews.com.br para o https://curso.dev",
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
@@ -39,6 +39,6 @@
     "tailwindcss": "^3.4.1"
   },
   "engines": {
-    "node": "24.x"
+    "node": "22.x"
   }
 }
