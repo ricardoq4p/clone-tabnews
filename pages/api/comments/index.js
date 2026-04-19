@@ -1,5 +1,6 @@
 import connectToDatabase from "@/lib/db";
 import Comment from "@/lib/models/Comment";
+import User from "@/lib/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 import Pusher from "pusher";
@@ -12,10 +13,21 @@ const pusher = new Pusher({
   useTLS: true,
 });
 
+function normalizeComment(comment) {
+  const plainComment = typeof comment?.toObject === "function" ? comment.toObject() : comment;
+  const authorName = plainComment?.userId?.name || plainComment?.author || "Usuario";
+  const authorAvatar = plainComment?.userId?.avatar || plainComment?.avatar || "";
+
+  return {
+    ...plainComment,
+    author: authorName,
+    avatar: authorAvatar,
+  };
+}
+
 export default async function handler(req, res) {
   await connectToDatabase();
 
-  // 🔹 GET
   if (req.method === "GET") {
     try {
       const { messageId } = req.query;
@@ -24,62 +36,83 @@ export default async function handler(req, res) {
         return res.status(200).json([]);
       }
 
-      const comments = await Comment.find({ messageId }).sort({ _id: -1 });
+      const comments = await Comment.find({ messageId })
+        .populate("userId", "name avatar")
+        .sort({ createdAt: -1 });
 
-      return res.status(200).json(comments || []);
+      return res.status(200).json(comments.map(normalizeComment));
     } catch (err) {
-      console.error("Erro ao buscar comentários:", err);
+      console.error("Erro ao buscar comentarios:", err);
       return res.status(200).json([]);
     }
   }
 
-  // 🔹 POST
   if (req.method === "POST") {
     try {
       const session = await getServerSession(req, res, authOptions);
 
       if (!session) {
-        return res.status(401).json({ error: "Não autenticado" });
+        return res.status(401).json({ error: "Nao autenticado" });
       }
 
       const { content, messageId } = req.body;
 
-      if (!content || !messageId) {
-        return res.status(400).json({ error: "Dados inválidos" });
+      if (!content?.trim() || !messageId) {
+        return res.status(400).json({ error: "Dados invalidos" });
       }
 
+      const currentUser = await User.findOne({ email: session.user.email }).select("_id name avatar");
       const newComment = await Comment.create({
-        content,
-        author: session.user.name,
+        content: content.trim(),
+        author: currentUser?.name || session.user.name || "Usuario",
+        avatar: currentUser?.avatar || "",
+        userId: currentUser?._id,
         messageId,
-        createdAt: new Date(),
       });
 
-      // 🚀 REALTIME (FALTAVA ISSO)
-      await pusher.trigger("comments", "new-comment", newComment);
+      const populatedComment = await newComment.populate("userId", "name avatar");
+      const normalizedComment = normalizeComment(populatedComment);
 
-      return res.status(201).json(newComment);
+      await pusher.trigger("comments", "new-comment", normalizedComment);
+
+      return res.status(201).json(normalizedComment);
     } catch (err) {
-      console.error("Erro ao criar comentário:", err);
+      console.error("Erro ao criar comentario:", err);
       return res.status(500).json({ error: "Erro interno" });
     }
   }
 
-  // 🔹 DELETE (opcional mas recomendado)
   if (req.method === "DELETE") {
     try {
+      const session = await getServerSession(req, res, authOptions);
+
+      if (!session) {
+        return res.status(401).json({ error: "Nao autenticado" });
+      }
+
       const { id } = req.body;
+      const comment = await Comment.findById(id);
+
+      if (!comment) {
+        return res.status(404).json({ error: "Comentario nao encontrado" });
+      }
+
+      const isAuthorById = comment.userId?.toString() === session.user.id;
+      const isAuthorByName = !comment.userId && comment.author === session.user.name;
+
+      if (!isAuthorById && !isAuthorByName) {
+        return res.status(403).json({ error: "Sem permissao" });
+      }
 
       await Comment.findByIdAndDelete(id);
-
-      // 🚀 REALTIME delete
-      await pusher.trigger("comments", "delete-comment", { id });
+      await pusher.trigger("comments", "delete-comment", { id, messageId: comment.messageId });
 
       return res.status(200).json({ success: true });
     } catch (err) {
-      return res.status(500).json({ error: "Erro ao deletar comentário" });
+      console.error("Erro ao deletar comentario:", err);
+      return res.status(500).json({ error: "Erro ao deletar comentario" });
     }
   }
 
-  return res.status(405).json({ error: "Método não permitido" });
+  return res.status(405).json({ error: "Metodo nao permitido" });
 }
