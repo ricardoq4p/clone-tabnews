@@ -127,8 +127,11 @@ export default async function handler(req, res) {
         return res.status(404).json({ error: "Mensagem nao encontrada" });
       }
 
-      const isAuthor = message.userId.toString() === session.user.id;
-      const canDelete = isAuthor || isSuperadminSession(session);
+      const isSuperadmin = isSuperadminSession(session);
+      const isAuthorById = message.userId?.toString?.() === session.user.id;
+      const isAuthorByName =
+        !message.userId && message.author && message.author === session.user.name;
+      const canDelete = isSuperadmin || isAuthorById || isAuthorByName;
 
       if (!canDelete) {
         return res.status(403).json({ error: "Sem permissao" });
