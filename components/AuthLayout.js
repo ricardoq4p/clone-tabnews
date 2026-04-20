@@ -7,11 +7,13 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
       <div className="relative z-10 mx-auto flex min-h-screen w-full max-w-6xl flex-col justify-center gap-10 px-6 py-10 lg:flex-row lg:items-center lg:px-10">
         <section className="max-w-xl">
           <div className="mb-5 flex items-center gap-4">
-            <img
-              src="https://raw.githubusercontent.com/ricardoq4p/clone-tabnews/main/PanteraLab.png"
-              alt="Logo PanteraLab"
-              className="h-14 w-auto max-w-[160px] rounded-2xl object-contain ring-1 ring-cyan-300/20"
-            />
+            <div className="rounded-2xl bg-white px-3 py-2 shadow-[0_12px_30px_rgba(15,23,42,0.25)] ring-1 ring-cyan-300/20">
+              <img
+                src="https://raw.githubusercontent.com/ricardoq4p/clone-tabnews/main/PanteraLab.png"
+                alt="Logo PanteraLab"
+                className="h-14 w-auto max-w-[160px] object-contain"
+              />
+            </div>
             <span className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
               Comunidade Pantera
             </span>
