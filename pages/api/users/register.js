@@ -1,8 +1,8 @@
 import { hash } from "bcryptjs";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
-import nodemailer from "nodemailer";
 import { getRoleForEmail, isSuperadminEmail, normalizeEmail } from "@/lib/auth";
+import { createBrevoTransport } from "@/lib/mailer";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -44,15 +44,7 @@ export default async function handler(req, res) {
     });
 
     if (!isSuperadmin) {
-      const transporter = nodemailer.createTransport({
-        host: "smtp-relay.brevo.com",
-        port: 587,
-        secure: false,
-        auth: {
-          user: process.env.BREVO_USER,
-          pass: process.env.BREVO_KEY,
-        },
-      });
+      const transporter = createBrevoTransport();
 
       await transporter.sendMail({
         from: process.env.EMAIL_FROM,
