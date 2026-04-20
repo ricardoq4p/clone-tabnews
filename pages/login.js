@@ -86,6 +86,15 @@ export default function Login() {
           />
         </label>
 
+        <div className="text-right">
+          <Link
+            href="/forgot-password"
+            className="text-sm font-medium text-cyan-200 transition hover:text-cyan-100"
+          >
+            Esqueci minha senha
+          </Link>
+        </div>
+
         <button type="submit" disabled={loading} className="primary-button w-full">
           {loading ? "Entrando..." : "Entrar"}
         </button>
