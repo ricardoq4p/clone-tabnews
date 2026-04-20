@@ -11,18 +11,24 @@ export default function MessageCard({ msg }) {
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentError, setCommentError] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const [deletingCommentId, setDeletingCommentId] = useState("");
 
   if (!msg || !msg._id) return null;
 
-  const messageUserId = typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
+  const messageUserId =
+    typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
   const isAuthor = Boolean(messageUserId && session?.user?.id === messageUserId);
+  const isSuperadmin = session?.user?.role === "superadmin";
+  const canDeleteMessage = isAuthor || isSuperadmin;
   const authorName = msg.userId?.name || msg.author || "Usuario";
   const authorAvatar =
     msg.userId?.avatar ||
     msg.avatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=0f172a&color=ffffff`;
 
-  const commentsCountLabel = `${comments.length} ${comments.length === 1 ? "comentario" : "comentarios"}`;
+  const commentsCountLabel = `${comments.length} ${
+    comments.length === 1 ? "comentario" : "comentarios"
+  }`;
 
   const formatDate = (date) => {
     if (!date) return "";
@@ -62,7 +68,8 @@ export default function MessageCard({ msg }) {
     channel.bind("new-comment", (data) => {
       if (data?.messageId === msg._id) {
         setComments((prev) => {
-          if (prev.find((currentComment) => currentComment._id === data._id)) return prev;
+          if (prev.find((currentComment) => currentComment._id === data._id))
+            return prev;
           return [data, ...prev];
         });
       }
@@ -70,7 +77,9 @@ export default function MessageCard({ msg }) {
 
     channel.bind("delete-comment", (data) => {
       if (data?.messageId === msg._id || !data?.messageId) {
-        setComments((prev) => prev.filter((currentComment) => currentComment._id !== data?.id));
+        setComments((prev) =>
+          prev.filter((currentComment) => currentComment._id !== data?.id),
+        );
       }
     });
 
@@ -139,11 +148,40 @@ export default function MessageCard({ msg }) {
     }
   };
 
+  const handleDeleteComment = async (commentId) => {
+    if (!confirm("Deseja excluir este comentario?")) return;
+
+    try {
+      setDeletingCommentId(commentId);
+      setCommentError("");
+
+      const response = await fetch("/api/comments", {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ id: commentId }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Nao foi possivel excluir o comentario.");
+      }
+    } catch (err) {
+      setCommentError(err.message || "Nao foi possivel excluir o comentario.");
+    } finally {
+      setDeletingCommentId("");
+    }
+  };
+
   return (
     <article className="glass-panel rounded-[28px] p-5 sm:p-6">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <img src={authorAvatar} alt="avatar" className="h-11 w-11 rounded-full object-cover" />
+          <img
+            src={authorAvatar}
+            alt="avatar"
+            className="h-11 w-11 rounded-full object-cover"
+          />
           <div>
             <p className="font-medium text-white">{authorName}</p>
             <p className="text-sm text-slate-500">{formatDate(msg.createdAt)}</p>
@@ -154,7 +192,7 @@ export default function MessageCard({ msg }) {
           <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400">
             {commentsCountLabel}
           </span>
-          {isAuthor ? (
+          {canDeleteMessage ? (
             <button
               onClick={handleDelete}
               disabled={deleting}
@@ -174,7 +212,9 @@ export default function MessageCard({ msg }) {
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-medium text-white">Conversa</p>
-            <p className="text-xs text-slate-500">Responda e acompanhe em tempo real.</p>
+            <p className="text-xs text-slate-500">
+              Responda e acompanhe em tempo real.
+            </p>
           </div>
           <button
             onClick={() => setCommentsOpen((currentValue) => !currentValue)}
@@ -184,14 +224,21 @@ export default function MessageCard({ msg }) {
           </button>
         </div>
 
-        <form onSubmit={handleComment} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <form
+          onSubmit={handleComment}
+          className="flex flex-col gap-3 sm:flex-row sm:items-center"
+        >
           <input
             value={comment}
             onChange={(e) => setComment(e.target.value)}
             placeholder="Escreva um comentario..."
             className="field-input flex-1"
           />
-          <button type="submit" disabled={commentSubmitting} className="primary-button px-5 py-3 sm:w-auto">
+          <button
+            type="submit"
+            disabled={commentSubmitting}
+            className="primary-button px-5 py-3 sm:w-auto"
+          >
             {commentSubmitting ? "Enviando..." : "Comentar"}
           </button>
         </form>
@@ -207,32 +254,68 @@ export default function MessageCard({ msg }) {
             {commentsLoading ? (
               <p className="text-sm text-slate-500">Carregando comentarios...</p>
             ) : comments.length === 0 ? (
-              <p className="text-sm text-slate-500">Ainda nao ha comentarios nesta mensagem.</p>
+              <p className="text-sm text-slate-500">
+                Ainda nao ha comentarios nesta mensagem.
+              </p>
             ) : (
               comments.map((currentComment) => {
-                const currentCommentAuthor = currentComment.author || currentComment.userId?.name || "Usuario";
+                const currentCommentAuthor =
+                  currentComment.author || currentComment.userId?.name || "Usuario";
                 const currentCommentAvatar =
                   currentComment.avatar ||
                   currentComment.userId?.avatar ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(currentCommentAuthor)}&background=0f172a&color=ffffff`;
+                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                    currentCommentAuthor,
+                  )}&background=0f172a&color=ffffff`;
+                const currentCommentUserId =
+                  typeof currentComment.userId === "string"
+                    ? currentComment.userId
+                    : currentComment.userId?._id;
+                const canDeleteComment =
+                  isSuperadmin ||
+                  (currentCommentUserId &&
+                    currentCommentUserId === session?.user?.id) ||
+                  (!currentCommentUserId &&
+                    currentComment.author === session?.user?.name);
 
                 return (
                   <div
                     key={currentComment._id}
                     className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
                   >
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={currentCommentAvatar}
-                        alt="avatar do comentario"
-                        className="h-9 w-9 rounded-full object-cover"
-                      />
-                      <div>
-                        <p className="text-sm font-medium text-slate-200">{currentCommentAuthor}</p>
-                        <p className="text-xs text-slate-500">{formatDate(currentComment.createdAt)}</p>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={currentCommentAvatar}
+                          alt="avatar do comentario"
+                          className="h-9 w-9 rounded-full object-cover"
+                        />
+                        <div>
+                          <p className="text-sm font-medium text-slate-200">
+                            {currentCommentAuthor}
+                          </p>
+                          <p className="text-xs text-slate-500">
+                            {formatDate(currentComment.createdAt)}
+                          </p>
+                        </div>
                       </div>
+                      {canDeleteComment ? (
+                        <button
+                          onClick={() =>
+                            handleDeleteComment(currentComment._id)
+                          }
+                          disabled={deletingCommentId === currentComment._id}
+                          className="secondary-button rounded-full px-3 py-1.5 text-xs"
+                        >
+                          {deletingCommentId === currentComment._id
+                            ? "Excluindo..."
+                            : "Excluir"}
+                        </button>
+                      ) : null}
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-slate-200">{currentComment.content}</p>
+                    <p className="mt-3 text-sm leading-6 text-slate-200">
+                      {currentComment.content}
+                    </p>
                   </div>
                 );
               })
