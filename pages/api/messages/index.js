@@ -9,6 +9,7 @@ import {
   hasPanteraMention,
   PANTERA_PROFILE,
 } from "@/lib/pantera-ai";
+import { isSuperadminSession } from "@/lib/auth";
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
@@ -119,7 +120,7 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Nao autenticado" });
       }
 
-      const { id } = req.body;
+      const { id } = req.body?.id ? req.body : req.query;
       const message = await Message.findById(id);
 
       if (!message) {
@@ -127,8 +128,9 @@ export default async function handler(req, res) {
       }
 
       const isAuthor = message.userId.toString() === session.user.id;
+      const canDelete = isAuthor || isSuperadminSession(session);
 
-      if (!isAuthor) {
+      if (!canDelete) {
         return res.status(403).json({ error: "Sem permissao" });
       }
 
