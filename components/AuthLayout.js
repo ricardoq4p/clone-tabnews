@@ -10,7 +10,7 @@ export default function AuthLayout({ title, subtitle, children, footer }) {
             <img
               src="https://raw.githubusercontent.com/ricardoq4p/clone-tabnews/main/PanteraLab.png"
               alt="Logo PanteraLab"
-              className="h-14 w-14 rounded-2xl object-cover ring-1 ring-cyan-300/20"
+              className="h-14 w-auto max-w-[160px] rounded-2xl object-contain ring-1 ring-cyan-300/20"
             />
             <span className="inline-flex rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200">
               Comunidade Pantera
