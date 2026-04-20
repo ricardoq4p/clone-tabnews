@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
+import { getRoleForEmail, isSuperadminEmail, normalizeEmail } from "@/lib/auth";
 
 export const authOptions = {
   providers: [
@@ -14,15 +15,29 @@ export const authOptions = {
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email e senha obrigatórios");
+          throw new Error("Email e senha obrigatorios");
         }
 
         await connectToDatabase();
 
-        const user = await User.findOne({ email: credentials.email });
+        const normalizedEmail = normalizeEmail(credentials.email);
+        const user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {
-          throw new Error("Usuário não encontrado");
+          throw new Error("Usuario nao encontrado");
+        }
+
+        const expectedRole = getRoleForEmail(normalizedEmail);
+        const needsRoleUpdate =
+          user.role !== expectedRole ||
+          (isSuperadminEmail(normalizedEmail) && !user.isVerified);
+
+        if (needsRoleUpdate) {
+          user.role = expectedRole;
+          if (isSuperadminEmail(normalizedEmail)) {
+            user.isVerified = true;
+          }
+          await user.save();
         }
 
         if (!user.isVerified) {
@@ -32,14 +47,14 @@ export const authOptions = {
         const isValid = await compare(credentials.password, user.password);
 
         if (!isValid) {
-          throw new Error("Senha inválida");
+          throw new Error("Senha invalida");
         }
 
         return {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
-          role: user.role || "user",
+          role: user.role || expectedRole,
         };
       },
     }),
@@ -52,7 +67,6 @@ export const authOptions = {
         token.role = user.role;
       }
 
-      // 🔥 fallback (evita bug em produção)
       if (!token.id && token.sub) {
         token.id = token.sub;
       }
