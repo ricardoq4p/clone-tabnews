@@ -11,6 +11,23 @@ export default function Feed() {
   const [feedLoading, setFeedLoading] = useState(true);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState("");
+  const featuredCommunities = [
+    {
+      name: "PanteraLab Criadores",
+      type: "Publica",
+      members: "1.401 membros",
+    },
+    {
+      name: "IA para Negocios",
+      type: "Privada",
+      members: "126 membros",
+    },
+    {
+      name: "Orkut Feelings",
+      type: "Publica",
+      members: "901 membros",
+    },
+  ];
 
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -108,100 +125,160 @@ export default function Feed() {
 
   return (
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-5xl">
-        <header className="glass-panel mb-6 rounded-[28px] px-5 py-4 sm:px-6">
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div>
+      <div className="mx-auto max-w-6xl">
+        <div className="grid gap-6 xl:grid-cols-[280px,1fr]">
+          <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
+            <section className="glass-panel rounded-[28px] p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
-                Feed em tempo real
+                Comunidades
               </p>
-              <h1 className="mt-2 text-3xl font-semibold text-white">Seu espaco de publicacao</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                Compartilhe ideias, acompanhe novas mensagens ao vivo e mantenha a conversa fluindo com uma interface mais limpa.
+              <h2 className="mt-3 text-2xl font-semibold text-white">Seu atalho lateral</h2>
+              <p className="mt-3 text-sm leading-6 text-slate-400">
+                Vamos manter a entrada principal no login e encaixar comunidades aqui no feed, no mesmo clima visual do produto.
               </p>
-            </div>
 
-            <div className="flex flex-wrap items-center gap-3">
               <button
                 onClick={() => router.push("/profile")}
-                className="secondary-button gap-3 rounded-full px-3 py-2"
+                className="primary-button mt-5 w-full justify-center px-4 py-3"
               >
-                <img
-                  src={avatarUrl}
-                  alt="avatar"
-                  className="h-10 w-10 rounded-full object-cover"
-                />
-                <span className="max-w-[120px] truncate text-sm">{session?.user?.name}</span>
+                Criar comunidade
               </button>
 
-              <button onClick={() => router.push("/profile")} className="secondary-button rounded-full px-4 py-2 text-sm">
-                Perfil
-              </button>
+              <div className="mt-4 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-4">
+                <p className="text-sm font-medium text-cyan-100">Em breve</p>
+                <p className="mt-2 text-sm leading-6 text-cyan-50/80">
+                  Entrada em comunidade, saida, moderacao e pedidos de aprovacao para grupos privados.
+                </p>
+              </div>
+            </section>
 
-              <button
-                onClick={() => signOut({ callbackUrl: "/" })}
-                className="secondary-button rounded-full px-4 py-2 text-sm"
-              >
-                Sair
-              </button>
-            </div>
-          </div>
-        </header>
+            <section className="glass-panel rounded-[28px] p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <p className="text-sm font-medium text-white">Comunidades em destaque</p>
+                  <p className="mt-1 text-xs text-slate-500">Base inicial para o feed social</p>
+                </div>
+              </div>
 
-        <section className="glass-panel mb-6 rounded-[28px] p-5 sm:p-6">
-          <div className="mb-4 flex items-start gap-3">
-            <img src={avatarUrl} alt="avatar" className="h-11 w-11 rounded-full object-cover" />
-            <div>
-              <p className="font-medium text-white">{session?.user?.name}</p>
-              <p className="text-sm text-slate-400">O que voce quer compartilhar agora?</p>
-            </div>
-          </div>
+              <div className="mt-4 space-y-3">
+                {featuredCommunities.map((community) => (
+                  <article
+                    key={community.name}
+                    className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="font-medium text-slate-100">{community.name}</p>
+                        <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                          {community.type}
+                        </p>
+                      </div>
+                      <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400">
+                        {community.members}
+                      </span>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </section>
+          </aside>
 
-          <textarea
-            placeholder="Escreva uma mensagem para a comunidade..."
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            className="field-input min-h-[140px] resize-y"
-          />
-
-          {publishError ? (
-            <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-              {publishError}
-            </p>
-          ) : null}
-
-          <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-              <p className="text-sm text-slate-500">As novas publicacoes aparecem em tempo real para todos.</p>
-              <p className="mt-1 text-xs text-slate-600">Dica: escreva com contexto para gerar respostas melhores.</p>
-            </div>
-            <button onClick={handleSubmit} disabled={publishing} className="primary-button px-5 py-3">
-              {publishing ? "Publicando..." : "Publicar"}
-            </button>
-          </div>
-        </section>
-
-        <section className="mb-4 flex items-center justify-between gap-3 px-1">
           <div>
-            <p className="text-sm font-medium text-white">Timeline</p>
-            <p className="text-sm text-slate-500">{messagesLabel}</p>
-          </div>
-          {feedLoading ? <span className="text-sm text-slate-500">Atualizando...</span> : null}
-        </section>
+            <header className="glass-panel mb-6 rounded-[28px] px-5 py-4 sm:px-6">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
+                    Feed em tempo real
+                  </p>
+                  <h1 className="mt-2 text-3xl font-semibold text-white">Seu espaco de publicacao</h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
+                    Compartilhe ideias, acompanhe novas mensagens ao vivo e mantenha a conversa fluindo com uma interface mais limpa.
+                  </p>
+                </div>
 
-        <section className="space-y-4">
-          {feedLoading ? (
-            <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
-              Carregando publicacoes...
-            </div>
-          ) : messages.length === 0 ? (
-            <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
-              Nenhuma mensagem ainda. Seja a primeira pessoa a publicar.
-            </div>
-          ) : (
-            messages.map((msg) => (msg?._id ? <MessageCard key={msg._id} msg={msg} /> : null))
-          )}
-        </section>
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    onClick={() => router.push("/profile")}
+                    className="secondary-button gap-3 rounded-full px-3 py-2"
+                  >
+                    <img
+                      src={avatarUrl}
+                      alt="avatar"
+                      className="h-10 w-10 rounded-full object-cover"
+                    />
+                    <span className="max-w-[120px] truncate text-sm">{session?.user?.name}</span>
+                  </button>
+
+                  <button onClick={() => router.push("/profile")} className="secondary-button rounded-full px-4 py-2 text-sm">
+                    Perfil
+                  </button>
+
+                  <button
+                    onClick={() => signOut({ callbackUrl: "/" })}
+                    className="secondary-button rounded-full px-4 py-2 text-sm"
+                  >
+                    Sair
+                  </button>
+                </div>
+              </div>
+            </header>
+
+            <section className="glass-panel mb-6 rounded-[28px] p-5 sm:p-6">
+              <div className="mb-4 flex items-start gap-3">
+                <img src={avatarUrl} alt="avatar" className="h-11 w-11 rounded-full object-cover" />
+                <div>
+                  <p className="font-medium text-white">{session?.user?.name}</p>
+                  <p className="text-sm text-slate-400">O que voce quer compartilhar agora?</p>
+                </div>
+              </div>
+
+              <textarea
+                placeholder="Escreva uma mensagem para a comunidade..."
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="field-input min-h-[140px] resize-y"
+              />
+
+              {publishError ? (
+                <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                  {publishError}
+                </p>
+              ) : null}
+
+              <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="text-sm text-slate-500">As novas publicacoes aparecem em tempo real para todos.</p>
+                  <p className="mt-1 text-xs text-slate-600">Dica: escreva com contexto para gerar respostas melhores.</p>
+                </div>
+                <button onClick={handleSubmit} disabled={publishing} className="primary-button px-5 py-3">
+                  {publishing ? "Publicando..." : "Publicar"}
+                </button>
+              </div>
+            </section>
+
+            <section className="mb-4 flex items-center justify-between gap-3 px-1">
+              <div>
+                <p className="text-sm font-medium text-white">Timeline</p>
+                <p className="text-sm text-slate-500">{messagesLabel}</p>
+              </div>
+              {feedLoading ? <span className="text-sm text-slate-500">Atualizando...</span> : null}
+            </section>
+
+            <section className="space-y-4">
+              {feedLoading ? (
+                <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
+                  Carregando publicacoes...
+                </div>
+              ) : messages.length === 0 ? (
+                <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
+                  Nenhuma mensagem ainda. Seja a primeira pessoa a publicar.
+                </div>
+              ) : (
+                messages.map((msg) => (msg?._id ? <MessageCard key={msg._id} msg={msg} /> : null))
+              )}
+            </section>
+          </div>
+        </div>
       </div>
     </div>
   );
