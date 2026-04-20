@@ -24,6 +24,7 @@ export default async function handler(req, res) {
       email: user.email,
       username: user.username,
       avatar: user.avatar || null,
+      role: user.role || "user",
       calorieGoal: user.calorieGoal || 1200,
     });
   } catch (error) {
