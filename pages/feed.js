@@ -375,6 +375,14 @@ export default function Feed() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-3">
+                  {session?.user?.role === "superadmin" ? (
+                    <button
+                      onClick={() => router.push("/admin")}
+                      className="secondary-button rounded-full px-4 py-2 text-sm"
+                    >
+                      Admin
+                    </button>
+                  ) : null}
                   <button
                     onClick={() => router.push("/profile")}
                     className="secondary-button gap-3 rounded-full px-3 py-2"
