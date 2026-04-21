@@ -1,5 +1,7 @@
-import crypto from "crypto";
 import { hash } from "bcryptjs";
+import { hashToken } from "@/lib/auth";
+import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
 
@@ -11,6 +13,22 @@ export default async function handler(req, res) {
   try {
     const token = String(req.body?.token || "").trim();
     const password = String(req.body?.password || "");
+    const rateLimitResult = checkRateLimit({
+      key: `reset-password:${getClientIp(req)}:${token || "anon"}`,
+      limit: Number(process.env.RATE_LIMIT_RESET_PASSWORD_MAX || 5),
+      windowMs: Number(
+        process.env.RATE_LIMIT_RESET_PASSWORD_WINDOW_MS || 15 * 60 * 1000,
+      ),
+    });
+
+    if (!rateLimitResult.success) {
+      return res.status(429).json({
+        error: createRateLimitErrorMessage(
+          "Muitas tentativas de redefinicao de senha.",
+          rateLimitResult.retryAfter,
+        ),
+      });
+    }
 
     if (!token || !password) {
       return res
@@ -26,7 +44,7 @@ export default async function handler(req, res) {
 
     await connectToDatabase();
 
-    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+    const hashedToken = hashToken(token);
 
     const user = await User.findOne({
       resetPasswordToken: hashedToken,

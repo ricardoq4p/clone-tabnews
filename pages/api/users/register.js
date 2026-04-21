@@ -1,7 +1,15 @@
 import { hash } from "bcryptjs";
+import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
-import { getRoleForEmail, isSuperadminEmail, normalizeEmail } from "@/lib/auth";
+import {
+  createSecureToken,
+  getRoleForEmail,
+  hashToken,
+  isSuperadminEmail,
+  normalizeEmail,
+} from "@/lib/auth";
 import { createBrevoTransport } from "@/lib/mailer";
 
 export default async function handler(req, res) {
@@ -12,6 +20,20 @@ export default async function handler(req, res) {
   try {
     const { email, password, name } = req.body;
     const normalizedEmail = normalizeEmail(email);
+    const rateLimitResult = checkRateLimit({
+      key: `register:${getClientIp(req)}:${normalizedEmail || "anon"}`,
+      limit: Number(process.env.RATE_LIMIT_REGISTER_MAX || 10),
+      windowMs: Number(process.env.RATE_LIMIT_REGISTER_WINDOW_MS || 15 * 60 * 1000),
+    });
+
+    if (!rateLimitResult.success) {
+      return res.status(429).json({
+        error: createRateLimitErrorMessage(
+          "Muitas tentativas de cadastro.",
+          rateLimitResult.retryAfter,
+        ),
+      });
+    }
 
     if (!normalizedEmail || !password || !name) {
       return res
@@ -27,9 +49,12 @@ export default async function handler(req, res) {
     }
 
     const hashedPassword = await hash(password, 12);
-    const verificationToken =
-      Math.random().toString(36).substring(2, 15) +
-      Math.random().toString(36).substring(2, 15);
+    const verificationToken = createSecureToken();
+    const verificationTokenHash = hashToken(verificationToken);
+    const verificationTokenExpires = new Date(
+      Date.now() +
+        Number(process.env.EMAIL_VERIFICATION_TOKEN_TTL_MS || 24 * 60 * 60 * 1000),
+    );
     const username = normalizedEmail.split("@")[0];
     const isSuperadmin = isSuperadminEmail(normalizedEmail);
 
@@ -39,7 +64,8 @@ export default async function handler(req, res) {
       name,
       username,
       role: getRoleForEmail(normalizedEmail),
-      verificationToken,
+      verificationToken: isSuperadmin ? null : verificationTokenHash,
+      verificationTokenExpires: isSuperadmin ? null : verificationTokenExpires,
       isVerified: isSuperadmin,
     });
 

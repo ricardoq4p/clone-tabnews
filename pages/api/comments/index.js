@@ -11,6 +11,8 @@ import {
   PANTERA_PROFILE,
 } from "@/lib/pantera-ai";
 import { isSuperadminSession } from "@/lib/auth";
+import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request";
 
 const pusher = new Pusher({
   appId: process.env.PUSHER_APP_ID,
@@ -110,6 +112,21 @@ export default async function handler(req, res) {
 
       if (!session) {
         return res.status(401).json({ error: "Nao autenticado" });
+      }
+
+      const rateLimitResult = checkRateLimit({
+        key: `comments:${session.user.id}:${getClientIp(req)}`,
+        limit: Number(process.env.RATE_LIMIT_COMMENTS_MAX || 20),
+        windowMs: Number(process.env.RATE_LIMIT_COMMENTS_WINDOW_MS || 60 * 1000),
+      });
+
+      if (!rateLimitResult.success) {
+        return res.status(429).json({
+          error: createRateLimitErrorMessage(
+            "Muitos comentarios em pouco tempo.",
+            rateLimitResult.retryAfter,
+          ),
+        });
       }
 
       const { content, messageId } = req.body;
