@@ -2,6 +2,8 @@ import connectToDatabase from "@/lib/db";
 import Community from "@/lib/models/Community";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
+import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request";
 
 function normalizeCommunity(community, sessionUserId) {
   const plainCommunity =
@@ -56,6 +58,23 @@ export default async function handler(req, res) {
 
       if (!session) {
         return res.status(401).json({ error: "Nao autenticado" });
+      }
+
+      const rateLimitResult = checkRateLimit({
+        key: `communities:create:${session.user.id}:${getClientIp(req)}`,
+        limit: Number(process.env.RATE_LIMIT_COMMUNITIES_CREATE_MAX || 3),
+        windowMs: Number(
+          process.env.RATE_LIMIT_COMMUNITIES_CREATE_WINDOW_MS || 15 * 60 * 1000,
+        ),
+      });
+
+      if (!rateLimitResult.success) {
+        return res.status(429).json({
+          error: createRateLimitErrorMessage(
+            "Muitas tentativas de criar comunidade.",
+            rateLimitResult.retryAfter,
+          ),
+        });
       }
 
       const { name, description, privacy, avatar } = req.body;
