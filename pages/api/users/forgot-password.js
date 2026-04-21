@@ -1,8 +1,9 @@
-import crypto from "crypto";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
-import { normalizeEmail } from "@/lib/auth";
+import { createSecureToken, hashToken, normalizeEmail } from "@/lib/auth";
 import { createBrevoTransport } from "@/lib/mailer";
+import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request";
 
 const GENERIC_SUCCESS_MESSAGE =
   "Se existir uma conta com esse email, enviaremos um link para redefinir a senha.";
@@ -14,6 +15,22 @@ export default async function handler(req, res) {
 
   try {
     const normalizedEmail = normalizeEmail(req.body?.email);
+    const rateLimitResult = checkRateLimit({
+      key: `forgot-password:${getClientIp(req)}:${normalizedEmail || "anon"}`,
+      limit: Number(process.env.RATE_LIMIT_FORGOT_PASSWORD_MAX || 5),
+      windowMs: Number(
+        process.env.RATE_LIMIT_FORGOT_PASSWORD_WINDOW_MS || 15 * 60 * 1000,
+      ),
+    });
+
+    if (!rateLimitResult.success) {
+      return res.status(429).json({
+        error: createRateLimitErrorMessage(
+          "Muitas tentativas de recuperacao de senha.",
+          rateLimitResult.retryAfter,
+        ),
+      });
+    }
 
     if (!normalizedEmail) {
       return res
@@ -29,8 +46,8 @@ export default async function handler(req, res) {
       return res.status(200).json({ message: GENERIC_SUCCESS_MESSAGE });
     }
 
-    const rawToken = crypto.randomBytes(32).toString("hex");
-    const hashedToken = crypto.createHash("sha256").update(rawToken).digest("hex");
+    const rawToken = createSecureToken();
+    const hashedToken = hashToken(rawToken);
     const expiresAt = new Date(Date.now() + 1000 * 60 * 30);
 
     user.resetPasswordToken = hashedToken;

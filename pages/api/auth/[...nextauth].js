@@ -4,6 +4,8 @@ import { compare } from "bcryptjs";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
 import { getRoleForEmail, isSuperadminEmail, normalizeEmail } from "@/lib/auth";
+import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import { getClientIp } from "@/lib/request";
 
 export const authOptions = {
   providers: [
@@ -13,14 +15,29 @@ export const authOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Senha", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email e senha obrigatorios");
         }
 
+        const normalizedEmail = normalizeEmail(credentials.email);
+        const rateLimitResult = checkRateLimit({
+          key: `login:${getClientIp(req)}:${normalizedEmail || "anon"}`,
+          limit: Number(process.env.RATE_LIMIT_LOGIN_MAX || 10),
+          windowMs: Number(process.env.RATE_LIMIT_LOGIN_WINDOW_MS || 15 * 60 * 1000),
+        });
+
+        if (!rateLimitResult.success) {
+          throw new Error(
+            createRateLimitErrorMessage(
+              "Muitas tentativas de login.",
+              rateLimitResult.retryAfter,
+            ),
+          );
+        }
+
         await connectToDatabase();
 
-        const normalizedEmail = normalizeEmail(credentials.email);
         const user = await User.findOne({ email: normalizedEmail });
 
         if (!user) {

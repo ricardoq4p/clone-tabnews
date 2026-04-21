@@ -12,8 +12,7 @@ export default function MessageCard({ msg }) {
   const [commentError, setCommentError] = useState("");
   const [deleting, setDeleting] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState("");
-
-  if (!msg || !msg._id) return null;
+  const messageId = msg?._id || null;
 
   const messageUserId =
     typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
@@ -47,18 +46,28 @@ export default function MessageCard({ msg }) {
   };
 
   useEffect(() => {
+    if (!messageId) {
+      setComments([]);
+      setCommentsLoading(false);
+      return;
+    }
+
     setCommentsLoading(true);
 
-    fetch(`/api/comments?messageId=${msg._id}`)
+    fetch(`/api/comments?messageId=${messageId}`)
       .then((res) => res.json())
       .then((data) => {
         setComments(Array.isArray(data) ? data : []);
       })
       .catch(() => setComments([]))
       .finally(() => setCommentsLoading(false));
-  }, [msg._id]);
+  }, [messageId]);
 
   useEffect(() => {
+    if (!messageId) {
+      return undefined;
+    }
+
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
     });
@@ -66,7 +75,7 @@ export default function MessageCard({ msg }) {
     const channel = pusher.subscribe("comments");
 
     channel.bind("new-comment", (data) => {
-      if (data?.messageId === msg._id) {
+      if (data?.messageId === messageId) {
         setComments((prev) => {
           if (prev.find((currentComment) => currentComment._id === data._id))
             return prev;
@@ -76,7 +85,7 @@ export default function MessageCard({ msg }) {
     });
 
     channel.bind("delete-comment", (data) => {
-      if (data?.messageId === msg._id || !data?.messageId) {
+      if (data?.messageId === messageId || !data?.messageId) {
         setComments((prev) =>
           prev.filter((currentComment) => currentComment._id !== data?.id),
         );
@@ -88,7 +97,9 @@ export default function MessageCard({ msg }) {
       pusher.unsubscribe("comments");
       pusher.disconnect();
     };
-  }, [msg._id]);
+  }, [messageId]);
+
+  if (!msg || !messageId) return null;
 
   const handleComment = async (e) => {
     e.preventDefault();

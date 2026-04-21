@@ -5,11 +5,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "next dev",
-    "lint:check": "prettier --check .",
-    "lint:fix": "prettier --write .",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "lint": "next lint"
+    "lint:check": "prettier --check \"{components,lib,pages,styles,tests}/**/*.{js,jsx,json,css,md}\" \"*.{js,json,md}\"",
+    "lint:fix": "prettier --write \"{components,lib,pages,styles,tests}/**/*.{js,jsx,json,css,md}\" \"*.{js,json,md}\"",
+    "test": "jest --runInBand --watchman=false --roots tests",
+    "test:watch": "jest --watch --watchman=false --roots tests",
+    "lint": "eslint ."
   },
   "author": "",
   "license": "MIT",
