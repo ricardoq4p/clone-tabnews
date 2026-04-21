@@ -259,19 +259,16 @@ export default function Feed() {
     <div className="min-h-screen px-4 py-6 sm:px-6 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <div className="grid gap-6 xl:grid-cols-[280px,1fr]">
-          <aside className="space-y-5 xl:sticky xl:top-6 xl:self-start">
+          <aside className="xl:self-start">
+            <div className="space-y-5 xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto xl:overscroll-contain xl:pr-2">
             <section className="glass-panel rounded-[28px] p-5">
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
                 Comunidades
               </p>
-              <h2 className="mt-3 text-2xl font-semibold text-white">Seu atalho lateral</h2>
-              <p className="mt-3 text-sm leading-6 text-slate-400">
-                Vamos manter a entrada principal no login e encaixar comunidades aqui no feed, no mesmo clima visual do produto.
-              </p>
 
               <button
                 onClick={() => setCommunityFormOpen((current) => !current)}
-                className="primary-button mt-5 w-full justify-center px-4 py-3"
+                className="primary-button mt-4 w-full justify-center px-4 py-3"
               >
                 Criar comunidade
               </button>
@@ -337,14 +334,7 @@ export default function Feed() {
                     </button>
                   </div>
                 </div>
-              ) : (
-                <div className="mt-4 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-4">
-                  <p className="text-sm font-medium text-cyan-100">Agora sim</p>
-                  <p className="mt-2 text-sm leading-6 text-cyan-50/80">
-                    O botao ja abre o formulario para o dono criar uma comunidade com nome, descricao e privacidade.
-                  </p>
-                </div>
-              )}
+              ) : null}
             </section>
 
             <section className="glass-panel rounded-[28px] p-5">
@@ -445,6 +435,7 @@ export default function Feed() {
                 )}
               </div>
             </section>
+            </div>
           </aside>
 
           <div>
