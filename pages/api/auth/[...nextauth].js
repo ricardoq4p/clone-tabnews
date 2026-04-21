@@ -50,6 +50,10 @@ export const authOptions = {
           throw new Error("Senha invalida");
         }
 
+        user.lastLoginAt = new Date();
+        user.lastSeenAt = new Date();
+        await user.save();
+
         return {
           id: user._id.toString(),
           email: user.email,

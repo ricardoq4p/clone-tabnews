@@ -14,6 +14,7 @@ export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [data, setData] = useState({
+    onlineUsers: [],
     users: [],
     messages: [],
     comments: [],
@@ -37,17 +38,46 @@ export default function AdminPage() {
   useEffect(() => {
     if (!session || session.user.role !== "superadmin") return;
 
-    fetch("/api/admin/overview")
-      .then(async (res) => {
+    let cancelled = false;
+
+    const loadOverview = async ({ silent = false } = {}) => {
+      if (!silent) {
+        setLoading(true);
+      }
+
+      try {
+        const res = await fetch("/api/admin/overview");
         const body = await res.json().catch(() => ({}));
+
         if (!res.ok) {
           throw new Error(body?.error || "Nao foi possivel carregar o painel.");
         }
-        return body;
-      })
-      .then((body) => setData(body))
-      .catch((err) => setError(err.message || "Nao foi possivel carregar o painel."))
-      .finally(() => setLoading(false));
+
+        if (!cancelled) {
+          setData(body);
+          setError("");
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setError(err.message || "Nao foi possivel carregar o painel.");
+        }
+      } finally {
+        if (!cancelled && !silent) {
+          setLoading(false);
+        }
+      }
+    };
+
+    loadOverview();
+
+    const intervalId = window.setInterval(() => {
+      loadOverview({ silent: true });
+    }, 30000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(intervalId);
+    };
   }, [session]);
 
   async function destroy(path, collection, id) {
@@ -115,6 +145,40 @@ export default function AdminPage() {
             <section className="glass-panel rounded-[28px] p-5 sm:p-6">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
+                  <h2 className="text-xl font-semibold text-white">Usuarios online</h2>
+                  <p className="text-sm text-slate-500">
+                    {data.onlineUsers.length} ativo
+                    {data.onlineUsers.length === 1 ? "" : "s"} nos ultimos 2 minutos
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-3">
+                {data.onlineUsers.length === 0 ? (
+                  <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-4 text-sm leading-6 text-slate-400">
+                    Nenhum usuario foi visto no site nos ultimos 2 minutos.
+                  </div>
+                ) : (
+                  data.onlineUsers.map((user) => (
+                    <article
+                      key={user._id}
+                      className="flex flex-col gap-3 rounded-3xl border border-emerald-400/15 bg-emerald-400/[0.06] p-4 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div>
+                        <p className="font-medium text-white">{user.name}</p>
+                        <p className="text-sm text-emerald-100/90">{user.email}</p>
+                      </div>
+                      <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-emerald-200">
+                        Online agora
+                      </span>
+                    </article>
+                  ))
+                )}
+              </div>
+            </section>
+
+            <section className="glass-panel rounded-[28px] p-5 sm:p-6">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
                   <h2 className="text-xl font-semibold text-white">Usuarios</h2>
                   <p className="text-sm text-slate-500">{data.users.length} cadastrados</p>
                 </div>
@@ -131,20 +195,37 @@ export default function AdminPage() {
                       <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
                         {user.role} - {user.isVerified ? "verificado" : "pendente"} - {formatDate(user.createdAt)}
                       </p>
+                      <p className="mt-2 text-xs text-slate-500">
+                        Ultimo login: {user.lastLoginAt ? formatDate(user.lastLoginAt) : "nunca"}
+                      </p>
+                      <p className="text-xs text-slate-500">
+                        Ultima atividade: {user.lastSeenAt ? formatDate(user.lastSeenAt) : "sem atividade recente"}
+                      </p>
                     </div>
-                    {user._id === session.user.id ? (
-                      <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
-                        Voce
-                      </span>
-                    ) : (
-                      <button
-                        onClick={() => destroy(`/api/admin/users/${user._id}`, "users", user._id)}
-                        disabled={actionId === user._id}
-                        className="secondary-button rounded-full px-4 py-2 text-sm"
-                      >
-                        {actionId === user._id ? "Excluindo..." : "Excluir usuario"}
-                      </button>
-                    )}
+                    <div className="flex flex-wrap items-center gap-3">
+                      {user.isOnline ? (
+                        <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium text-emerald-200">
+                          Online
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-medium text-slate-400">
+                          Offline
+                        </span>
+                      )}
+                      {user._id === session.user.id ? (
+                        <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
+                          Voce
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => destroy(`/api/admin/users/${user._id}`, "users", user._id)}
+                          disabled={actionId === user._id}
+                          className="secondary-button rounded-full px-4 py-2 text-sm"
+                        >
+                          {actionId === user._id ? "Excluindo..." : "Excluir usuario"}
+                        </button>
+                      )}
+                    </div>
                   </article>
                 ))}
               </div>

@@ -129,6 +129,7 @@ export default function MessageCard({ msg }) {
 
     try {
       setDeleting(true);
+      setCommentError("");
 
       const response = await fetch("/api/messages", {
         method: "DELETE",
@@ -139,10 +140,11 @@ export default function MessageCard({ msg }) {
       });
 
       if (!response.ok) {
-        throw new Error("Nao foi possivel excluir a mensagem.");
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data?.error || "Nao foi possivel excluir a mensagem.");
       }
     } catch (err) {
-      console.error("Erro ao deletar:", err);
+      setCommentError(err.message || "Nao foi possivel excluir a mensagem.");
     } finally {
       setDeleting(false);
     }
@@ -203,6 +205,12 @@ export default function MessageCard({ msg }) {
           ) : null}
         </div>
       </div>
+
+      {msg.communityName ? (
+        <div className="mt-4 inline-flex rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-cyan-100">
+          {msg.communityName}
+        </div>
+      ) : null}
 
       <p className="mt-4 whitespace-pre-wrap text-[1.05rem] leading-7 text-slate-200">
         {msg.content || ""}

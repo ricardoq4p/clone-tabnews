@@ -3,6 +3,7 @@ import MessageCard from "../components/MessageCard";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import Pusher from "pusher-js";
+import imageCompression from "browser-image-compression";
 
 export default function Feed() {
   const [messages, setMessages] = useState([]);
@@ -20,6 +21,7 @@ export default function Feed() {
   const [communityPrivacy, setCommunityPrivacy] = useState("public");
   const [communitySubmitting, setCommunitySubmitting] = useState(false);
   const [communityActionId, setCommunityActionId] = useState("");
+  const [communityAvatar, setCommunityAvatar] = useState("");
 
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -137,6 +139,7 @@ export default function Feed() {
         body: JSON.stringify({
           name: communityName,
           description: communityDescription,
+          avatar: communityAvatar,
           privacy: communityPrivacy,
         }),
       });
@@ -150,10 +153,55 @@ export default function Feed() {
       setCommunities((current) => [data, ...current]);
       setCommunityName("");
       setCommunityDescription("");
+      setCommunityAvatar("");
       setCommunityPrivacy("public");
       setCommunityFormOpen(false);
     } catch (error) {
       setCommunityError(error.message || "Nao foi possivel criar a comunidade.");
+    } finally {
+      setCommunitySubmitting(false);
+    }
+  };
+
+  const handleCommunityImage = async (file) => {
+    if (!file) return;
+
+    try {
+      setCommunitySubmitting(true);
+      setCommunityError("");
+
+      const compressed = await imageCompression(file, {
+        maxSizeMB: 0.08,
+        maxWidthOrHeight: 600,
+        useWebWorker: true,
+      });
+
+      const formData = new FormData();
+      formData.append("file", compressed);
+      formData.append(
+        "upload_preset",
+        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
+      );
+
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        },
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data?.secure_url) {
+        throw new Error("Nao foi possivel enviar a imagem da comunidade.");
+      }
+
+      setCommunityAvatar(data.secure_url);
+    } catch (error) {
+      setCommunityError(
+        error.message || "Nao foi possivel enviar a imagem da comunidade.",
+      );
     } finally {
       setCommunitySubmitting(false);
     }
@@ -194,6 +242,10 @@ export default function Feed() {
     }
   };
 
+  const openCommunity = (communityId) => {
+    router.push(`/comunidades/${communityId}`);
+  };
+
   let messagesLabel = "Nenhuma publicacao ainda";
   if (messages.length === 1) {
     messagesLabel = "1 publicacao na conversa";
@@ -228,6 +280,24 @@ export default function Feed() {
                 <div className="mt-4 rounded-3xl border border-white/10 bg-white/[0.03] p-4">
                   <p className="text-sm font-medium text-white">Nova comunidade</p>
                   <div className="mt-4 space-y-3">
+                    <label className="block text-sm text-slate-300">
+                      <span className="mb-2 block">Imagem da comunidade</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(event) =>
+                          handleCommunityImage(event.target.files?.[0])
+                        }
+                        className="field-input cursor-pointer file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-200"
+                      />
+                    </label>
+                    {communityAvatar ? (
+                      <img
+                        src={communityAvatar}
+                        alt="Preview da comunidade"
+                        className="h-16 w-16 rounded-2xl object-cover ring-1 ring-cyan-300/20"
+                      />
+                    ) : null}
                     <input
                       type="text"
                       placeholder="Nome da comunidade"
@@ -308,14 +378,27 @@ export default function Feed() {
                   communities.map((community) => (
                     <article
                       key={community._id}
-                      className="rounded-3xl border border-white/10 bg-white/[0.03] p-4"
+                      onClick={() => openCommunity(community._id)}
+                      className="cursor-pointer rounded-3xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-cyan-300/30 hover:bg-white/[0.05]"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div>
+                        <div className="flex items-start gap-3">
+                          <img
+                            src={
+                              community.avatar ||
+                              `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                community.name,
+                              )}&background=0f172a&color=ffffff`
+                            }
+                            alt={community.name}
+                            className="h-12 w-12 rounded-2xl object-cover"
+                          />
+                          <div>
                           <p className="font-medium text-slate-100">{community.name}</p>
                           <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
                             {community.privacy === "private" ? "Privada" : "Publica"}
                           </p>
+                        </div>
                         </div>
                         <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400">
                           {community.membersCount} membro
@@ -340,7 +423,10 @@ export default function Feed() {
                           </span>
                         ) : (
                           <button
-                            onClick={() => handleCommunityMembership(community)}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              handleCommunityMembership(community);
+                            }}
                             disabled={communityActionId === community._id}
                             className="secondary-button rounded-full px-4 py-2 text-sm"
                           >

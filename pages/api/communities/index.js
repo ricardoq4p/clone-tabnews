@@ -18,6 +18,7 @@ function normalizeCommunity(community, sessionUserId) {
     _id: plainCommunity._id.toString(),
     name: plainCommunity.name,
     description: plainCommunity.description || "",
+    avatar: plainCommunity.avatar || "",
     privacy: plainCommunity.privacy,
     ownerId,
     ownerName: plainCommunity?.ownerId?.name || "Usuario",
@@ -57,7 +58,7 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Nao autenticado" });
       }
 
-      const { name, description, privacy } = req.body;
+      const { name, description, privacy, avatar } = req.body;
       const trimmedName = name?.trim();
       const trimmedDescription = description?.trim() || "";
 
@@ -78,6 +79,7 @@ export default async function handler(req, res) {
       const community = await Community.create({
         name: trimmedName,
         description: trimmedDescription,
+        avatar: typeof avatar === "string" ? avatar.trim() : "",
         privacy: privacy === "private" ? "private" : "public",
         ownerId: session.user.id,
         members: [session.user.id],
