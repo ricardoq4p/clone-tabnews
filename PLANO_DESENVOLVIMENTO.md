@@ -112,3 +112,13 @@ O ambiente permanece ligado para o usuário experimentar. Parar somente se solic
 PRs #15 e #16 revisados: ambos rascunhos e sem conflitos informados; #16 depende de #15, confirmado por ancestralidade. Correções desta etapa ficam em commits **locais** da branch de desenvolvimento; nenhum push para evitar disparar Vercel sem autorização. Antes de sincronizar, revisar gatilhos de preview e isolamento das variáveis.
 
 Pendentes: entrega real Brevo, upload Cloudinary, transporte Pusher, acessibilidade assistiva/aparelhos físicos, carga/backup, revisão editorial católica e política operacional/jurídica. Os serviços externos estão desligados aqui. Não declarar homologação completa para lançamento nem conformidade LGPD concluída. Ver lista detalhada no relatório; ainda não publicar.
+
+## Preparação do preview Vercel — 15/10/2026
+
+O usuário autorizou publicação externa somente em Preview isolado, com projeto/banco/segredos próprios, proteção de acesso e sem custo. Não autoriza produção, domínio panteralab.com.br, main ou reutilização de credenciais. A autorização anterior de não fazer pushes foi substituída por permissão **condicionada à verificação do isolamento**, ainda não cumprida.
+
+Não há acesso Vercel autenticado/CLI/token disponível nos pontos verificados. Foram encontradas integrações Vercel e MongoDB Atlas disponíveis, mas não conectadas na última consulta. O usuário informou que vai conectá-las. Não publicar nem fazer push até verificar os acessos, as variáveis e a automação antiga. Nunca solicitar senhas pelo chat. A homologação local segue acessível.
+
+Preparados docs/PREVIEW_VERCEL.md, .env.preview.example sem segredos e .vercelignore excluindo todos os artefatos/credenciais locais. Acrescentado bloqueio explícito de email e falha antes de criar SMTP quando faltam credenciais. Interface permite aviso de homologação Vercel e noindex, que não substitui proteção de acesso. 108 testes aprovados em 21 suítes nesta preparação; ESLint sem avisos, Prettier e build Node 22/Next 16.4.1 aprovados. Stack local recompilada e reiniciada, respondendo 200 nas portas 3107 e 8025. Deploy remoto ainda não executado.
+
+Próxima ação: confirmar conexão real dos serviços; consultar projetos, variáveis/escopos e proteção Vercel sem imprimir segredos. Se houver credenciais misturadas no projeto antigo, interromper essa parte e apresentar configuração segura. Criar projeto Vercel novo sem deploy Production automático e Atlas Free separado, somente após conferir gratuidade/permissões. Verificar todo o roteiro antes de entregar link. Não reutilizar massa local nem inferir isolamento pelo nome da branch.

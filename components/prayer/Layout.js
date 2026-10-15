@@ -30,6 +30,11 @@ export default function PrayerLayout({
         <meta name="theme-color" content="#f6f3ec" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/sacred/favicon.svg" />
+        {["homologacao-local", "homologacao-vercel"].includes(
+          process.env.NEXT_PUBLIC_APP_ENV,
+        ) ? (
+          <meta name="robots" content="noindex, nofollow" />
+        ) : null}
       </Head>
       <a className="p-skip" href="#conteudo">
         Ir para o conteúdo
@@ -37,6 +42,10 @@ export default function PrayerLayout({
       {process.env.NEXT_PUBLIC_APP_ENV === "homologacao-local" ? (
         <div className="p-homologation-banner" role="note">
           Homologação local · dados de teste · emails disponíveis na caixa local
+        </div>
+      ) : process.env.NEXT_PUBLIC_APP_ENV === "homologacao-vercel" ? (
+        <div className="p-homologation-banner" role="note">
+          Homologação · dados fictícios · ambiente de testes
         </div>
       ) : null}
       <header className="p-header">

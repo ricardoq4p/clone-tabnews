@@ -1,0 +1,10 @@
+# Never upload local databases, captures, credentials or prebuilt local artifacts.
+.git
+.qa
+.npm-cache
+node_modules
+.next
+.vercel
+.env
+.env.*
+*.log
