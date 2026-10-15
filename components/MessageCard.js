@@ -1,3 +1,7 @@
+import Image from "next/image";
+import Link from "next/link";
+import PrayerButton from "./prayer/PrayerButton";
+import ReportButton from "./prayer/ReportButton";
 import LoadMoreButton from "./LoadMoreButton";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
@@ -7,7 +11,7 @@ export default function MessageCard({ msg, onDeleted }) {
   const { data: session } = useSession();
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
-  const [commentsOpen, setCommentsOpen] = useState(true);
+  const [commentsOpen, setCommentsOpen] = useState(false);
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentError, setCommentError] = useState("");
@@ -24,13 +28,13 @@ export default function MessageCard({ msg, onDeleted }) {
   const canDeleteMessage = isAuthor || isSuperadmin;
   const authorName = msg.userId?.name || msg.author || "Usuario";
   const authorAvatar =
-    msg.userId?.avatar ||
-    msg.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(authorName)}&background=0f172a&color=ffffff`;
+    msg.userId?.avatar || msg.avatar || "/sacred/favicon.svg";
 
-  const commentsCountLabel = `${comments.length} ${
-    comments.length === 1 ? "comentario" : "comentarios"
-  }`;
+  const commentsCountLabel = commentsOpen
+    ? `${comments.length} ${
+        comments.length === 1 ? "comentario" : "comentarios"
+      }`
+    : "Comentários";
 
   const formatDate = (date) => {
     if (!date) return "";
@@ -49,13 +53,9 @@ export default function MessageCard({ msg, onDeleted }) {
   };
 
   useEffect(() => {
-    if (!messageId) {
-      setComments([]);
-      setCommentsLoading(false);
+    if (!messageId || !commentsOpen) {
       return;
     }
-
-    setCommentsLoading(true);
 
     fetch(`/api/comments?messageId=${messageId}`)
       .then((res) => res.json())
@@ -64,10 +64,15 @@ export default function MessageCard({ msg, onDeleted }) {
       })
       .catch(() => setComments([]))
       .finally(() => setCommentsLoading(false));
-  }, [messageId, msg.communityId]);
+  }, [messageId, msg.communityId, commentsOpen]);
 
   useEffect(() => {
-    if (!messageId) {
+    if (
+      !messageId ||
+      !commentsOpen ||
+      !process.env.NEXT_PUBLIC_PUSHER_KEY ||
+      !process.env.NEXT_PUBLIC_PUSHER_CLUSTER
+    ) {
       return undefined;
     }
 
@@ -93,7 +98,7 @@ export default function MessageCard({ msg, onDeleted }) {
       pusher.unsubscribe(channel.name);
       pusher.disconnect();
     };
-  }, [messageId, msg.communityId]);
+  }, [messageId, msg.communityId, commentsOpen]);
 
   if (!msg || !messageId) return null;
 
@@ -194,9 +199,22 @@ export default function MessageCard({ msg, onDeleted }) {
 
   return (
     <article className="glass-panel rounded-[28px] p-5 sm:p-6">
+      <div className="p-post-kind">
+        {
+          {
+            prayer: "Pedido de oração",
+            testimony: "Testemunho",
+            reflection: "Reflexão católica",
+            general: "Partilha da comunidade",
+          }[msg.category || "general"]
+        }
+      </div>
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-center gap-3">
-          <img
+          <Image
+            unoptimized
+            width={128}
+            height={128}
             src={authorAvatar}
             alt="avatar"
             className="h-11 w-11 rounded-full object-cover"
@@ -251,24 +269,35 @@ export default function MessageCard({ msg, onDeleted }) {
           </button>
         </div>
 
-        <form
-          onSubmit={handleComment}
-          className="flex flex-col gap-3 sm:flex-row sm:items-center"
-        >
-          <input
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            placeholder="Escreva um comentario..."
-            className="field-input flex-1"
-          />
-          <button
-            type="submit"
-            disabled={commentSubmitting}
-            className="primary-button px-5 py-3 sm:w-auto"
+        {session ? (
+          <form
+            onSubmit={handleComment}
+            className="flex flex-col gap-3 sm:flex-row sm:items-center"
           >
-            {commentSubmitting ? "Enviando..." : "Comentar"}
-          </button>
-        </form>
+            <input
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              placeholder="Escreva um comentário…"
+              aria-label="Seu comentário"
+              maxLength={5000}
+              className="field-input flex-1"
+            />
+            <button
+              type="submit"
+              disabled={commentSubmitting}
+              className="primary-button px-5 py-3 sm:w-auto"
+            >
+              {commentSubmitting ? "Enviando..." : "Comentar"}
+            </button>
+          </form>
+        ) : (
+          <p className="text-xs text-slate-500">
+            <Link href="/login" className="p-inline-link">
+              Entre na sua conta
+            </Link>{" "}
+            para comentar com a comunidade.
+          </p>
+        )}
 
         {commentError ? (
           <p className="mt-3 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
@@ -295,9 +324,7 @@ export default function MessageCard({ msg, onDeleted }) {
                 const currentCommentAvatar =
                   currentComment.avatar ||
                   currentComment.userId?.avatar ||
-                  `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                    currentCommentAuthor,
-                  )}&background=0f172a&color=ffffff`;
+                  "/sacred/favicon.svg";
                 const currentCommentUserId =
                   typeof currentComment.userId === "string"
                     ? currentComment.userId
@@ -314,7 +341,10 @@ export default function MessageCard({ msg, onDeleted }) {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
-                        <img
+                        <Image
+                          unoptimized
+                          width={128}
+                          height={128}
                           src={currentCommentAvatar}
                           alt="avatar do comentario"
                           className="h-9 w-9 rounded-full object-cover"
@@ -345,6 +375,10 @@ export default function MessageCard({ msg, onDeleted }) {
                     <p className="mt-3 text-sm leading-6 text-slate-200">
                       {currentComment.content}
                     </p>
+                    <ReportButton
+                      targetType="comment"
+                      targetId={currentComment._id}
+                    />
                   </div>
                 );
               })
@@ -364,6 +398,14 @@ export default function MessageCard({ msg, onDeleted }) {
             ])
           }
         />
+      </div>
+      <div className="p-post-footer">
+        <PrayerButton
+          endpoint={`/api/messages/${messageId}/oracao`}
+          initialCount={msg.supportCount}
+          initialPrayed={msg.prayed}
+        />
+        <ReportButton targetType="message" targetId={messageId} />
       </div>
     </article>
   );

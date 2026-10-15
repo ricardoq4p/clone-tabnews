@@ -116,9 +116,12 @@ export default function AdminPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
                 Superadmin
               </p>
-              <h1 className="mt-2 text-3xl font-semibold text-white">Painel total do PanteraLab</h1>
+              <h1 className="mt-2 text-3xl font-semibold text-white">
+                Painel total do PanteraLab
+              </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
-                Aqui voce consegue moderar usuarios, comunidades, posts e comentarios com acesso total.
+                Aqui voce consegue moderar usuarios, comunidades, posts e
+                comentarios com acesso total.
               </p>
             </div>
             <button
@@ -145,10 +148,13 @@ export default function AdminPage() {
             <section className="glass-panel rounded-[28px] p-5 sm:p-6">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
-                  <h2 className="text-xl font-semibold text-white">Usuarios online</h2>
+                  <h2 className="text-xl font-semibold text-white">
+                    Usuarios online
+                  </h2>
                   <p className="text-sm text-slate-500">
                     {data.onlineUsers.length} ativo
-                    {data.onlineUsers.length === 1 ? "" : "s"} nos ultimos 2 minutos
+                    {data.onlineUsers.length === 1 ? "" : "s"} nos ultimos 2
+                    minutos
                   </p>
                 </div>
               </div>
@@ -165,7 +171,9 @@ export default function AdminPage() {
                     >
                       <div>
                         <p className="font-medium text-white">{user.name}</p>
-                        <p className="text-sm text-emerald-100/90">{user.email}</p>
+                        <p className="text-sm text-emerald-100/90">
+                          {user.email}
+                        </p>
                       </div>
                       <span className="rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-medium uppercase tracking-[0.18em] text-emerald-200">
                         Online agora
@@ -180,7 +188,9 @@ export default function AdminPage() {
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div>
                   <h2 className="text-xl font-semibold text-white">Usuarios</h2>
-                  <p className="text-sm text-slate-500">{data.users.length} cadastrados</p>
+                  <p className="text-sm text-slate-500">
+                    {data.users.length} cadastrados
+                  </p>
                 </div>
               </div>
               <div className="space-y-3">
@@ -193,13 +203,21 @@ export default function AdminPage() {
                       <p className="font-medium text-white">{user.name}</p>
                       <p className="text-sm text-slate-400">{user.email}</p>
                       <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
-                        {user.role} - {user.isVerified ? "verificado" : "pendente"} - {formatDate(user.createdAt)}
+                        {user.role} -{" "}
+                        {user.isVerified ? "verificado" : "pendente"} -{" "}
+                        {formatDate(user.createdAt)}
                       </p>
                       <p className="mt-2 text-xs text-slate-500">
-                        Ultimo login: {user.lastLoginAt ? formatDate(user.lastLoginAt) : "nunca"}
+                        Ultimo login:{" "}
+                        {user.lastLoginAt
+                          ? formatDate(user.lastLoginAt)
+                          : "nunca"}
                       </p>
                       <p className="text-xs text-slate-500">
-                        Ultima atividade: {user.lastSeenAt ? formatDate(user.lastSeenAt) : "sem atividade recente"}
+                        Ultima atividade:{" "}
+                        {user.lastSeenAt
+                          ? formatDate(user.lastSeenAt)
+                          : "sem atividade recente"}
                       </p>
                     </div>
                     <div className="flex flex-wrap items-center gap-3">
@@ -218,11 +236,19 @@ export default function AdminPage() {
                         </span>
                       ) : (
                         <button
-                          onClick={() => destroy(`/api/admin/users/${user._id}`, "users", user._id)}
+                          onClick={() =>
+                            destroy(
+                              `/api/admin/users/${user._id}`,
+                              "users",
+                              user._id,
+                            )
+                          }
                           disabled={actionId === user._id}
                           className="secondary-button rounded-full px-4 py-2 text-sm"
                         >
-                          {actionId === user._id ? "Excluindo..." : "Excluir usuario"}
+                          {actionId === user._id
+                            ? "Excluindo..."
+                            : "Excluir usuario"}
                         </button>
                       )}
                     </div>
@@ -233,8 +259,12 @@ export default function AdminPage() {
 
             <section className="glass-panel rounded-[28px] p-5 sm:p-6">
               <div className="mb-4">
-                <h2 className="text-xl font-semibold text-white">Comunidades</h2>
-                <p className="text-sm text-slate-500">{data.communities.length} cadastradas</p>
+                <h2 className="text-xl font-semibold text-white">
+                  Comunidades
+                </h2>
+                <p className="text-sm text-slate-500">
+                  {data.communities.length} cadastradas
+                </p>
               </div>
               <div className="space-y-3">
                 {data.communities.map((community) => (
@@ -244,19 +274,28 @@ export default function AdminPage() {
                   >
                     <div>
                       <p className="font-medium text-white">{community.name}</p>
-                      <p className="text-sm text-slate-400">{community.description || "Sem descricao."}</p>
+                      <p className="text-sm text-slate-400">
+                        {community.description || "Sem descricao."}
+                      </p>
                       <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
-                        {community.privacy} - {community.membersCount} membros - {community.ownerEmail}
+                        {community.privacy} - {community.membersCount} membros -{" "}
+                        {community.ownerEmail}
                       </p>
                     </div>
                     <button
                       onClick={() =>
-                        destroy(`/api/communities/${community._id}`, "communities", community._id)
+                        destroy(
+                          `/api/communities/${community._id}`,
+                          "communities",
+                          community._id,
+                        )
                       }
                       disabled={actionId === community._id}
                       className="secondary-button rounded-full px-4 py-2 text-sm"
                     >
-                      {actionId === community._id ? "Excluindo..." : "Excluir comunidade"}
+                      {actionId === community._id
+                        ? "Excluindo..."
+                        : "Excluir comunidade"}
                     </button>
                   </article>
                 ))}
@@ -265,8 +304,12 @@ export default function AdminPage() {
 
             <section className="glass-panel rounded-[28px] p-5 sm:p-6">
               <div className="mb-4">
-                <h2 className="text-xl font-semibold text-white">Posts recentes</h2>
-                <p className="text-sm text-slate-500">{data.messages.length} listados</p>
+                <h2 className="text-xl font-semibold text-white">
+                  Posts recentes
+                </h2>
+                <p className="text-sm text-slate-500">
+                  {data.messages.length} listados
+                </p>
               </div>
               <div className="space-y-3">
                 {data.messages.map((message) => (
@@ -275,8 +318,12 @@ export default function AdminPage() {
                     className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="max-w-3xl">
-                      <p className="font-medium text-white">{message.authorName}</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">{message.content}</p>
+                      <p className="font-medium text-white">
+                        {message.authorName}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">
+                        {message.content}
+                      </p>
                       <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
                         {message.authorEmail} - {formatDate(message.createdAt)}
                       </p>
@@ -292,7 +339,9 @@ export default function AdminPage() {
                       disabled={actionId === message._id}
                       className="secondary-button rounded-full px-4 py-2 text-sm"
                     >
-                      {actionId === message._id ? "Excluindo..." : "Excluir post"}
+                      {actionId === message._id
+                        ? "Excluindo..."
+                        : "Excluir post"}
                     </button>
                   </article>
                 ))}
@@ -301,8 +350,12 @@ export default function AdminPage() {
 
             <section className="glass-panel rounded-[28px] p-5 sm:p-6">
               <div className="mb-4">
-                <h2 className="text-xl font-semibold text-white">Comentarios recentes</h2>
-                <p className="text-sm text-slate-500">{data.comments.length} listados</p>
+                <h2 className="text-xl font-semibold text-white">
+                  Comentarios recentes
+                </h2>
+                <p className="text-sm text-slate-500">
+                  {data.comments.length} listados
+                </p>
               </div>
               <div className="space-y-3">
                 {data.comments.map((comment) => (
@@ -311,8 +364,12 @@ export default function AdminPage() {
                     className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/[0.03] p-4 sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="max-w-3xl">
-                      <p className="font-medium text-white">{comment.authorName}</p>
-                      <p className="mt-2 text-sm leading-6 text-slate-300">{comment.content}</p>
+                      <p className="font-medium text-white">
+                        {comment.authorName}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-slate-300">
+                        {comment.content}
+                      </p>
                       <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
                         {comment.authorEmail} - {formatDate(comment.createdAt)}
                       </p>
@@ -328,7 +385,9 @@ export default function AdminPage() {
                       disabled={actionId === comment._id}
                       className="secondary-button rounded-full px-4 py-2 text-sm"
                     >
-                      {actionId === comment._id ? "Excluindo..." : "Excluir comentario"}
+                      {actionId === comment._id
+                        ? "Excluindo..."
+                        : "Excluir comentario"}
                     </button>
                   </article>
                 ))}

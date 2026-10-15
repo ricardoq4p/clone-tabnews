@@ -1,3 +1,4 @@
+import Image from "next/image";
 import LoadMoreButton from "../../components/LoadMoreButton";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
@@ -58,7 +59,6 @@ export default function CommunityPage() {
   useEffect(() => {
     if (!session || !id) return;
 
-    setCommunityLoading(true);
     fetch(`/api/communities/${id}`)
       .then(async (res) => {
         const data = await res.json().catch(() => ({}));
@@ -82,18 +82,8 @@ export default function CommunityPage() {
   }, [id, session]);
 
   useEffect(() => {
-    if (!community) return;
-
-    setEditName(community.name || "");
-    setEditDescription(community.description || "");
-    setEditPrivacy(community.privacy || "public");
-    setEditAvatar(community.avatar || "");
-  }, [community]);
-
-  useEffect(() => {
     if (!session || !id) return;
 
-    setMessagesLoading(true);
     fetch(`/api/messages?communityId=${id}`)
       .then(async (res) => {
         const data = await res.json().catch(() => []);
@@ -139,18 +129,10 @@ export default function CommunityPage() {
     };
   }, [id]);
 
-  const avatarUrl =
-    userData?.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      session?.user?.name || "User",
-    )}&background=0f172a&color=ffffff`;
+  const avatarUrl = userData?.avatar || "/sacred/favicon.svg";
 
   const canPublish = Boolean(community?.joined || community?.isOwner);
-  const communityAvatar =
-    community?.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      community?.name || "Comunidade",
-    )}&background=0f172a&color=ffffff`;
+  const communityAvatar = community?.avatar || "/sacred/favicon.svg";
 
   const handleCommunityMembership = async () => {
     if (!community?._id || communityActionId) return;
@@ -326,7 +308,10 @@ export default function CommunityPage() {
                 Voltar ao feed
               </button>
               <div className="mt-5 flex items-center gap-4">
-                <img
+                <Image
+                  unoptimized
+                  width={128}
+                  height={128}
                   src={communityAvatar}
                   alt={community?.name || "Comunidade"}
                   className="h-20 w-20 rounded-[24px] object-cover ring-1 ring-cyan-300/20"
@@ -353,7 +338,10 @@ export default function CommunityPage() {
                 onClick={() => router.push("/profile")}
                 className="secondary-button gap-3 rounded-full px-3 py-2"
               >
-                <img
+                <Image
+                  unoptimized
+                  width={128}
+                  height={128}
                   src={avatarUrl}
                   alt="avatar"
                   className="h-10 w-10 rounded-full object-cover"
@@ -365,7 +353,15 @@ export default function CommunityPage() {
 
               {community?.isOwner ? (
                 <button
-                  onClick={() => setEditOpen((current) => !current)}
+                  onClick={() => {
+                    if (!editOpen) {
+                      setEditName(community.name || "");
+                      setEditDescription(community.description || "");
+                      setEditPrivacy(community.privacy || "public");
+                      setEditAvatar(community.avatar || "");
+                    }
+                    setEditOpen((current) => !current);
+                  }}
                   className="secondary-button rounded-full px-4 py-2 text-sm"
                 >
                   {editOpen ? "Fechar edicao" : "Editar comunidade"}
@@ -395,13 +391,11 @@ export default function CommunityPage() {
                 <p className="text-sm font-medium text-white">
                   Imagem da comunidade
                 </p>
-                <img
-                  src={
-                    editAvatar ||
-                    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                      editName || "Comunidade",
-                    )}&background=0f172a&color=ffffff`
-                  }
+                <Image
+                  unoptimized
+                  width={128}
+                  height={128}
+                  src={editAvatar || "/sacred/favicon.svg"}
                   alt="Preview da comunidade"
                   className="mt-4 h-28 w-28 rounded-[24px] object-cover ring-1 ring-cyan-300/20"
                 />
@@ -522,7 +516,10 @@ export default function CommunityPage() {
           <div>
             <section className="glass-panel mb-6 rounded-[28px] p-5 sm:p-6">
               <div className="mb-4 flex items-start gap-3">
-                <img
+                <Image
+                  unoptimized
+                  width={128}
+                  height={128}
                   src={avatarUrl}
                   alt="avatar"
                   className="h-11 w-11 rounded-full object-cover"

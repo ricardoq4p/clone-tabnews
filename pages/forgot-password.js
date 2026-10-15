@@ -24,7 +24,9 @@ export default function ForgotPassword() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setError(data?.error || "Nao foi possivel enviar o link de recuperacao.");
+        setError(
+          data?.error || "Nao foi possivel enviar o link de recuperacao.",
+        );
         return;
       }
 
@@ -90,7 +92,11 @@ export default function ForgotPassword() {
           />
         </label>
 
-        <button type="submit" disabled={loading} className="primary-button w-full">
+        <button
+          type="submit"
+          disabled={loading}
+          className="primary-button w-full"
+        >
           {loading ? "Enviando..." : "Enviar link de recuperacao"}
         </button>
       </form>

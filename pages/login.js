@@ -29,7 +29,7 @@ export default function Login() {
         return;
       }
 
-      router.replace("/feed");
+      router.replace("/comunidade");
     } catch {
       setError("Erro ao fazer login. Tente novamente.");
     } finally {

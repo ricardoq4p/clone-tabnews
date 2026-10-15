@@ -81,14 +81,16 @@ export default async function handler(req, res) {
       })),
       messages: messages.map((message) => ({
         _id: message._id.toString(),
-        content: message.content,
+        content: message.communityId
+          ? "Conteúdo de comunidade — use a revisão auditada no novo painel."
+          : message.content,
         createdAt: message.createdAt,
         authorName: message.userId?.name || "Usuario",
         authorEmail: message.userId?.email || "",
       })),
       comments: comments.map((comment) => ({
         _id: comment._id.toString(),
-        content: comment.content,
+        content: "Comentário — use a revisão auditada no novo painel.",
         messageId: comment.messageId?.toString?.() || comment.messageId,
         createdAt: comment.createdAt,
         authorName: comment.userId?.name || comment.author || "Usuario",

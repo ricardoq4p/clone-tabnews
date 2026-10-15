@@ -1,0 +1,1 @@
+Ilustrações vetoriais originais do projeto PanteraLab, criadas em SVG para esta experiência. Uso sob a licença MIT do repositório. Representações simbólicas para contemplação, sem reprodução de obras de terceiros.

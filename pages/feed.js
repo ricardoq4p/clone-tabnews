@@ -1,3 +1,4 @@
+import Image from "next/image";
 import LoadMoreButton from "../components/LoadMoreButton";
 import { useEffect, useState } from "react";
 import MessageCard from "../components/MessageCard";
@@ -44,7 +45,6 @@ export default function Feed() {
   useEffect(() => {
     if (!session) return;
 
-    setCommunitiesLoading(true);
     fetch("/api/communities")
       .then((res) => res.json())
       .then((data) => {
@@ -58,8 +58,6 @@ export default function Feed() {
   }, [session]);
 
   useEffect(() => {
-    setFeedLoading(true);
-
     fetch("/api/messages")
       .then((res) => res.json())
       .then((data) => {
@@ -136,9 +134,7 @@ export default function Feed() {
     }
   };
 
-  const avatarUrl =
-    userData?.avatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(session?.user?.name || "User")}&background=0f172a&color=ffffff`;
+  const avatarUrl = userData?.avatar || "/sacred/favicon.svg";
 
   const handleCreateCommunity = async () => {
     if (!communityName.trim() || communitySubmitting) return;
@@ -311,7 +307,10 @@ export default function Feed() {
                         />
                       </label>
                       {communityAvatar ? (
-                        <img
+                        <Image
+                          unoptimized
+                          width={128}
+                          height={128}
                           src={communityAvatar}
                           alt="Preview da comunidade"
                           className="h-16 w-16 rounded-2xl object-cover ring-1 ring-cyan-300/20"
@@ -401,13 +400,11 @@ export default function Feed() {
                       >
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-start gap-3">
-                            <img
-                              src={
-                                community.avatar ||
-                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                  community.name,
-                                )}&background=0f172a&color=ffffff`
-                              }
+                            <Image
+                              unoptimized
+                              width={128}
+                              height={128}
+                              src={community.avatar || "/sacred/favicon.svg"}
                               alt={community.name}
                               className="h-12 w-12 rounded-2xl object-cover"
                             />
@@ -499,7 +496,10 @@ export default function Feed() {
                     onClick={() => router.push("/profile")}
                     className="secondary-button gap-3 rounded-full px-3 py-2"
                   >
-                    <img
+                    <Image
+                      unoptimized
+                      width={128}
+                      height={128}
                       src={avatarUrl}
                       alt="avatar"
                       className="h-10 w-10 rounded-full object-cover"
@@ -528,7 +528,10 @@ export default function Feed() {
 
             <section className="glass-panel mb-6 rounded-[28px] p-5 sm:p-6">
               <div className="mb-4 flex items-start gap-3">
-                <img
+                <Image
+                  unoptimized
+                  width={128}
+                  height={128}
                   src={avatarUrl}
                   alt="avatar"
                   className="h-11 w-11 rounded-full object-cover"

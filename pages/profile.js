@@ -1,3 +1,5 @@
+import Image from "next/image";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/router";
@@ -47,7 +49,6 @@ export default function Profile() {
   useEffect(() => {
     if (!session) return;
 
-    setCaloriesLoading(true);
     fetch("/api/calories")
       .then((res) => res.json())
       .then((data) => {
@@ -141,7 +142,9 @@ export default function Profile() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data?.error || "Nao foi possivel registrar o alimento.");
+        throw new Error(
+          data?.error || "Nao foi possivel registrar o alimento.",
+        );
       }
 
       setCalorieData({
@@ -152,7 +155,9 @@ export default function Profile() {
       });
       setCalorieDescription("");
     } catch (error) {
-      setCalorieError(error.message || "Nao foi possivel registrar o alimento.");
+      setCalorieError(
+        error.message || "Nao foi possivel registrar o alimento.",
+      );
     } finally {
       setEntrySubmitting(false);
     }
@@ -227,23 +232,46 @@ export default function Profile() {
               <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
                 Perfil privado
               </p>
-              <h1 className="mt-2 text-3xl font-semibold text-white">Seu espaco pessoal</h1>
+              <h1 className="mt-2 text-3xl font-semibold text-white">
+                Seu espaço de oração
+              </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                Atualize sua foto, acompanhe seus dados e, se encontrar o canto secreto, registre suas refeicoes do dia com estimativas de calorias.
+                Cuide do seu perfil, retome suas orações e acompanhe as
+                intenções que você apresentou.
               </p>
             </div>
 
-            <button onClick={() => router.push("/feed")} className="secondary-button rounded-full px-4 py-2 text-sm">
+            <button
+              onClick={() => router.push("/feed")}
+              className="secondary-button rounded-full px-4 py-2 text-sm"
+            >
               Voltar para o feed
             </button>
           </div>
         </header>
 
+        <nav
+          aria-label="Seu espaço de oração"
+          className="mb-6 flex flex-wrap gap-3"
+        >
+          <Link href="/rosario" className="secondary-button px-4 py-3">
+            Meu Rosário
+          </Link>
+          <Link href="/minhas-velas" className="secondary-button px-4 py-3">
+            Minhas velas e intenções
+          </Link>
+          <Link href="/privacidade" className="secondary-button px-4 py-3">
+            Privacidade e meus dados
+          </Link>
+        </nav>
         <div className="grid gap-6 lg:grid-cols-[0.9fr,1.1fr]">
           <section className="glass-panel rounded-[28px] p-6 sm:p-8">
             <div className="flex flex-col items-center text-center">
-              <img
-                src={avatar || `https://ui-avatars.com/api/?name=${session?.user?.name}`}
+              <Image
+                unoptimized
+                width={128}
+                height={128}
+                src={avatar || "/sacred/favicon.svg"}
                 alt="avatar"
                 className="h-32 w-32 rounded-full object-cover ring-4 ring-cyan-400/20"
               />
@@ -251,7 +279,9 @@ export default function Profile() {
               <h2 className="mt-5 text-2xl font-semibold text-white">
                 {profileData?.name || session.user.name}
               </h2>
-              <p className="mt-1 text-sm text-slate-400">{profileData?.email || session.user.email}</p>
+              <p className="mt-1 text-sm text-slate-400">
+                {profileData?.email || session.user.email}
+              </p>
 
               <label className="mt-6 w-full text-left text-sm text-slate-300">
                 <span className="mb-2 block">Trocar foto de perfil</span>
@@ -263,15 +293,23 @@ export default function Profile() {
                 />
               </label>
 
-              {uploading ? <p className="mt-3 text-sm text-cyan-200">Enviando nova imagem...</p> : null}
+              {uploading ? (
+                <p className="mt-3 text-sm text-cyan-200">
+                  Enviando nova imagem...
+                </p>
+              ) : null}
             </div>
           </section>
 
           <section className="glass-panel rounded-[28px] p-6 sm:p-8">
             <div className="flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Easter egg</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">Contador secreto de calorias</h2>
+                <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+                  Recurso pessoal
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">
+                  Diário pessoal de alimentação
+                </h2>
               </div>
               <button
                 onClick={() => setSecretOpen((current) => !current)}
@@ -282,7 +320,9 @@ export default function Profile() {
             </div>
 
             <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400">
-              Privado e so visivel para voce. Escreva o que comeu em texto livre, receba uma estimativa de calorias e acompanhe quanto falta para a sua meta diaria.
+              Privado e so visivel para voce. Escreva o que comeu em texto
+              livre, receba uma estimativa de calorias e acompanhe quanto falta
+              para a sua meta diaria.
             </p>
 
             {secretOpen ? (
@@ -300,7 +340,11 @@ export default function Profile() {
                     />
                   </label>
 
-                  <button onClick={handleGoalSave} disabled={goalSaving} className="primary-button px-5 py-3">
+                  <button
+                    onClick={handleGoalSave}
+                    disabled={goalSaving}
+                    className="primary-button px-5 py-3"
+                  >
                     {goalSaving ? "Salvando..." : "Salvar meta"}
                   </button>
                 </div>
@@ -309,11 +353,15 @@ export default function Profile() {
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       <p className="text-sm text-slate-400">Consumido hoje</p>
-                      <p className="mt-1 text-3xl font-semibold text-white">{calorieData.totalCalories} kcal</p>
+                      <p className="mt-1 text-3xl font-semibold text-white">
+                        {calorieData.totalCalories} kcal
+                      </p>
                     </div>
                     <div className="text-left sm:text-right">
                       <p className="text-sm text-slate-400">Meta do dia</p>
-                      <p className="mt-1 text-xl font-semibold text-cyan-200">{calorieData.goal} kcal</p>
+                      <p className="mt-1 text-xl font-semibold text-cyan-200">
+                        {calorieData.goal} kcal
+                      </p>
                     </div>
                   </div>
 
@@ -331,7 +379,10 @@ export default function Profile() {
                   </p>
                 </div>
 
-                <form onSubmit={handleCalorieSubmit} className="rounded-[24px] border border-white/10 bg-slate-950/30 p-5">
+                <form
+                  onSubmit={handleCalorieSubmit}
+                  className="rounded-[24px] border border-white/10 bg-slate-950/30 p-5"
+                >
                   <label className="block text-sm text-slate-300">
                     <span className="mb-2 block">O que voce comeu hoje?</span>
                     <textarea
@@ -344,10 +395,17 @@ export default function Profile() {
 
                   <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <p className="text-xs leading-5 text-slate-500">
-                      Valores estimados com base em porcoes comuns. Isso e apenas informativo e nao substitui orientacao nutricional.
+                      Valores estimados com base em porcoes comuns. Isso e
+                      apenas informativo e nao substitui orientacao nutricional.
                     </p>
-                    <button type="submit" disabled={entrySubmitting} className="primary-button px-5 py-3">
-                      {entrySubmitting ? "Registrando..." : "Registrar refeicao"}
+                    <button
+                      type="submit"
+                      disabled={entrySubmitting}
+                      className="primary-button px-5 py-3"
+                    >
+                      {entrySubmitting
+                        ? "Registrando..."
+                        : "Registrar refeicao"}
                     </button>
                   </div>
                 </form>
@@ -361,8 +419,12 @@ export default function Profile() {
                 <div className="rounded-[24px] border border-white/10 bg-slate-950/30 p-5">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Hoje</p>
-                      <h3 className="mt-2 text-xl font-semibold text-white">Diario privado</h3>
+                      <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+                        Hoje
+                      </p>
+                      <h3 className="mt-2 text-xl font-semibold text-white">
+                        Diario privado
+                      </h3>
                     </div>
                     <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400">
                       {calorieData.entries.length} registros
@@ -371,10 +433,13 @@ export default function Profile() {
 
                   <div className="mt-4 space-y-3">
                     {caloriesLoading ? (
-                      <p className="text-sm text-slate-500">Carregando registros...</p>
+                      <p className="text-sm text-slate-500">
+                        Carregando registros...
+                      </p>
                     ) : calorieData.entries.length === 0 ? (
                       <p className="text-sm text-slate-500">
-                        Nenhuma refeicao registrada hoje. O segredo esta pronto para o primeiro item.
+                        Nenhuma refeicao registrada hoje. O segredo esta pronto
+                        para o primeiro item.
                       </p>
                     ) : (
                       calorieData.entries.map((entry) => (
@@ -384,8 +449,12 @@ export default function Profile() {
                         >
                           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                             <div>
-                              <p className="font-medium text-white">{entry.description}</p>
-                              <p className="mt-1 text-sm text-cyan-200">{entry.estimatedCalories} kcal estimadas</p>
+                              <p className="font-medium text-white">
+                                {entry.description}
+                              </p>
+                              <p className="mt-1 text-sm text-cyan-200">
+                                {entry.estimatedCalories} kcal estimadas
+                              </p>
                             </div>
                             <button
                               onClick={() => handleDeleteEntry(entry._id)}
@@ -397,12 +466,15 @@ export default function Profile() {
 
                           {entry.matchedItems?.length ? (
                             <p className="mt-3 text-sm leading-6 text-slate-400">
-                              Base da estimativa: {entry.matchedItems.join(", ")}
+                              Base da estimativa:{" "}
+                              {entry.matchedItems.join(", ")}
                             </p>
                           ) : null}
 
                           {entry.note ? (
-                            <p className="mt-2 text-xs leading-5 text-slate-500">{entry.note}</p>
+                            <p className="mt-2 text-xs leading-5 text-slate-500">
+                              {entry.note}
+                            </p>
                           ) : null}
                         </article>
                       ))
@@ -412,7 +484,9 @@ export default function Profile() {
               </div>
             ) : (
               <div className="mt-6 rounded-[24px] border border-dashed border-white/10 bg-slate-950/20 p-6 text-sm text-slate-500">
-                O modo secreto fica aqui. Quando abrir, voce consegue definir sua meta, registrar refeicoes e acompanhar quanto ainda falta para o dia.
+                O modo secreto fica aqui. Quando abrir, voce consegue definir
+                sua meta, registrar refeicoes e acompanhar quanto ainda falta
+                para o dia.
               </div>
             )}
           </section>

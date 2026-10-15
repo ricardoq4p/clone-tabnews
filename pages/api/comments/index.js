@@ -34,7 +34,11 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: "Identificador invalido" });
       if (!(await readableMessage(messageId, session)))
         return res.status(404).json({ error: "Publicacao indisponivel" });
-      const filter = { messageId, ...(before ? { _id: { $lt: before } } : {}) };
+      const filter = {
+        status: { $ne: "hidden" },
+        messageId,
+        ...(before ? { _id: { $lt: before } } : {}),
+      };
       const comments = await Comment.find(filter)
         .populate("userId", "name avatar")
         .sort({ _id: -1 })

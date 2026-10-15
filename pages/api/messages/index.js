@@ -1,3 +1,4 @@
+import { supportSummary } from "@/lib/prayer-support";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import Message from "@/lib/models/Message";
@@ -15,6 +16,7 @@ import { isObjectId, validText } from "@/lib/validation";
 function normalizeMessage(message) {
   return {
     _id: message._id,
+    category: message.category || "general",
     content: message.content,
     createdAt: message.createdAt,
     userId: message.userId,
@@ -61,14 +63,48 @@ export default async function handler(req, res) {
         : {
             $or: [{ communityId: null }, { communityId: { $in: allowedIds } }],
           };
+      filters.status = { $ne: "hidden" };
+      if (req.query.category) {
+        if (
+          !["prayer", "testimony", "reflection", "general"].includes(
+            req.query.category,
+          )
+        )
+          return res.status(400).json({ error: "Categoria inválida" });
+        filters.category =
+          req.query.category === "general"
+            ? { $in: ["general", null] }
+            : req.query.category;
+      }
       if (before) filters._id = { $lt: before };
       const messages = await Message.find(filters)
         .populate("userId", "name username avatar")
         .populate("communityId", "name")
         .sort({ _id: -1 })
         .limit(50);
-      return res.status(200).json(messages.map(normalizeMessage));
+      const supports = await supportSummary(
+        "message",
+        messages.map((item) => item._id),
+        session?.user?.id,
+      );
+      return res.status(200).json(
+        messages.map((message) => {
+          const item = supports.get(message._id.toString());
+          return {
+            ...normalizeMessage(message),
+            supportCount: item?.count || 0,
+            prayed: item?.prayed || false,
+          };
+        }),
+      );
     }
+    if (
+      req.body?.accountId !== undefined &&
+      req.body.accountId !== session?.user?.id
+    )
+      return res
+        .status(401)
+        .json({ error: "Sua conta mudou. Atualize a página." });
     if (!session) return res.status(401).json({ error: "Nao autenticado" });
     if (req.method === "POST") {
       const rate = await checkRateLimit({
@@ -82,7 +118,9 @@ export default async function handler(req, res) {
         return res
           .status(429)
           .json({ error: "Muitas publicacoes em pouco tempo." });
-      const { content, communityId } = req.body || {};
+      const { content, communityId, category = "general" } = req.body || {};
+      if (!["prayer", "testimony", "reflection", "general"].includes(category))
+        return res.status(400).json({ error: "Categoria inválida" });
       if (!validText(content) || (communityId && !isObjectId(communityId)))
         return res.status(400).json({ error: "Dados invalidos" });
       if (communityId) {
@@ -94,6 +132,7 @@ export default async function handler(req, res) {
       }
       const message = await Message.create({
         content: content.trim(),
+        category,
         userId: session.user.id,
         communityId: communityId || null,
       });
