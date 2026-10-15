@@ -1,9 +1,13 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
+import { validImageUrl } from "@/lib/validation";
 import connectToDatabase from "@/lib/db";
 import User from "@/lib/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   await connectToDatabase();
 
   // 🔹 POST → salvar avatar (URL do Cloudinary)
@@ -17,7 +21,7 @@ export default async function handler(req, res) {
 
       const { avatar } = req.body;
 
-      if (!avatar || typeof avatar !== "string") {
+      if (!validImageUrl(avatar)) {
         return res.status(400).json({ error: "Avatar inválido" });
       }
 

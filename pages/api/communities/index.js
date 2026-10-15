@@ -1,3 +1,5 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
+import { validText, validImageUrl, escapeRegex } from "@/lib/validation";
 import connectToDatabase from "@/lib/db";
 import Community from "@/lib/models/Community";
 import { getServerSession } from "next-auth";
@@ -7,7 +9,9 @@ import { getClientIp } from "@/lib/request";
 
 function normalizeCommunity(community, sessionUserId) {
   const plainCommunity =
-    typeof community?.toObject === "function" ? community.toObject() : community;
+    typeof community?.toObject === "function"
+      ? community.toObject()
+      : community;
   const ownerId =
     typeof plainCommunity?.ownerId === "string"
       ? plainCommunity.ownerId
@@ -32,20 +36,32 @@ function normalizeCommunity(community, sessionUserId) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   await connectToDatabase();
 
   if (req.method === "GET") {
     try {
       const session = await getServerSession(req, res, authOptions);
-      const communities = await Community.find()
+      const communities = await Community.find({
+        deletedAt: null,
+        $or: [
+          { privacy: "public" },
+          ...(session?.user?.id
+            ? [{ ownerId: session.user.id }, { members: session.user.id }]
+            : []),
+        ],
+      })
         .populate("ownerId", "name")
         .sort({ createdAt: -1 });
 
-      return res.status(200).json(
-        communities.map((community) =>
-          normalizeCommunity(community, session?.user?.id),
-        ),
-      );
+      return res
+        .status(200)
+        .json(
+          communities.map((community) =>
+            normalizeCommunity(community, session?.user?.id),
+          ),
+        );
     } catch (error) {
       console.error("ERRO GET COMMUNITIES:", error);
       return res.status(500).json({ error: "Erro ao buscar comunidades" });
@@ -60,7 +76,9 @@ export default async function handler(req, res) {
         return res.status(401).json({ error: "Nao autenticado" });
       }
 
-      const rateLimitResult = checkRateLimit({
+      const rateLimitResult = await checkRateLimit({
+        ip: getClientIp(req),
+        identity: session.user.id,
         key: `communities:create:${session.user.id}:${getClientIp(req)}`,
         limit: Number(process.env.RATE_LIMIT_COMMUNITIES_CREATE_MAX || 3),
         windowMs: Number(
@@ -78,15 +96,23 @@ export default async function handler(req, res) {
       }
 
       const { name, description, privacy, avatar } = req.body;
-      const trimmedName = name?.trim();
-      const trimmedDescription = description?.trim() || "";
+      const trimmedName = typeof name === "string" ? name.trim() : "";
+      const trimmedDescription =
+        typeof description === "string" ? description.trim() : "";
 
-      if (!trimmedName) {
-        return res.status(400).json({ error: "Digite um nome para a comunidade" });
+      if (
+        !validText(trimmedName, 60) ||
+        trimmedDescription.length > 220 ||
+        (avatar && !validImageUrl(avatar))
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Digite um nome para a comunidade" });
       }
 
       const existingCommunity = await Community.findOne({
-        name: { $regex: `^${trimmedName}$`, $options: "i" },
+        deletedAt: null,
+        name: { $regex: `^${escapeRegex(trimmedName)}$`, $options: "i" },
       });
 
       if (existingCommunity) {

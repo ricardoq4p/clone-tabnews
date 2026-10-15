@@ -1,3 +1,8 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
+import User from "@/lib/models/User";
+import { normalizeEmail } from "@/lib/auth";
+import { isMember } from "@/lib/permissions";
+import { isObjectId } from "@/lib/validation";
 import connectToDatabase from "@/lib/db";
 import Community from "@/lib/models/Community";
 import { getServerSession } from "next-auth";
@@ -7,7 +12,9 @@ import { getClientIp } from "@/lib/request";
 
 function normalizeCommunity(community, sessionUserId) {
   const plainCommunity =
-    typeof community?.toObject === "function" ? community.toObject() : community;
+    typeof community?.toObject === "function"
+      ? community.toObject()
+      : community;
   const ownerId =
     typeof plainCommunity?.ownerId === "string"
       ? plainCommunity.ownerId
@@ -21,6 +28,7 @@ function normalizeCommunity(community, sessionUserId) {
     name: plainCommunity.name,
     description: plainCommunity.description || "",
     privacy: plainCommunity.privacy,
+    avatar: plainCommunity.avatar || "",
     ownerId,
     ownerName: plainCommunity?.ownerId?.name || "Usuario",
     membersCount: memberIds.length,
@@ -31,6 +39,8 @@ function normalizeCommunity(community, sessionUserId) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   await connectToDatabase();
 
   if (req.method !== "POST") {
@@ -44,7 +54,9 @@ export default async function handler(req, res) {
       return res.status(401).json({ error: "Nao autenticado" });
     }
 
-    const rateLimitResult = checkRateLimit({
+    const rateLimitResult = await checkRateLimit({
+      ip: getClientIp(req),
+      identity: session.user.id,
       key: `communities:join:${session.user.id}:${getClientIp(req)}`,
       limit: Number(process.env.RATE_LIMIT_COMMUNITIES_JOIN_MAX || 20),
       windowMs: Number(
@@ -62,15 +74,62 @@ export default async function handler(req, res) {
     }
 
     const { id } = req.query;
-    const { action } = req.body;
+    if (!isObjectId(id))
+      return res.status(400).json({ error: "Identificador invalido" });
+    const { action } = req.body || {};
+    if (!["join", "leave", "approve"].includes(action))
+      return res.status(400).json({ error: "Acao invalida" });
     const community = await Community.findById(id);
 
-    if (!community) {
+    if (!community || community.deletedAt) {
       return res.status(404).json({ error: "Comunidade nao encontrada" });
     }
 
-    const userId = session.user.id;
-    const isMember = community.members.some((member) => member.toString() === userId);
+    if (
+      action === "approve" &&
+      community.ownerId.toString() !== session.user.id
+    )
+      return res
+        .status(403)
+        .json({ error: "Somente o responsavel pode adicionar participantes" });
+    let userId = session.user.id;
+    if (action === "approve") {
+      const filter = req.body?.email
+        ? { email: normalizeEmail(req.body.email) }
+        : { _id: req.body?.userId };
+      if (!req.body?.email && !isObjectId(req.body?.userId))
+        return res.status(400).json({ error: "Usuario invalido" });
+      const participant = await User.findOne({
+        ...filter,
+        isVerified: true,
+        disabledAt: null,
+      }).select("_id");
+      if (!participant)
+        return res
+          .status(404)
+          .json({ error: "Conta verificada nao encontrada" });
+      userId = participant._id.toString();
+    }
+    if (!isObjectId(userId))
+      return res.status(400).json({ error: "Usuario invalido" });
+    if (
+      action === "approve" &&
+      community.ownerId.toString() !== session.user.id
+    )
+      return res
+        .status(403)
+        .json({ error: "Somente o responsavel pode adicionar participantes" });
+    if (
+      action === "join" &&
+      community.privacy === "private" &&
+      !isMember(community, userId)
+    )
+      return res
+        .status(403)
+        .json({ error: "Esta comunidade requer convite do responsavel" });
+    const alreadyMember = community.members.some(
+      (member) => member.toString() === userId,
+    );
 
     if (action === "leave") {
       if (community.ownerId.toString() === userId) {
@@ -82,11 +141,18 @@ export default async function handler(req, res) {
       community.members = community.members.filter(
         (member) => member.toString() !== userId,
       );
-    } else if (!isMember) {
+    } else if (!alreadyMember) {
       community.members.push(userId);
     }
 
-    await community.save();
+    await Community.updateOne(
+      { _id: id, deletedAt: null },
+      action === "leave"
+        ? { $pull: { members: userId } }
+        : { $addToSet: { members: userId } },
+    );
+    const updatedCommunity = await Community.findById(id);
+    community.members = updatedCommunity.members;
     const populatedCommunity = await community.populate("ownerId", "name");
 
     return res

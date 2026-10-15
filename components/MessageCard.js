@@ -1,8 +1,9 @@
+import LoadMoreButton from "./LoadMoreButton";
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import Pusher from "pusher-js";
 
-export default function MessageCard({ msg }) {
+export default function MessageCard({ msg, onDeleted }) {
   const { data: session } = useSession();
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
@@ -16,7 +17,9 @@ export default function MessageCard({ msg }) {
 
   const messageUserId =
     typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
-  const isAuthor = Boolean(messageUserId && session?.user?.id === messageUserId);
+  const isAuthor = Boolean(
+    messageUserId && session?.user?.id === messageUserId,
+  );
   const isSuperadmin = session?.user?.role === "superadmin";
   const canDeleteMessage = isAuthor || isSuperadmin;
   const authorName = msg.userId?.name || msg.author || "Usuario";
@@ -61,7 +64,7 @@ export default function MessageCard({ msg }) {
       })
       .catch(() => setComments([]))
       .finally(() => setCommentsLoading(false));
-  }, [messageId]);
+  }, [messageId, msg.communityId]);
 
   useEffect(() => {
     if (!messageId) {
@@ -70,34 +73,27 @@ export default function MessageCard({ msg }) {
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      channelAuthorization: { endpoint: "/api/pusher/auth", transport: "ajax" },
     });
 
-    const channel = pusher.subscribe("comments");
+    const channel = pusher.subscribe(
+      msg.communityId ? `private-community-${msg.communityId}` : "comments",
+    );
 
-    channel.bind("new-comment", (data) => {
-      if (data?.messageId === messageId) {
-        setComments((prev) => {
-          if (prev.find((currentComment) => currentComment._id === data._id))
-            return prev;
-          return [data, ...prev];
-        });
-      }
-    });
-
-    channel.bind("delete-comment", (data) => {
-      if (data?.messageId === messageId || !data?.messageId) {
-        setComments((prev) =>
-          prev.filter((currentComment) => currentComment._id !== data?.id),
-        );
-      }
-    });
+    const reload = () =>
+      fetch(`/api/comments?messageId=${messageId}`)
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => setComments(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    channel.bind("new-comment", reload);
+    channel.bind("delete-comment", reload);
 
     return () => {
       channel.unbind_all();
-      pusher.unsubscribe("comments");
+      pusher.unsubscribe(channel.name);
       pusher.disconnect();
     };
-  }, [messageId]);
+  }, [messageId, msg.communityId]);
 
   if (!msg || !messageId) return null;
 
@@ -126,6 +122,12 @@ export default function MessageCard({ msg }) {
         throw new Error(data?.error || "Nao foi possivel enviar o comentario.");
       }
 
+      const created = await response.json();
+      setComments((current) =>
+        current.some((item) => item._id === created._id)
+          ? current
+          : [created, ...current],
+      );
       setComment("");
       setCommentsOpen(true);
     } catch (err) {
@@ -154,6 +156,7 @@ export default function MessageCard({ msg }) {
         const data = await response.json().catch(() => ({}));
         throw new Error(data?.error || "Nao foi possivel excluir a mensagem.");
       }
+      onDeleted?.(msg._id);
     } catch (err) {
       setCommentError(err.message || "Nao foi possivel excluir a mensagem.");
     } finally {
@@ -179,6 +182,9 @@ export default function MessageCard({ msg }) {
       if (!response.ok) {
         throw new Error("Nao foi possivel excluir o comentario.");
       }
+      setComments((current) =>
+        current.filter((item) => item._id !== commentId),
+      );
     } catch (err) {
       setCommentError(err.message || "Nao foi possivel excluir o comentario.");
     } finally {
@@ -197,7 +203,9 @@ export default function MessageCard({ msg }) {
           />
           <div>
             <p className="font-medium text-white">{authorName}</p>
-            <p className="text-sm text-slate-500">{formatDate(msg.createdAt)}</p>
+            <p className="text-sm text-slate-500">
+              {formatDate(msg.createdAt)}
+            </p>
           </div>
         </div>
 
@@ -271,7 +279,9 @@ export default function MessageCard({ msg }) {
         {commentsOpen ? (
           <div className="mt-4 space-y-3">
             {commentsLoading ? (
-              <p className="text-sm text-slate-500">Carregando comentarios...</p>
+              <p className="text-sm text-slate-500">
+                Carregando comentarios...
+              </p>
             ) : comments.length === 0 ? (
               <p className="text-sm text-slate-500">
                 Ainda nao ha comentarios nesta mensagem.
@@ -279,7 +289,9 @@ export default function MessageCard({ msg }) {
             ) : (
               comments.map((currentComment) => {
                 const currentCommentAuthor =
-                  currentComment.author || currentComment.userId?.name || "Usuario";
+                  currentComment.author ||
+                  currentComment.userId?.name ||
+                  "Usuario";
                 const currentCommentAvatar =
                   currentComment.avatar ||
                   currentComment.userId?.avatar ||
@@ -293,9 +305,7 @@ export default function MessageCard({ msg }) {
                 const canDeleteComment =
                   isSuperadmin ||
                   (currentCommentUserId &&
-                    currentCommentUserId === session?.user?.id) ||
-                  (!currentCommentUserId &&
-                    currentComment.author === session?.user?.name);
+                    currentCommentUserId === session?.user?.id);
 
                 return (
                   <div
@@ -341,6 +351,19 @@ export default function MessageCard({ msg }) {
             )}
           </div>
         ) : null}
+        <LoadMoreButton
+          items={comments}
+          endpoint={`/api/comments?messageId=${messageId}`}
+          onLoad={(data) =>
+            setComments((current) => [
+              ...current,
+              ...data.filter(
+                (item) =>
+                  !current.some((existing) => existing._id === item._id),
+              ),
+            ])
+          }
+        />
       </div>
     </article>
   );

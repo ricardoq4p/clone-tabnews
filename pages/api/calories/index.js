@@ -1,3 +1,4 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import CalorieEntry from "@/lib/models/CalorieEntry";
 import User from "@/lib/models/User";
@@ -21,6 +22,8 @@ async function getCurrentUser(session) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   await connectToDatabase();
 
   const session = await getServerSession(req, res, authOptions);

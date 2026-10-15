@@ -1,3 +1,4 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import { getServerSession } from "next-auth";
 import mongoose from "mongoose";
 import { isSuperadminSession } from "@/lib/auth";
@@ -5,6 +6,8 @@ import connectToDatabase from "../../lib/db";
 import { authOptions } from "./auth/[...nextauth]";
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Metodo nao permitido" });
   }

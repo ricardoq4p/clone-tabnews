@@ -9,7 +9,9 @@
     "lint:fix": "prettier --write \"{components,lib,pages,styles,tests}/**/*.{js,jsx,json,css,md}\" \"*.{js,json,md}\"",
     "test": "jest --runInBand --watchman=false --roots tests",
     "test:watch": "jest --watch --watchman=false --roots tests",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "build": "next build",
+    "start": "next start"
   },
   "author": "",
   "license": "MIT",

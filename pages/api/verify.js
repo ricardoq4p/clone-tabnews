@@ -1,8 +1,13 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import { hashToken } from "@/lib/auth";
 import connectToDatabase from "../../lib/db";
 import User from "../../lib/models/User";
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
+  if (req.method !== "GET")
+    return res.status(405).json({ message: "Metodo nao permitido" });
   const token = String(req.query?.token || "").trim();
 
   try {
@@ -15,7 +20,7 @@ export default async function handler(req, res) {
     const now = new Date();
     const tokenHash = hashToken(token);
     const allowLegacyFallback =
-      process.env.ALLOW_LEGACY_EMAIL_VERIFICATION_FALLBACK !== "false";
+      process.env.ALLOW_LEGACY_EMAIL_VERIFICATION_FALLBACK === "true";
 
     const verificationQueries = [
       {

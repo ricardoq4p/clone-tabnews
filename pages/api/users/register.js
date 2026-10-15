@@ -1,99 +1,79 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import { hash } from "bcryptjs";
-import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import connectToDatabase from "@/lib/db";
+import User from "@/lib/models/User";
+import { normalizeEmail } from "@/lib/auth";
+import { checkRateLimit, createRateLimitErrorMessage } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
-import connectToDatabase from "../../../lib/db";
-import User from "../../../lib/models/User";
+import { validEmail, validText } from "@/lib/validation";
 import {
-  createSecureToken,
-  getRoleForEmail,
-  hashToken,
-  isSuperadminEmail,
-  normalizeEmail,
-} from "@/lib/auth";
-import { createBrevoTransport } from "@/lib/mailer";
-
+  createVerification,
+  sendVerificationEmail,
+} from "@/lib/verification-email";
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
+  if (req.method !== "POST")
     return res.status(405).json({ error: "Metodo nao permitido" });
-  }
-
   try {
-    const { email, password, name } = req.body;
+    const { email, password, name } = req.body || {};
     const normalizedEmail = normalizeEmail(email);
-    const rateLimitResult = checkRateLimit({
-      key: `register:${getClientIp(req)}:${normalizedEmail || "anon"}`,
+    const rate = await checkRateLimit({
+      key: `register:${getClientIp(req)}:${normalizedEmail}`,
+      ip: getClientIp(req),
+      identity: normalizedEmail,
       limit: Number(process.env.RATE_LIMIT_REGISTER_MAX || 10),
-      windowMs: Number(process.env.RATE_LIMIT_REGISTER_WINDOW_MS || 15 * 60 * 1000),
+      windowMs: Number(process.env.RATE_LIMIT_REGISTER_WINDOW_MS || 900000),
     });
-
-    if (!rateLimitResult.success) {
+    if (!rate.success)
       return res.status(429).json({
         error: createRateLimitErrorMessage(
           "Muitas tentativas de cadastro.",
-          rateLimitResult.retryAfter,
+          rate.retryAfter,
         ),
       });
-    }
-
-    if (!normalizedEmail || !password || !name) {
-      return res
-        .status(400)
-        .json({ error: "Todos os campos sao obrigatorios" });
-    }
-
-    await connectToDatabase();
-
-    const existingUser = await User.findOne({ email: normalizedEmail });
-    if (existingUser) {
-      return res.status(400).json({ error: "Email ja cadastrado" });
-    }
-
-    const hashedPassword = await hash(password, 12);
-    const verificationToken = createSecureToken();
-    const verificationTokenHash = hashToken(verificationToken);
-    const verificationTokenExpires = new Date(
-      Date.now() +
-        Number(process.env.EMAIL_VERIFICATION_TOKEN_TTL_MS || 24 * 60 * 60 * 1000),
-    );
-    const username = normalizedEmail.split("@")[0];
-    const isSuperadmin = isSuperadminEmail(normalizedEmail);
-
-    await User.create({
-      email: normalizedEmail,
-      password: hashedPassword,
-      name,
-      username,
-      role: getRoleForEmail(normalizedEmail),
-      verificationToken: isSuperadmin ? null : verificationTokenHash,
-      verificationTokenExpires: isSuperadmin ? null : verificationTokenExpires,
-      isVerified: isSuperadmin,
-    });
-
-    if (!isSuperadmin) {
-      const transporter = createBrevoTransport();
-
-      await transporter.sendMail({
-        from: process.env.EMAIL_FROM,
-        to: normalizedEmail,
-        subject: "Confirme seu cadastro",
-        html: `
-          <h2>Ola ${name}!</h2>
-          <p>Clique no link abaixo para confirmar seu email:</p>
-          <a href="${process.env.NEXTAUTH_URL}/verify?token=${verificationToken}">
-            Confirmar email
-          </a>
-          <p>Link valido por 24 horas.</p>
-        `,
+    if (
+      !validEmail(normalizedEmail) ||
+      !validText(name, 100) ||
+      typeof password !== "string" ||
+      password.length < 6 ||
+      Buffer.byteLength(password, "utf8") > 72
+    ) {
+      return res.status(400).json({
+        error:
+          "Informe nome, email valido e senha com pelo menos 6 caracteres e ate 72 bytes.",
       });
     }
-
-    res.status(201).json({
-      message: isSuperadmin
-        ? "Superusuario criado com acesso liberado."
-        : "Cadastro realizado! Verifique seu email para confirmar.",
+    await connectToDatabase();
+    if (await User.findOne({ email: normalizedEmail }))
+      return res.status(409).json({
+        error: "Email ja cadastrado. Se necessario, reenvie a confirmacao.",
+      });
+    const verification = createVerification();
+    const user = await User.create({
+      email: normalizedEmail,
+      password: await hash(password, 12),
+      name: name.trim(),
+      username: normalizedEmail.split("@")[0],
+      role: "user",
+      isVerified: false,
+      ...verification.fields,
     });
-  } catch (error) {
-    console.error("Erro no registro:", error);
-    res.status(500).json({ error: "Erro interno do servidor" });
+    try {
+      await sendVerificationEmail(user, verification.token);
+    } catch {
+      console.error("Verification email delivery failed");
+      return res.status(201).json({
+        message:
+          "Conta criada. Nao foi possivel enviar o email agora; solicite o reenvio da confirmacao.",
+      });
+    }
+    return res.status(201).json({
+      message: "Cadastro realizado! Verifique seu email para confirmar.",
+    });
+  } catch {
+    return res
+      .status(500)
+      .json({ error: "Erro ao cadastrar. Tente novamente." });
   }
 }

@@ -1,3 +1,4 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import { hash } from "bcryptjs";
 import { hashToken } from "@/lib/auth";
 import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
@@ -6,6 +7,8 @@ import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Metodo nao permitido" });
   }
@@ -13,7 +16,9 @@ export default async function handler(req, res) {
   try {
     const token = String(req.body?.token || "").trim();
     const password = String(req.body?.password || "");
-    const rateLimitResult = checkRateLimit({
+    const rateLimitResult = await checkRateLimit({
+      ip: getClientIp(req),
+      identity: token,
       key: `reset-password:${getClientIp(req)}:${token || "anon"}`,
       limit: Number(process.env.RATE_LIMIT_RESET_PASSWORD_MAX || 5),
       windowMs: Number(
@@ -36,7 +41,7 @@ export default async function handler(req, res) {
         .json({ error: "Token e nova senha sao obrigatorios." });
     }
 
-    if (password.length < 6) {
+    if (password.length < 6 || Buffer.byteLength(password, "utf8") > 72) {
       return res
         .status(400)
         .json({ error: "A nova senha precisa ter pelo menos 6 caracteres." });
@@ -55,10 +60,23 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Link invalido ou expirado." });
     }
 
-    user.password = await hash(password, 12);
-    user.resetPasswordToken = null;
-    user.resetPasswordExpires = null;
-    await user.save();
+    const result = await User.updateOne(
+      {
+        _id: user._id,
+        resetPasswordToken: hashedToken,
+        resetPasswordExpires: { $gt: new Date() },
+      },
+      {
+        $set: {
+          password: await hash(password, 12),
+          resetPasswordToken: null,
+          resetPasswordExpires: null,
+        },
+        $inc: { sessionVersion: 1 },
+      },
+    );
+    if (!result.modifiedCount)
+      return res.status(400).json({ error: "Link invalido ou expirado." });
 
     return res.status(200).json({ message: "Senha atualizada com sucesso." });
   } catch (error) {

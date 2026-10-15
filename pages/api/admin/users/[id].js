@@ -1,3 +1,5 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
+import { isObjectId } from "@/lib/validation";
 import connectToDatabase from "@/lib/db";
 import User from "@/lib/models/User";
 import Message from "@/lib/models/Message";
@@ -8,6 +10,8 @@ import { authOptions } from "../../auth/[...nextauth]";
 import { isSuperadminSession } from "@/lib/auth";
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   await connectToDatabase();
 
   if (req.method !== "DELETE") {
@@ -22,9 +26,13 @@ export default async function handler(req, res) {
     }
 
     const { id } = req.query;
+    if (!isObjectId(id))
+      return res.status(400).json({ error: "Identificador invalido" });
 
     if (session.user.id === id) {
-      return res.status(400).json({ error: "Nao pode excluir o proprio usuario" });
+      return res
+        .status(400)
+        .json({ error: "Nao pode excluir o proprio usuario" });
     }
 
     const user = await User.findById(id);
@@ -33,14 +41,19 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Usuario nao encontrado" });
     }
 
-    const userMessages = await Message.find({ userId: id }).select("_id").lean();
+    const userMessages = await Message.find({ userId: id })
+      .select("_id")
+      .lean();
     const messageIds = userMessages.map((message) => message._id);
 
     await Comment.deleteMany({
       $or: [{ userId: id }, { messageId: { $in: messageIds } }],
     });
     await Message.deleteMany({ userId: id });
-    await Community.deleteMany({ ownerId: id });
+    await Community.updateMany(
+      { ownerId: id },
+      { $set: { deletedAt: new Date() } },
+    );
     await Community.updateMany({}, { $pull: { members: id } });
     await User.findByIdAndDelete(id);
 

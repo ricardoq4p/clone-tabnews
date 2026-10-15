@@ -43,16 +43,23 @@ export default function Login() {
       subtitle="A comunidade agora pode acionar a inteligencia da casa com @pantera para receber respostas automaticas dentro do proprio feed."
       footer={
         <p className="text-center text-sm text-slate-400">
-          Nao tem conta? {" "}
-          <Link href="/register" className="font-medium text-cyan-200 transition hover:text-cyan-100">
+          Nao tem conta?{" "}
+          <Link
+            href="/register"
+            className="font-medium text-cyan-200 transition hover:text-cyan-100"
+          >
             Criar conta
           </Link>
         </p>
       }
     >
       <div className="mb-6">
-        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Acessar conta</p>
-        <h2 className="mt-2 text-2xl font-semibold text-white">Bem-vindo de volta</h2>
+        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+          Acessar conta
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold text-white">
+          Bem-vindo de volta
+        </h2>
       </div>
 
       {error ? (
@@ -88,6 +95,12 @@ export default function Login() {
 
         <div className="text-right">
           <Link
+            href="/resend-verification"
+            className="mb-3 block text-sm text-cyan-200"
+          >
+            Reenviar confirmacao de email
+          </Link>
+          <Link
             href="/forgot-password"
             className="text-sm font-medium text-cyan-200 transition hover:text-cyan-100"
           >
@@ -95,7 +108,11 @@ export default function Login() {
           </Link>
         </div>
 
-        <button type="submit" disabled={loading} className="primary-button w-full">
+        <button
+          type="submit"
+          disabled={loading}
+          className="primary-button w-full"
+        >
           {loading ? "Entrando..." : "Entrar"}
         </button>
       </form>

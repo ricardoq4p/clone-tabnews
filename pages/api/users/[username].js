@@ -1,7 +1,10 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import User from "@/lib/models/User";
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   if (req.method !== "GET") {
     return res.status(405).json({ error: "Método não permitido" });
   }

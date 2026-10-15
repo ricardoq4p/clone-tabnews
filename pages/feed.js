@@ -1,3 +1,4 @@
+import LoadMoreButton from "../components/LoadMoreButton";
 import { useEffect, useState } from "react";
 import MessageCard from "../components/MessageCard";
 import { signOut, useSession } from "next-auth/react";
@@ -69,28 +70,37 @@ export default function Feed() {
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      channelAuthorization: { endpoint: "/api/pusher/auth", transport: "ajax" },
     });
 
     const channel = pusher.subscribe("feed");
 
-    channel.bind("new-message", (data) => {
-      setMessages((prev) => {
-        if (!data?._id) return prev;
-        if (prev.find((message) => message._id === data._id)) return prev;
-        return [data, ...prev];
-      });
-    });
-
-    channel.bind("delete-message", (data) => {
-      setMessages((prev) => prev.filter((message) => message._id !== data.id));
+    const reload = () =>
+      fetch("/api/messages")
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => setMessages(Array.isArray(data) ? data : []))
+        .catch(() => {});
+    channel.bind("new-message", reload);
+    channel.bind("delete-message", reload);
+    const communityChannels = communities.map((community) => {
+      const privateChannel = pusher.subscribe(
+        `private-community-${community._id}`,
+      );
+      privateChannel.bind("new-message", reload);
+      privateChannel.bind("delete-message", reload);
+      return privateChannel;
     });
 
     return () => {
+      communityChannels.forEach((item) => {
+        item.unbind_all();
+        pusher.unsubscribe(item.name);
+      });
       channel.unbind_all();
       pusher.unsubscribe("feed");
       pusher.disconnect();
     };
-  }, []);
+  }, [communities]);
 
   const handleSubmit = async () => {
     if (!newMessage.trim() || publishing) return;
@@ -112,6 +122,12 @@ export default function Feed() {
         throw new Error(data?.error || "Nao foi possivel publicar a mensagem.");
       }
 
+      const created = await response.json();
+      setMessages((current) =>
+        current.some((item) => item._id === created._id)
+          ? current
+          : [created, ...current],
+      );
       setNewMessage("");
     } catch (err) {
       setPublishError(err.message || "Nao foi possivel publicar a mensagem.");
@@ -157,7 +173,9 @@ export default function Feed() {
       setCommunityPrivacy("public");
       setCommunityFormOpen(false);
     } catch (error) {
-      setCommunityError(error.message || "Nao foi possivel criar a comunidade.");
+      setCommunityError(
+        error.message || "Nao foi possivel criar a comunidade.",
+      );
     } finally {
       setCommunitySubmitting(false);
     }
@@ -227,7 +245,9 @@ export default function Feed() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data?.error || "Nao foi possivel atualizar a comunidade.");
+        throw new Error(
+          data?.error || "Nao foi possivel atualizar a comunidade.",
+        );
       }
 
       setCommunities((current) =>
@@ -261,180 +281,192 @@ export default function Feed() {
         <div className="grid gap-6 xl:grid-cols-[280px,1fr]">
           <aside className="xl:self-start">
             <div className="space-y-5 xl:sticky xl:top-6 xl:max-h-[calc(100vh-3rem)] xl:overflow-y-auto xl:overscroll-contain xl:pr-2">
-            <section className="glass-panel rounded-[28px] p-5">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
-                Comunidades
-              </p>
+              <section className="glass-panel rounded-[28px] p-5">
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
+                  Comunidades
+                </p>
 
-              <button
-                onClick={() => setCommunityFormOpen((current) => !current)}
-                className="primary-button mt-4 w-full justify-center px-4 py-3"
-              >
-                Criar comunidade
-              </button>
+                <button
+                  onClick={() => setCommunityFormOpen((current) => !current)}
+                  className="primary-button mt-4 w-full justify-center px-4 py-3"
+                >
+                  Criar comunidade
+                </button>
 
-              {communityFormOpen ? (
-                <div className="mt-4 rounded-3xl border border-white/10 bg-white/[0.03] p-4">
-                  <p className="text-sm font-medium text-white">Nova comunidade</p>
-                  <div className="mt-4 space-y-3">
-                    <label className="block text-sm text-slate-300">
-                      <span className="mb-2 block">Imagem da comunidade</span>
+                {communityFormOpen ? (
+                  <div className="mt-4 rounded-3xl border border-white/10 bg-white/[0.03] p-4">
+                    <p className="text-sm font-medium text-white">
+                      Nova comunidade
+                    </p>
+                    <div className="mt-4 space-y-3">
+                      <label className="block text-sm text-slate-300">
+                        <span className="mb-2 block">Imagem da comunidade</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(event) =>
+                            handleCommunityImage(event.target.files?.[0])
+                          }
+                          className="field-input cursor-pointer file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-200"
+                        />
+                      </label>
+                      {communityAvatar ? (
+                        <img
+                          src={communityAvatar}
+                          alt="Preview da comunidade"
+                          className="h-16 w-16 rounded-2xl object-cover ring-1 ring-cyan-300/20"
+                        />
+                      ) : null}
                       <input
-                        type="file"
-                        accept="image/*"
+                        type="text"
+                        placeholder="Nome da comunidade"
+                        value={communityName}
                         onChange={(event) =>
-                          handleCommunityImage(event.target.files?.[0])
-                        }
-                        className="field-input cursor-pointer file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-200"
-                      />
-                    </label>
-                    {communityAvatar ? (
-                      <img
-                        src={communityAvatar}
-                        alt="Preview da comunidade"
-                        className="h-16 w-16 rounded-2xl object-cover ring-1 ring-cyan-300/20"
-                      />
-                    ) : null}
-                    <input
-                      type="text"
-                      placeholder="Nome da comunidade"
-                      value={communityName}
-                      onChange={(event) => setCommunityName(event.target.value)}
-                      className="field-input"
-                    />
-                    <textarea
-                      placeholder="Descricao curta para apresentar a comunidade"
-                      value={communityDescription}
-                      onChange={(event) =>
-                        setCommunityDescription(event.target.value)
-                      }
-                      className="field-input min-h-[110px] resize-y"
-                    />
-                    <label className="block text-sm text-slate-300">
-                      <span className="mb-2 block">Privacidade</span>
-                      <select
-                        value={communityPrivacy}
-                        onChange={(event) =>
-                          setCommunityPrivacy(event.target.value)
+                          setCommunityName(event.target.value)
                         }
                         className="field-input"
+                      />
+                      <textarea
+                        placeholder="Descricao curta para apresentar a comunidade"
+                        value={communityDescription}
+                        onChange={(event) =>
+                          setCommunityDescription(event.target.value)
+                        }
+                        className="field-input min-h-[110px] resize-y"
+                      />
+                      <label className="block text-sm text-slate-300">
+                        <span className="mb-2 block">Privacidade</span>
+                        <select
+                          value={communityPrivacy}
+                          onChange={(event) =>
+                            setCommunityPrivacy(event.target.value)
+                          }
+                          className="field-input"
+                        >
+                          <option value="public">Publica</option>
+                          <option value="private">Privada</option>
+                        </select>
+                      </label>
+                      <button
+                        onClick={handleCreateCommunity}
+                        disabled={communitySubmitting}
+                        className="primary-button w-full justify-center px-4 py-3"
                       >
-                        <option value="public">Publica</option>
-                        <option value="private">Privada</option>
-                      </select>
-                    </label>
-                    <button
-                      onClick={handleCreateCommunity}
-                      disabled={communitySubmitting}
-                      className="primary-button w-full justify-center px-4 py-3"
-                    >
-                      {communitySubmitting
-                        ? "Criando..."
-                        : "Salvar comunidade"}
-                    </button>
+                        {communitySubmitting
+                          ? "Criando..."
+                          : "Salvar comunidade"}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+              </section>
+
+              <section className="glass-panel rounded-[28px] p-5">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium text-white">
+                      Comunidades em destaque
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {communities.length === 0
+                        ? "No momento nao tem comunidades criadas."
+                        : "Outras pessoas podem participar ou sair por aqui."}
+                    </p>
                   </div>
                 </div>
-              ) : null}
-            </section>
 
-            <section className="glass-panel rounded-[28px] p-5">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <p className="text-sm font-medium text-white">Comunidades em destaque</p>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {communities.length === 0
-                      ? "No momento nao tem comunidades criadas."
-                      : "Outras pessoas podem participar ou sair por aqui."}
+                {communityError ? (
+                  <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    {communityError}
                   </p>
-                </div>
-              </div>
+                ) : null}
 
-              {communityError ? (
-                <p className="mt-4 rounded-2xl border border-red-400/20 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-                  {communityError}
-                </p>
-              ) : null}
-
-              <div className="mt-4 space-y-3">
-                {communitiesLoading ? (
-                  <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-400">
-                    Carregando comunidades...
-                  </div>
-                ) : communities.length === 0 ? (
-                  <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-4 text-sm leading-6 text-slate-400">
-                    Nenhuma comunidade foi criada ainda. Quem criar a primeira ja aparece aqui em destaque para outras pessoas participarem.
-                  </div>
-                ) : (
-                  communities.map((community) => (
-                    <article
-                      key={community._id}
-                      onClick={() => openCommunity(community._id)}
-                      className="cursor-pointer rounded-3xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-cyan-300/30 hover:bg-white/[0.05]"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <img
-                            src={
-                              community.avatar ||
-                              `https://ui-avatars.com/api/?name=${encodeURIComponent(
-                                community.name,
-                              )}&background=0f172a&color=ffffff`
-                            }
-                            alt={community.name}
-                            className="h-12 w-12 rounded-2xl object-cover"
-                          />
-                          <div>
-                          <p className="font-medium text-slate-100">{community.name}</p>
-                          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
-                            {community.privacy === "private" ? "Privada" : "Publica"}
-                          </p>
-                        </div>
-                        </div>
-                        <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400">
-                          {community.membersCount} membro
-                          {community.membersCount === 1 ? "" : "s"}
-                        </span>
-                      </div>
-
-                      {community.description ? (
-                        <p className="mt-3 text-sm leading-6 text-slate-400">
-                          {community.description}
-                        </p>
-                      ) : null}
-
-                      <div className="mt-4 flex items-center justify-between gap-3">
-                        <p className="text-xs text-slate-500">
-                          Criada por {community.ownerName}
-                        </p>
-
-                        {community.isOwner ? (
-                          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
-                            Sua comunidade
+                <div className="mt-4 space-y-3">
+                  {communitiesLoading ? (
+                    <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-4 text-sm text-slate-400">
+                      Carregando comunidades...
+                    </div>
+                  ) : communities.length === 0 ? (
+                    <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.03] p-4 text-sm leading-6 text-slate-400">
+                      Nenhuma comunidade foi criada ainda. Quem criar a primeira
+                      ja aparece aqui em destaque para outras pessoas
+                      participarem.
+                    </div>
+                  ) : (
+                    communities.map((community) => (
+                      <article
+                        key={community._id}
+                        onClick={() => openCommunity(community._id)}
+                        className="cursor-pointer rounded-3xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-cyan-300/30 hover:bg-white/[0.05]"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3">
+                            <img
+                              src={
+                                community.avatar ||
+                                `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                  community.name,
+                                )}&background=0f172a&color=ffffff`
+                              }
+                              alt={community.name}
+                              className="h-12 w-12 rounded-2xl object-cover"
+                            />
+                            <div>
+                              <p className="font-medium text-slate-100">
+                                {community.name}
+                              </p>
+                              <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                                {community.privacy === "private"
+                                  ? "Privada"
+                                  : "Publica"}
+                              </p>
+                            </div>
+                          </div>
+                          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400">
+                            {community.membersCount} membro
+                            {community.membersCount === 1 ? "" : "s"}
                           </span>
-                        ) : (
-                          <button
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              handleCommunityMembership(community);
-                            }}
-                            disabled={communityActionId === community._id}
-                            className="secondary-button rounded-full px-4 py-2 text-sm"
-                          >
-                            {communityActionId === community._id
-                              ? "Salvando..."
-                              : community.joined
-                                ? "Sair"
-                                : community.privacy === "private"
-                                  ? "Participar"
-                                  : "Participar"}
-                          </button>
-                        )}
-                      </div>
-                    </article>
-                  ))
-                )}
-              </div>
-            </section>
+                        </div>
+
+                        {community.description ? (
+                          <p className="mt-3 text-sm leading-6 text-slate-400">
+                            {community.description}
+                          </p>
+                        ) : null}
+
+                        <div className="mt-4 flex items-center justify-between gap-3">
+                          <p className="text-xs text-slate-500">
+                            Criada por {community.ownerName}
+                          </p>
+
+                          {community.isOwner ? (
+                            <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100">
+                              Sua comunidade
+                            </span>
+                          ) : (
+                            <button
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                handleCommunityMembership(community);
+                              }}
+                              disabled={communityActionId === community._id}
+                              className="secondary-button rounded-full px-4 py-2 text-sm"
+                            >
+                              {communityActionId === community._id
+                                ? "Salvando..."
+                                : community.joined
+                                  ? "Sair"
+                                  : community.privacy === "private"
+                                    ? "Participar"
+                                    : "Participar"}
+                            </button>
+                          )}
+                        </div>
+                      </article>
+                    ))
+                  )}
+                </div>
+              </section>
             </div>
           </aside>
 
@@ -445,9 +477,12 @@ export default function Feed() {
                   <p className="text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
                     Feed em tempo real
                   </p>
-                  <h1 className="mt-2 text-3xl font-semibold text-white">Seu espaco de publicacao</h1>
+                  <h1 className="mt-2 text-3xl font-semibold text-white">
+                    Seu espaco de publicacao
+                  </h1>
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                    Compartilhe ideias, acompanhe novas mensagens ao vivo e mantenha a conversa fluindo com uma interface mais limpa.
+                    Compartilhe ideias, acompanhe novas mensagens ao vivo e
+                    mantenha a conversa fluindo com uma interface mais limpa.
                   </p>
                 </div>
 
@@ -469,10 +504,15 @@ export default function Feed() {
                       alt="avatar"
                       className="h-10 w-10 rounded-full object-cover"
                     />
-                    <span className="max-w-[120px] truncate text-sm">{session?.user?.name}</span>
+                    <span className="max-w-[120px] truncate text-sm">
+                      {session?.user?.name}
+                    </span>
                   </button>
 
-                  <button onClick={() => router.push("/profile")} className="secondary-button rounded-full px-4 py-2 text-sm">
+                  <button
+                    onClick={() => router.push("/profile")}
+                    className="secondary-button rounded-full px-4 py-2 text-sm"
+                  >
                     Perfil
                   </button>
 
@@ -488,10 +528,18 @@ export default function Feed() {
 
             <section className="glass-panel mb-6 rounded-[28px] p-5 sm:p-6">
               <div className="mb-4 flex items-start gap-3">
-                <img src={avatarUrl} alt="avatar" className="h-11 w-11 rounded-full object-cover" />
+                <img
+                  src={avatarUrl}
+                  alt="avatar"
+                  className="h-11 w-11 rounded-full object-cover"
+                />
                 <div>
-                  <p className="font-medium text-white">{session?.user?.name}</p>
-                  <p className="text-sm text-slate-400">O que voce quer compartilhar agora?</p>
+                  <p className="font-medium text-white">
+                    {session?.user?.name}
+                  </p>
+                  <p className="text-sm text-slate-400">
+                    O que voce quer compartilhar agora?
+                  </p>
                 </div>
               </div>
 
@@ -510,10 +558,18 @@ export default function Feed() {
 
               <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-sm text-slate-500">As novas publicacoes aparecem em tempo real para todos.</p>
-                  <p className="mt-1 text-xs text-slate-600">Dica: escreva com contexto para gerar respostas melhores.</p>
+                  <p className="text-sm text-slate-500">
+                    As novas publicacoes aparecem em tempo real para todos.
+                  </p>
+                  <p className="mt-1 text-xs text-slate-600">
+                    Dica: escreva com contexto para gerar respostas melhores.
+                  </p>
                 </div>
-                <button onClick={handleSubmit} disabled={publishing} className="primary-button px-5 py-3">
+                <button
+                  onClick={handleSubmit}
+                  disabled={publishing}
+                  className="primary-button px-5 py-3"
+                >
                   {publishing ? "Publicando..." : "Publicar"}
                 </button>
               </div>
@@ -524,7 +580,9 @@ export default function Feed() {
                 <p className="text-sm font-medium text-white">Timeline</p>
                 <p className="text-sm text-slate-500">{messagesLabel}</p>
               </div>
-              {feedLoading ? <span className="text-sm text-slate-500">Atualizando...</span> : null}
+              {feedLoading ? (
+                <span className="text-sm text-slate-500">Atualizando...</span>
+              ) : null}
             </section>
 
             <section className="space-y-4">
@@ -537,12 +595,36 @@ export default function Feed() {
                   Nenhuma mensagem ainda. Seja a primeira pessoa a publicar.
                 </div>
               ) : (
-                messages.map((msg) => (msg?._id ? <MessageCard key={msg._id} msg={msg} /> : null))
+                messages.map((msg) =>
+                  msg?._id ? (
+                    <MessageCard
+                      key={msg._id}
+                      msg={msg}
+                      onDeleted={(id) =>
+                        setMessages((current) =>
+                          current.filter((item) => item._id !== id),
+                        )
+                      }
+                    />
+                  ) : null,
+                )
               )}
             </section>
           </div>
         </div>
       </div>
+      <LoadMoreButton
+        items={messages}
+        endpoint={"/api/messages"}
+        onLoad={(data) =>
+          setMessages((current) => [
+            ...current,
+            ...data.filter(
+              (item) => !current.some((existing) => existing._id === item._id),
+            ),
+          ])
+        }
+      />
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
+import { escapeHtml, validEmail } from "@/lib/validation";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
 import { createSecureToken, hashToken, normalizeEmail } from "@/lib/auth";
@@ -9,13 +11,17 @@ const GENERIC_SUCCESS_MESSAGE =
   "Se existir uma conta com esse email, enviaremos um link para redefinir a senha.";
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   if (req.method !== "POST") {
     return res.status(405).json({ error: "Metodo nao permitido" });
   }
 
   try {
     const normalizedEmail = normalizeEmail(req.body?.email);
-    const rateLimitResult = checkRateLimit({
+    const rateLimitResult = await checkRateLimit({
+      ip: getClientIp(req),
+      identity: normalizedEmail,
       key: `forgot-password:${getClientIp(req)}:${normalizedEmail || "anon"}`,
       limit: Number(process.env.RATE_LIMIT_FORGOT_PASSWORD_MAX || 5),
       windowMs: Number(
@@ -32,7 +38,7 @@ export default async function handler(req, res) {
       });
     }
 
-    if (!normalizedEmail) {
+    if (!validEmail(normalizedEmail)) {
       return res
         .status(400)
         .json({ error: "Digite um email valido para continuar." });
@@ -62,7 +68,7 @@ export default async function handler(req, res) {
       to: normalizedEmail,
       subject: "Redefina sua senha no PanteraLab",
       html: `
-        <h2>Oi ${user.name || "por ai"}!</h2>
+        <h2>Oi ${escapeHtml(user.name || "por ai")}!</h2>
         <p>Recebemos um pedido para redefinir sua senha.</p>
         <p>Clique no link abaixo para criar uma nova senha:</p>
         <a href="${resetUrl}">Redefinir minha senha</a>
@@ -73,7 +79,9 @@ export default async function handler(req, res) {
 
     return res.status(200).json({ message: GENERIC_SUCCESS_MESSAGE });
   } catch (error) {
-    console.error("ERRO FORGOT PASSWORD:", error);
-    return res.status(500).json({ error: "Erro ao enviar recuperacao de senha" });
+    console.error("Password recovery unavailable");
+    return res
+      .status(500)
+      .json({ error: "Erro ao enviar recuperacao de senha" });
   }
 }

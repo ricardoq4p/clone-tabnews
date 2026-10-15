@@ -1,234 +1,134 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import Message from "@/lib/models/Message";
 import Comment from "@/lib/models/Comment";
 import Community from "@/lib/models/Community";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
-import Pusher from "pusher";
-import {
-  generatePanteraReply,
-  hasPanteraMention,
-  PANTERA_PROFILE,
-} from "@/lib/pantera-ai";
-import { isSuperadminSession } from "@/lib/auth";
-import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import { notifyChange } from "@/lib/pusher";
+import { maybeReplyAsPantera } from "@/lib/pantera-comments";
+import { canDeleteContent, isMember } from "@/lib/permissions";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
-
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_CLUSTER,
-  useTLS: true,
-});
+import { isObjectId, validText } from "@/lib/validation";
 
 function normalizeMessage(message) {
-  const plainMessage = typeof message?.toObject === "function" ? message.toObject() : message;
-  const authorName = plainMessage?.userId?.name || plainMessage?.author || "Usuario";
-  const authorAvatar = plainMessage?.userId?.avatar || plainMessage?.avatar || "";
-  const communityName =
-    plainMessage?.communityId?.name || plainMessage?.communityName || "";
-  const communityId =
-    typeof plainMessage?.communityId === "string"
-      ? plainMessage.communityId
-      : plainMessage?.communityId?._id?.toString() || null;
-
   return {
-    ...plainMessage,
-    author: authorName,
-    avatar: authorAvatar,
-    communityId,
-    communityName,
+    _id: message._id,
+    content: message.content,
+    createdAt: message.createdAt,
+    userId: message.userId,
+    author: message.userId?.name || "Usuario",
+    avatar: message.userId?.avatar || "",
+    communityId: message.communityId?._id?.toString() || null,
+    communityName: message.communityId?.name || "",
   };
 }
-
-async function maybeReplyAsPantera({ message }) {
-  if (!hasPanteraMention(message.content)) {
-    return;
-  }
-
-  try {
-    const replyText = await generatePanteraReply({
-      authorName: message.author,
-      message,
-      comments: [],
-      mentionSource: {
-        type: "post",
-        content: message.content,
-      },
-    });
-
-    const panteraComment = await Comment.create({
-      content: replyText,
-      author: PANTERA_PROFILE.name,
-      avatar: PANTERA_PROFILE.avatar,
-      messageId: message._id.toString(),
-    });
-
-    await pusher.trigger("comments", "new-comment", panteraComment);
-  } catch (err) {
-    console.error("ERRO PANTERA POST:", err);
-  }
-}
-
 export default async function handler(req, res) {
-  console.log("API MESSAGES INDEX EXECUTANDO");
-
-  await connectToDatabase();
-
-  if (req.method === "GET") {
-    try {
-      const session = await getServerSession(req, res, authOptions);
-      const filters = {};
-
-      if (req.query.communityId) {
-        filters.communityId = req.query.communityId;
-      }
-
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
+  if (!["GET", "POST", "DELETE"].includes(req.method))
+    return res.status(405).json({ error: "Metodo nao permitido" });
+  try {
+    const session = await getServerSession(req, res, authOptions);
+    await connectToDatabase();
+    if (req.method === "GET") {
+      const { communityId, before } = req.query;
+      if (
+        (communityId && !isObjectId(communityId)) ||
+        (before && !isObjectId(before))
+      )
+        return res.status(400).json({ error: "Filtro invalido" });
+      const allowed = await Community.find({
+        deletedAt: null,
+        $or: [
+          { privacy: "public" },
+          ...(session?.user?.id
+            ? [{ ownerId: session.user.id }, { members: session.user.id }]
+            : []),
+        ],
+      })
+        .select("_id")
+        .lean();
+      const allowedIds = allowed.map((community) => community._id);
+      if (
+        communityId &&
+        !allowedIds.some((id) => id.toString() === communityId)
+      )
+        return res.status(404).json({ error: "Comunidade indisponivel" });
+      const filters = communityId
+        ? { communityId }
+        : {
+            $or: [{ communityId: null }, { communityId: { $in: allowedIds } }],
+          };
+      if (before) filters._id = { $lt: before };
       const messages = await Message.find(filters)
         .populate("userId", "name username avatar")
-        .populate("communityId", "name privacy ownerId members")
-        .sort({ createdAt: -1 });
-
-      const visibleMessages = messages.filter((message) => {
-        if (!message.communityId) {
-          return true;
-        }
-
-        if (message.communityId.privacy !== "private") {
-          return true;
-        }
-
-        if (!session?.user?.id) {
-          return false;
-        }
-
-        if (message.communityId.ownerId?.toString() === session.user.id) {
-          return true;
-        }
-
-        return message.communityId.members.some(
-          (member) => member.toString() === session.user.id,
-        );
-      });
-
-      return res.status(200).json(visibleMessages.map(normalizeMessage));
-    } catch (err) {
-      console.error("ERRO GET:", err);
-      return res.status(500).json({ error: "Erro ao buscar mensagens" });
+        .populate("communityId", "name")
+        .sort({ _id: -1 })
+        .limit(50);
+      return res.status(200).json(messages.map(normalizeMessage));
     }
-  }
-
-  if (req.method === "POST") {
-    try {
-      const session = await getServerSession(req, res, authOptions);
-
-      if (!session) {
-        return res.status(401).json({ error: "Nao autenticado" });
-      }
-
-      const rateLimitResult = checkRateLimit({
+    if (!session) return res.status(401).json({ error: "Nao autenticado" });
+    if (req.method === "POST") {
+      const rate = await checkRateLimit({
         key: `messages:${session.user.id}:${getClientIp(req)}`,
+        ip: getClientIp(req),
+        identity: session.user.id,
         limit: Number(process.env.RATE_LIMIT_MESSAGES_MAX || 10),
-        windowMs: Number(process.env.RATE_LIMIT_MESSAGES_WINDOW_MS || 60 * 1000),
+        windowMs: Number(process.env.RATE_LIMIT_MESSAGES_WINDOW_MS || 60000),
       });
-
-      if (!rateLimitResult.success) {
-        return res.status(429).json({
-          error: createRateLimitErrorMessage(
-            "Muitas publicacoes em pouco tempo.",
-            rateLimitResult.retryAfter,
-          ),
-        });
-      }
-
-      const { content, communityId } = req.body;
-
-      if (!content?.trim()) {
-        return res.status(400).json({ error: "Mensagem vazia" });
-      }
-
-      let targetCommunity = null;
-
+      if (!rate.success)
+        return res
+          .status(429)
+          .json({ error: "Muitas publicacoes em pouco tempo." });
+      const { content, communityId } = req.body || {};
+      if (!validText(content) || (communityId && !isObjectId(communityId)))
+        return res.status(400).json({ error: "Dados invalidos" });
       if (communityId) {
-        targetCommunity = await Community.findById(communityId);
-
-        if (!targetCommunity) {
-          return res.status(404).json({ error: "Comunidade nao encontrada" });
-        }
-
-        const canPublish =
-          targetCommunity.ownerId.toString() === session.user.id ||
-          targetCommunity.members.some(
-            (member) => member.toString() === session.user.id,
-          );
-
-        if (!canPublish) {
+        const community = await Community.findById(communityId);
+        if (!isMember(community, session.user.id))
           return res
             .status(403)
             .json({ error: "Participe da comunidade antes de publicar" });
-        }
       }
-
-      const newMessage = new Message({
-        content,
+      const message = await Message.create({
+        content: content.trim(),
         userId: session.user.id,
-        communityId: targetCommunity?._id || null,
+        communityId: communityId || null,
       });
-
-      await newMessage.save();
-
-      const populatedMessage = await newMessage.populate([
+      await message.populate([
         { path: "userId", select: "name username avatar" },
         { path: "communityId", select: "name" },
       ]);
-      const normalizedMessage = normalizeMessage(populatedMessage);
-
-      await pusher.trigger("feed", "new-message", normalizedMessage);
-      await maybeReplyAsPantera({ message: normalizedMessage });
-
-      return res.status(201).json(normalizedMessage);
-    } catch (err) {
-      console.error("ERRO POST:", err);
-      return res.status(500).json({ error: "Erro ao criar mensagem" });
+      const result = normalizeMessage(message);
+      await notifyChange("feed", "new-message", communityId);
+      await maybeReplyAsPantera({
+        message: result,
+        authorName: session.user.name,
+        communityId,
+      });
+      return res.status(201).json(result);
     }
+    const id = req.body?.id || req.query.id;
+    if (!isObjectId(id))
+      return res.status(400).json({ error: "Identificador invalido" });
+    const message = await Message.findById(id);
+    if (!message)
+      return res.status(404).json({ error: "Mensagem nao encontrada" });
+    if (!canDeleteContent(message, session))
+      return res.status(403).json({ error: "Sem permissao" });
+    await Message.findByIdAndDelete(id);
+    await Comment.deleteMany({ messageId: id });
+    await notifyChange(
+      "feed",
+      "delete-message",
+      message.communityId?.toString(),
+    );
+    return res.status(200).json({ success: true });
+  } catch {
+    return res
+      .status(500)
+      .json({ error: "Nao foi possivel concluir a operacao" });
   }
-
-  if (req.method === "DELETE") {
-    try {
-      const session = await getServerSession(req, res, authOptions);
-
-      if (!session) {
-        return res.status(401).json({ error: "Nao autenticado" });
-      }
-
-      const { id } = req.body?.id ? req.body : req.query;
-      const message = await Message.findById(id);
-
-      if (!message) {
-        return res.status(404).json({ error: "Mensagem nao encontrada" });
-      }
-
-      const isSuperadmin = isSuperadminSession(session);
-      const isAuthorById = message.userId?.toString?.() === session.user.id;
-      const isAuthorByName =
-        !message.userId && message.author && message.author === session.user.name;
-      const canDelete = isSuperadmin || isAuthorById || isAuthorByName;
-
-      if (!canDelete) {
-        return res.status(403).json({ error: "Sem permissao" });
-      }
-
-      await Message.findByIdAndDelete(id);
-      await Comment.deleteMany({ messageId: id });
-      await pusher.trigger("feed", "delete-message", { id });
-
-      return res.status(200).json({ success: true });
-    } catch (err) {
-      console.error("ERRO DELETE:", err);
-      return res.status(500).json({ error: "Erro ao deletar mensagem" });
-    }
-  }
-
-  return res.status(405).json({ error: "Metodo nao permitido" });
 }

@@ -3,7 +3,8 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
-import { getRoleForEmail, isSuperadminEmail, normalizeEmail } from "@/lib/auth";
+import { normalizeEmail } from "@/lib/auth";
+import { isSessionCurrent } from "@/lib/permissions";
 import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
 
@@ -21,10 +22,14 @@ export const authOptions = {
         }
 
         const normalizedEmail = normalizeEmail(credentials.email);
-        const rateLimitResult = checkRateLimit({
+        const rateLimitResult = await checkRateLimit({
+          ip: getClientIp(req),
+          identity: normalizedEmail,
           key: `login:${getClientIp(req)}:${normalizedEmail || "anon"}`,
           limit: Number(process.env.RATE_LIMIT_LOGIN_MAX || 10),
-          windowMs: Number(process.env.RATE_LIMIT_LOGIN_WINDOW_MS || 15 * 60 * 1000),
+          windowMs: Number(
+            process.env.RATE_LIMIT_LOGIN_WINDOW_MS || 15 * 60 * 1000,
+          ),
         });
 
         if (!rateLimitResult.success) {
@@ -40,31 +45,14 @@ export const authOptions = {
 
         const user = await User.findOne({ email: normalizedEmail });
 
-        if (!user) {
-          throw new Error("Usuario nao encontrado");
-        }
-
-        const expectedRole = getRoleForEmail(normalizedEmail);
-        const needsRoleUpdate =
-          user.role !== expectedRole ||
-          (isSuperadminEmail(normalizedEmail) && !user.isVerified);
-
-        if (needsRoleUpdate) {
-          user.role = expectedRole;
-          if (isSuperadminEmail(normalizedEmail)) {
-            user.isVerified = true;
-          }
-          await user.save();
-        }
-
-        if (!user.isVerified) {
-          throw new Error("Por favor, verifique seu email primeiro");
-        }
-
-        const isValid = await compare(credentials.password, user.password);
-
-        if (!isValid) {
-          throw new Error("Senha invalida");
+        if (
+          !user ||
+          typeof credentials.password !== "string" ||
+          !(await compare(credentials.password, user.password)) ||
+          !user.isVerified ||
+          user.disabledAt
+        ) {
+          throw new Error("Email ou senha invalidos");
         }
 
         user.lastLoginAt = new Date();
@@ -75,7 +63,8 @@ export const authOptions = {
           id: user._id.toString(),
           email: user.email,
           name: user.name,
-          role: user.role || expectedRole,
+          role: user.role || "user",
+          sessionVersion: user.sessionVersion || 0,
         };
       },
     }),
@@ -86,16 +75,26 @@ export const authOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.sessionVersion = user.sessionVersion;
       }
 
       if (!token.id && token.sub) {
         token.id = token.sub;
       }
 
+      await connectToDatabase();
+      const currentUser = token.id
+        ? await User.findById(token.id).select(
+            "role isVerified disabledAt sessionVersion",
+          )
+        : null;
+      token.valid = isSessionCurrent(currentUser, token);
+      token.role = token.valid ? currentUser.role : null;
       return token;
     },
 
     async session({ session, token }) {
+      if (!token.valid) return null;
       if (session?.user) {
         session.user.id = token.id;
         session.user.role = token.role;

@@ -1,197 +1,106 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import Comment from "@/lib/models/Comment";
-import Message from "@/lib/models/Message";
 import User from "@/lib/models/User";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
-import Pusher from "pusher";
-import {
-  generatePanteraReply,
-  hasPanteraMention,
-  PANTERA_PROFILE,
-} from "@/lib/pantera-ai";
-import { isSuperadminSession } from "@/lib/auth";
-import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
+import { readableMessage } from "@/lib/message-access";
+import { canDeleteContent } from "@/lib/permissions";
+import { notifyChange } from "@/lib/pusher";
+import { maybeReplyAsPantera } from "@/lib/pantera-comments";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
-
-const pusher = new Pusher({
-  appId: process.env.PUSHER_APP_ID,
-  key: process.env.PUSHER_KEY,
-  secret: process.env.PUSHER_SECRET,
-  cluster: process.env.PUSHER_CLUSTER,
-  useTLS: true,
-});
-
+import { isObjectId, validText } from "@/lib/validation";
 function normalizeComment(comment) {
-  const plainComment = typeof comment?.toObject === "function" ? comment.toObject() : comment;
-  const authorName = plainComment?.userId?.name || plainComment?.author || "Usuario";
-  const authorAvatar = plainComment?.userId?.avatar || plainComment?.avatar || "";
-
+  const value = comment.toObject();
   return {
-    ...plainComment,
-    author: authorName,
-    avatar: authorAvatar,
+    ...value,
+    author: value.userId?.name || value.author || "Usuario",
+    avatar: value.userId?.avatar || value.avatar || "",
   };
 }
-
-async function maybeReplyAsPantera({ comment, authorName }) {
-  if (!hasPanteraMention(comment.content)) {
-    return;
-  }
-
-  try {
-    const [message, threadComments] = await Promise.all([
-      Message.findById(comment.messageId)
-        .populate("userId", "name avatar")
-        .lean(),
-      Comment.find({ messageId: comment.messageId }).sort({ createdAt: -1 }).limit(8).lean(),
-    ]);
-
-    if (!message) {
-      return;
-    }
-
-    const normalizedMessage = {
-      ...message,
-      author: message?.userId?.name || message?.author || "Usuario",
-    };
-
-    const normalizedThreadComments = threadComments.map((item) => ({
-      ...item,
-      author: item.author || "Usuario",
-    }));
-
-    const replyText = await generatePanteraReply({
-      authorName,
-      message: normalizedMessage,
-      comments: normalizedThreadComments,
-      mentionSource: {
-        type: "comment",
-        content: comment.content,
-      },
-    });
-
-    const panteraComment = await Comment.create({
-      content: replyText,
-      author: PANTERA_PROFILE.name,
-      avatar: PANTERA_PROFILE.avatar,
-      messageId: comment.messageId,
-    });
-
-    await pusher.trigger("comments", "new-comment", panteraComment);
-  } catch (err) {
-    console.error("ERRO PANTERA COMMENT:", err);
-  }
-}
-
 export default async function handler(req, res) {
-  await connectToDatabase();
-
-  if (req.method === "GET") {
-    try {
-      const { messageId } = req.query;
-
-      if (!messageId) {
-        return res.status(200).json([]);
-      }
-
-      const comments = await Comment.find({ messageId })
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
+  if (!["GET", "POST", "DELETE"].includes(req.method))
+    return res.status(405).json({ error: "Metodo nao permitido" });
+  try {
+    const session = await getServerSession(req, res, authOptions);
+    await connectToDatabase();
+    if (req.method === "GET") {
+      const { messageId, before } = req.query;
+      if (!messageId) return res.status(200).json([]);
+      if (!isObjectId(messageId) || (before && !isObjectId(before)))
+        return res.status(400).json({ error: "Identificador invalido" });
+      if (!(await readableMessage(messageId, session)))
+        return res.status(404).json({ error: "Publicacao indisponivel" });
+      const filter = { messageId, ...(before ? { _id: { $lt: before } } : {}) };
+      const comments = await Comment.find(filter)
         .populate("userId", "name avatar")
-        .sort({ createdAt: -1 });
-
+        .sort({ _id: -1 })
+        .limit(50);
       return res.status(200).json(comments.map(normalizeComment));
-    } catch (err) {
-      console.error("Erro ao buscar comentarios:", err);
-      return res.status(200).json([]);
     }
-  }
-
-  if (req.method === "POST") {
-    try {
-      const session = await getServerSession(req, res, authOptions);
-
-      if (!session) {
-        return res.status(401).json({ error: "Nao autenticado" });
-      }
-
-      const rateLimitResult = checkRateLimit({
-        key: `comments:${session.user.id}:${getClientIp(req)}`,
-        limit: Number(process.env.RATE_LIMIT_COMMENTS_MAX || 20),
-        windowMs: Number(process.env.RATE_LIMIT_COMMENTS_WINDOW_MS || 60 * 1000),
-      });
-
-      if (!rateLimitResult.success) {
-        return res.status(429).json({
-          error: createRateLimitErrorMessage(
-            "Muitos comentarios em pouco tempo.",
-            rateLimitResult.retryAfter,
-          ),
-        });
-      }
-
-      const { content, messageId } = req.body;
-
-      if (!content?.trim() || !messageId) {
+    if (!session) return res.status(401).json({ error: "Nao autenticado" });
+    if (req.method === "POST") {
+      const { content, messageId } = req.body || {};
+      if (!validText(content) || !isObjectId(messageId))
         return res.status(400).json({ error: "Dados invalidos" });
-      }
-
-      const currentUser = await User.findOne({ email: session.user.email }).select("_id name avatar");
-      const authorName = currentUser?.name || session.user.name || "Usuario";
-      const newComment = await Comment.create({
-        content: content.trim(),
-        author: authorName,
-        avatar: currentUser?.avatar || "",
-        userId: currentUser?._id,
-        messageId,
+      const parent = await readableMessage(messageId, session);
+      if (!parent)
+        return res.status(404).json({ error: "Publicacao indisponivel" });
+      const rate = await checkRateLimit({
+        key: `comments:${session.user.id}:${getClientIp(req)}`,
+        ip: getClientIp(req),
+        identity: session.user.id,
+        limit: Number(process.env.RATE_LIMIT_COMMENTS_MAX || 20),
+        windowMs: Number(process.env.RATE_LIMIT_COMMENTS_WINDOW_MS || 60000),
       });
-
-      const populatedComment = await newComment.populate("userId", "name avatar");
-      const normalizedComment = normalizeComment(populatedComment);
-
-      await pusher.trigger("comments", "new-comment", normalizedComment);
-      await maybeReplyAsPantera({ comment: normalizedComment, authorName });
-
-      return res.status(201).json(normalizedComment);
-    } catch (err) {
-      console.error("Erro ao criar comentario:", err);
-      return res.status(500).json({ error: "Erro interno" });
+      if (!rate.success)
+        return res
+          .status(429)
+          .json({ error: "Muitos comentarios em pouco tempo." });
+      const user = await User.findById(session.user.id).select("name avatar");
+      if (!user) return res.status(401).json({ error: "Conta indisponivel" });
+      const comment = await Comment.create({
+        content: content.trim(),
+        messageId,
+        userId: user._id,
+        author: user.name,
+        avatar: user.avatar || "",
+      });
+      await comment.populate("userId", "name avatar");
+      const result = normalizeComment(comment);
+      const communityId = parent.message.communityId?.toString();
+      await notifyChange("comments", "new-comment", communityId);
+      await maybeReplyAsPantera({
+        comment: result,
+        authorName: user.name,
+        communityId,
+      });
+      return res.status(201).json(result);
     }
+    const id = req.body?.id || req.query.id;
+    if (!isObjectId(id))
+      return res.status(400).json({ error: "Identificador invalido" });
+    const comment = await Comment.findById(id);
+    if (!comment)
+      return res.status(404).json({ error: "Comentario nao encontrado" });
+    if (!canDeleteContent(comment, session))
+      return res.status(403).json({ error: "Sem permissao" });
+    const parent = await readableMessage(comment.messageId, session);
+    await Comment.findByIdAndDelete(id);
+    // An inaccessible/orphaned thread never generates a public event.
+    if (parent)
+      await notifyChange(
+        "comments",
+        "delete-comment",
+        parent.message.communityId?.toString(),
+      );
+    return res.status(200).json({ success: true });
+  } catch {
+    return res
+      .status(500)
+      .json({ error: "Nao foi possivel concluir a operacao" });
   }
-
-  if (req.method === "DELETE") {
-    try {
-      const session = await getServerSession(req, res, authOptions);
-
-      if (!session) {
-        return res.status(401).json({ error: "Nao autenticado" });
-      }
-
-      const { id } = req.body?.id ? req.body : req.query;
-      const comment = await Comment.findById(id);
-
-      if (!comment) {
-        return res.status(404).json({ error: "Comentario nao encontrado" });
-      }
-
-      const isAuthorById = comment.userId?.toString() === session.user.id;
-      const isAuthorByName = !comment.userId && comment.author === session.user.name;
-
-      const canDelete =
-        isAuthorById || isAuthorByName || isSuperadminSession(session);
-
-      if (!canDelete) {
-        return res.status(403).json({ error: "Sem permissao" });
-      }
-
-      await Comment.findByIdAndDelete(id);
-      await pusher.trigger("comments", "delete-comment", { id, messageId: comment.messageId });
-
-      return res.status(200).json({ success: true });
-    } catch (err) {
-      console.error("Erro ao deletar comentario:", err);
-      return res.status(500).json({ error: "Erro ao deletar comentario" });
-    }
-  }
-
-  return res.status(405).json({ error: "Metodo nao permitido" });
 }

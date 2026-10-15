@@ -34,14 +34,21 @@ export default function Register() {
       } catch {}
 
       if (!res.ok) {
-        setError(data?.message || data?.error || "Nao foi possivel concluir o cadastro.");
+        setError(
+          data?.message ||
+            data?.error ||
+            "Nao foi possivel concluir o cadastro.",
+        );
         return;
       }
 
       setName("");
       setEmail("");
       setPassword("");
-      setSuccess("Cadastro realizado. Voce sera redirecionado para o login em instantes.");
+      setSuccess(
+        data?.message ||
+          "Cadastro realizado. Verifique seu email antes de entrar.",
+      );
 
       setTimeout(() => {
         router.push("/login");
@@ -59,15 +66,20 @@ export default function Register() {
       subtitle="Cadastro mais claro, consistente com o login e com mensagens de feedback mais cuidadas."
       footer={
         <p className="text-center text-sm text-slate-400">
-          Ja tem conta? {" "}
-          <Link href="/login" className="font-medium text-cyan-200 transition hover:text-cyan-100">
+          Ja tem conta?{" "}
+          <Link
+            href="/login"
+            className="font-medium text-cyan-200 transition hover:text-cyan-100"
+          >
             Entrar
           </Link>
         </p>
       }
     >
       <div className="mb-6">
-        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Criar conta</p>
+        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+          Criar conta
+        </p>
         <h2 className="mt-2 text-2xl font-semibold text-white">Comece agora</h2>
       </div>
 
@@ -120,7 +132,11 @@ export default function Register() {
           />
         </label>
 
-        <button type="submit" disabled={loading} className="primary-button w-full">
+        <button
+          type="submit"
+          disabled={loading}
+          className="primary-button w-full"
+        >
           {loading ? "Criando conta..." : "Cadastrar"}
         </button>
       </form>

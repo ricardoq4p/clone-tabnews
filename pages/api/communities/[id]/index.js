@@ -1,3 +1,12 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
+import { canReadCommunity } from "@/lib/permissions";
+import {
+  isObjectId,
+  validText,
+  validImageUrl,
+  escapeRegex,
+} from "@/lib/validation";
+import { notifyChange } from "@/lib/pusher";
 import connectToDatabase from "@/lib/db";
 import Community from "@/lib/models/Community";
 import { getServerSession } from "next-auth";
@@ -6,7 +15,9 @@ import { isSuperadminSession } from "@/lib/auth";
 
 function normalizeCommunity(community, sessionUserId) {
   const plainCommunity =
-    typeof community?.toObject === "function" ? community.toObject() : community;
+    typeof community?.toObject === "function"
+      ? community.toObject()
+      : community;
   const ownerId =
     typeof plainCommunity?.ownerId === "string"
       ? plainCommunity.ownerId
@@ -31,18 +42,27 @@ function normalizeCommunity(community, sessionUserId) {
 }
 
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   await connectToDatabase();
 
   if (req.method === "GET") {
     try {
       const session = await getServerSession(req, res, authOptions);
       const { id } = req.query;
-      const community = await Community.findById(id).populate("ownerId", "name");
+      if (!isObjectId(id))
+        return res.status(400).json({ error: "Identificador invalido" });
+      const community = await Community.findById(id).populate(
+        "ownerId",
+        "name",
+      );
 
-      if (!community) {
+      if (!community || community.deletedAt) {
         return res.status(404).json({ error: "Comunidade nao encontrada" });
       }
 
+      if (!canReadCommunity(community, session?.user?.id))
+        return res.status(404).json({ error: "Comunidade indisponivel" });
       return res
         .status(200)
         .json(normalizeCommunity(community, session?.user?.id));
@@ -61,9 +81,11 @@ export default async function handler(req, res) {
       }
 
       const { id } = req.query;
+      if (!isObjectId(id))
+        return res.status(400).json({ error: "Identificador invalido" });
       const community = await Community.findById(id);
 
-      if (!community) {
+      if (!community || community.deletedAt) {
         return res.status(404).json({ error: "Comunidade nao encontrada" });
       }
 
@@ -74,16 +96,24 @@ export default async function handler(req, res) {
       }
 
       const { name, description, privacy, avatar } = req.body;
-      const trimmedName = name?.trim();
-      const trimmedDescription = description?.trim() || "";
+      const trimmedName = typeof name === "string" ? name.trim() : "";
+      const trimmedDescription =
+        typeof description === "string" ? description.trim() : "";
 
-      if (!trimmedName) {
-        return res.status(400).json({ error: "Digite um nome para a comunidade" });
+      if (
+        !validText(trimmedName, 60) ||
+        trimmedDescription.length > 220 ||
+        (avatar && !validImageUrl(avatar))
+      ) {
+        return res
+          .status(400)
+          .json({ error: "Digite um nome para a comunidade" });
       }
 
       const duplicatedCommunity = await Community.findOne({
         _id: { $ne: id },
-        name: { $regex: `^${trimmedName}$`, $options: "i" },
+        deletedAt: null,
+        name: { $regex: `^${escapeRegex(trimmedName)}$`, $options: "i" },
       });
 
       if (duplicatedCommunity) {
@@ -98,6 +128,8 @@ export default async function handler(req, res) {
       community.avatar = typeof avatar === "string" ? avatar.trim() : "";
 
       await community.save();
+      await notifyChange("feed", "new-message", id);
+      await notifyChange("feed", "new-message");
       const populatedCommunity = await community.populate("ownerId", "name");
 
       return res
@@ -120,9 +152,11 @@ export default async function handler(req, res) {
     }
 
     const { id } = req.query;
+    if (!isObjectId(id))
+      return res.status(400).json({ error: "Identificador invalido" });
     const community = await Community.findById(id);
 
-    if (!community) {
+    if (!community || community.deletedAt) {
       return res.status(404).json({ error: "Comunidade nao encontrada" });
     }
 
@@ -132,7 +166,9 @@ export default async function handler(req, res) {
       return res.status(403).json({ error: "Sem permissao" });
     }
 
-    await Community.findByIdAndDelete(id);
+    await Community.findByIdAndUpdate(id, { $set: { deletedAt: new Date() } });
+    await notifyChange("feed", "delete-message", id);
+    await notifyChange("feed", "delete-message");
     return res.status(200).json({ success: true });
   } catch (error) {
     console.error("ERRO DELETE COMMUNITY:", error);

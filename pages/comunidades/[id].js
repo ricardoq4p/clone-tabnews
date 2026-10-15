@@ -1,3 +1,4 @@
+import LoadMoreButton from "../../components/LoadMoreButton";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
@@ -21,6 +22,8 @@ export default function CommunityPage() {
   const router = useRouter();
   const { id } = router.query;
 
+  const [invitationEmail, setInvitationEmail] = useState("");
+  const [inviting, setInviting] = useState(false);
   const [community, setCommunity] = useState(null);
   const [messages, setMessages] = useState([]);
   const [userData, setUserData] = useState(null);
@@ -61,7 +64,9 @@ export default function CommunityPage() {
         const data = await res.json().catch(() => ({}));
 
         if (!res.ok) {
-          throw new Error(data?.error || "Nao foi possivel carregar a comunidade.");
+          throw new Error(
+            data?.error || "Nao foi possivel carregar a comunidade.",
+          );
         }
 
         return data;
@@ -109,31 +114,27 @@ export default function CommunityPage() {
 
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
+      channelAuthorization: { endpoint: "/api/pusher/auth", transport: "ajax" },
     });
 
-    const channel = pusher.subscribe("feed");
+    const channel = pusher.subscribe(`private-community-${id}`);
 
-    channel.bind("new-message", (data) => {
-      if (data?.communityId !== id) return;
-
-      setMessages((current) => {
-        if (current.find((message) => message._id === data._id)) {
-          return current;
-        }
-
-        return [data, ...current];
-      });
-    });
-
-    channel.bind("delete-message", (data) => {
-      setMessages((current) =>
-        current.filter((message) => message._id !== data.id),
-      );
-    });
+    const reload = () => {
+      fetch(`/api/messages?communityId=${id}`)
+        .then((res) => (res.ok ? res.json() : []))
+        .then((data) => setMessages(Array.isArray(data) ? data : []))
+        .catch(() => {});
+      fetch(`/api/communities/${id}`)
+        .then((res) => (res.ok ? res.json() : null))
+        .then(setCommunity)
+        .catch(() => {});
+    };
+    channel.bind("new-message", reload);
+    channel.bind("delete-message", reload);
 
     return () => {
       channel.unbind_all();
-      pusher.unsubscribe("feed");
+      pusher.unsubscribe(`private-community-${id}`);
       pusher.disconnect();
     };
   }, [id]);
@@ -171,7 +172,9 @@ export default function CommunityPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data?.error || "Nao foi possivel atualizar a comunidade.");
+        throw new Error(
+          data?.error || "Nao foi possivel atualizar a comunidade.",
+        );
       }
 
       setCommunity(data);
@@ -205,9 +208,16 @@ export default function CommunityPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data?.error || "Nao foi possivel publicar na comunidade.");
+        throw new Error(
+          data?.error || "Nao foi possivel publicar na comunidade.",
+        );
       }
 
+      setMessages((current) =>
+        current.some((item) => item._id === data._id)
+          ? current
+          : [data, ...current],
+      );
       setNewMessage("");
     } catch (error) {
       setPublishError(
@@ -285,7 +295,9 @@ export default function CommunityPage() {
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        throw new Error(data?.error || "Nao foi possivel atualizar a comunidade.");
+        throw new Error(
+          data?.error || "Nao foi possivel atualizar a comunidade.",
+        );
       }
 
       setCommunity(data);
@@ -320,16 +332,19 @@ export default function CommunityPage() {
                   className="h-20 w-20 rounded-[24px] object-cover ring-1 ring-cyan-300/20"
                 />
                 <div>
-              <p className="mt-4 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
-                Comunidade
-              </p>
-              <h1 className="mt-2 text-3xl font-semibold text-white">
-                {communityLoading ? "Carregando comunidade..." : community?.name}
-              </h1>
+                  <p className="mt-4 text-xs font-semibold uppercase tracking-[0.24em] text-cyan-200/80">
+                    Comunidade
+                  </p>
+                  <h1 className="mt-2 text-3xl font-semibold text-white">
+                    {communityLoading
+                      ? "Carregando comunidade..."
+                      : community?.name}
+                  </h1>
                 </div>
               </div>
               <p className="mt-3 max-w-2xl text-sm leading-6 text-slate-400 sm:text-base">
-                {community?.description || "Espaco para publicar e conversar sobre o tema desta comunidade."}
+                {community?.description ||
+                  "Espaco para publicar e conversar sobre o tema desta comunidade."}
               </p>
             </div>
 
@@ -377,7 +392,9 @@ export default function CommunityPage() {
           <section className="glass-panel mt-6 rounded-[28px] p-5 sm:p-6">
             <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[220px,1fr]">
               <div>
-                <p className="text-sm font-medium text-white">Imagem da comunidade</p>
+                <p className="text-sm font-medium text-white">
+                  Imagem da comunidade
+                </p>
                 <img
                   src={
                     editAvatar ||
@@ -402,7 +419,9 @@ export default function CommunityPage() {
               </div>
 
               <div className="space-y-4">
-                <p className="text-sm font-medium text-white">Editar comunidade</p>
+                <p className="text-sm font-medium text-white">
+                  Editar comunidade
+                </p>
                 <input
                   type="text"
                   value={editName}
@@ -509,7 +528,9 @@ export default function CommunityPage() {
                   className="h-11 w-11 rounded-full object-cover"
                 />
                 <div>
-                  <p className="font-medium text-white">{session?.user?.name}</p>
+                  <p className="font-medium text-white">
+                    {session?.user?.name}
+                  </p>
                   <p className="text-sm text-slate-400">
                     Publique algo sobre {community?.name || "esta comunidade"}.
                   </p>
@@ -580,18 +601,85 @@ export default function CommunityPage() {
                 </div>
               ) : messages.length === 0 ? (
                 <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
-                  Ainda nao existem posts nesta comunidade. A primeira publicacao
-                  pode ser sua.
+                  Ainda nao existem posts nesta comunidade. A primeira
+                  publicacao pode ser sua.
                 </div>
               ) : (
                 messages.map((message) =>
-                  message?._id ? <MessageCard key={message._id} msg={message} /> : null,
+                  message?._id ? (
+                    <MessageCard
+                      key={message._id}
+                      msg={message}
+                      onDeleted={(id) =>
+                        setMessages((current) =>
+                          current.filter((item) => item._id !== id),
+                        )
+                      }
+                    />
+                  ) : null,
                 )
               )}
             </section>
           </div>
         </div>
       </div>
+      <LoadMoreButton
+        items={messages}
+        endpoint={`/api/messages?communityId=${id}`}
+        onLoad={(data) =>
+          setMessages((current) => [
+            ...current,
+            ...data.filter(
+              (item) => !current.some((existing) => existing._id === item._id),
+            ),
+          ])
+        }
+      />
+      {community?.isOwner && community?.privacy === "private" ? (
+        <form
+          className="glass-panel mx-auto mt-6 max-w-6xl rounded-3xl p-5"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setInviting(true);
+            setCommunityError("");
+            try {
+              const response = await fetch(`/api/communities/${id}/join`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  action: "approve",
+                  email: invitationEmail,
+                }),
+              });
+              const data = await response.json();
+              if (!response.ok)
+                throw new Error(
+                  data.error || "Nao foi possivel adicionar o participante.",
+                );
+              setCommunity(data);
+              setInvitationEmail("");
+            } catch (error) {
+              setCommunityError(error.message);
+            } finally {
+              setInviting(false);
+            }
+          }}
+        >
+          <label className="block">
+            Email do participante com conta verificada
+            <input
+              type="email"
+              required
+              value={invitationEmail}
+              onChange={(e) => setInvitationEmail(e.target.value)}
+              className="field-input mt-2"
+            />
+          </label>
+          <button disabled={inviting} className="primary-button mt-3">
+            {inviting ? "Adicionando..." : "Adicionar a comunidade privada"}
+          </button>
+        </form>
+      ) : null}
     </div>
   );
 }

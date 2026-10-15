@@ -1,3 +1,4 @@
+import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import User from "@/lib/models/User";
 import Message from "@/lib/models/Message";
@@ -9,6 +10,8 @@ import { isSuperadminSession } from "@/lib/auth";
 
 const ONLINE_WINDOW_IN_MS = 1000 * 60 * 2;
 export default async function handler(req, res) {
+  res.setHeader("Cache-Control", "private, no-store");
+  if (rejectCrossOriginMutation(req, res)) return;
   await connectToDatabase();
 
   if (req.method !== "GET") {
@@ -39,7 +42,7 @@ export default async function handler(req, res) {
         .sort({ createdAt: -1 })
         .limit(30)
         .lean(),
-      Community.find()
+      Community.find({ deletedAt: null })
         .populate("ownerId", "name email")
         .sort({ createdAt: -1 })
         .lean(),
@@ -50,7 +53,8 @@ export default async function handler(req, res) {
         .filter(
           (user) =>
             user.lastSeenAt &&
-            Date.now() - new Date(user.lastSeenAt).getTime() <= ONLINE_WINDOW_IN_MS,
+            Date.now() - new Date(user.lastSeenAt).getTime() <=
+              ONLINE_WINDOW_IN_MS,
         )
         .map((user) => ({
           _id: user._id.toString(),
@@ -71,7 +75,8 @@ export default async function handler(req, res) {
         lastSeenAt: user.lastSeenAt,
         isOnline: Boolean(
           user.lastSeenAt &&
-            Date.now() - new Date(user.lastSeenAt).getTime() <= ONLINE_WINDOW_IN_MS,
+            Date.now() - new Date(user.lastSeenAt).getTime() <=
+              ONLINE_WINDOW_IN_MS,
         ),
       })),
       messages: messages.map((message) => ({
@@ -96,7 +101,9 @@ export default async function handler(req, res) {
         privacy: community.privacy,
         ownerName: community.ownerId?.name || "Usuario",
         ownerEmail: community.ownerId?.email || "",
-        membersCount: Array.isArray(community.members) ? community.members.length : 0,
+        membersCount: Array.isArray(community.members)
+          ? community.members.length
+          : 0,
         createdAt: community.createdAt,
       })),
     });
