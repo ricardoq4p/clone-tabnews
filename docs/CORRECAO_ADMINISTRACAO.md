@@ -30,3 +30,13 @@ Evidências privadas: .qa/admin-access-audit.json, .qa/admin-delete-integration-
 Correção destinada somente ao projeto oficial clone-tabnews, sem push/merge/main ou mudança de variável/credencial. Construir --target production --skip-domain, verificar sem executar exclusão real e promover somente se aprovado. Rollback desta correção deve apontar para a versão saudável imediatamente anterior, dpl_2i63NjkNdT9ZrdbbCpSHyX9funUX; não voltar ao código legado de antes do lançamento por engano.
 
 A correção não invalida sessões. Atualize a página; se o navegador ainda não reconhecer a conta, sair e entrar novamente obtém uma sessão atual. A rotação de segredo ocorreu no lançamento anterior, não nesta correção. O usuário não precisa alterar a senha.
+
+## Resultado publicado
+
+Publicado em https://panteralab.com.br/administracao, código `2b7b6ba`, deployment `dpl_4NJnkkRWyVY5m3hsrkqqPzKFLNdv`. Build remoto aprovado, publicação --skip-domain validada antes da promoção. Verificações em produção protegida e no domínio público passaram: três endpoints DELETE recusam visitante (401), origem cruzada é recusada (403), visitante não vê controles administrativos, páginas 320/390/1440px sem transbordamento nem erros JavaScript.
+
+Nenhuma DELETE autenticada foi enviada à produção nos testes. Contagens e hashes do conteúdo das 12 coleções inventariadas preservados. A conta teve atividade real de login durante a conferência: lastLoginAt/lastSeenAt mudaram e o default sessionVersion=0 foi persistido pela autenticação existente. Comparação granular com o backup confirmou nomes, perfis, hashes de senha, papéis e demais campos não relacionados a atividade inalterados. Não revertemos atividade legítima do usuário nem alteramos contas para testar.
+
+O alias oficial aponta para o novo deployment. Acesso temporário de QA revogado e URL imutável continua protegida; cron mantido no deployment correto. Nenhuma variável, credencial, senha ou papel foi alterado nesta correção. Sem push, merge ou mudança de main. O servidor temporário de QA em 3117 foi encerrado, preservando os bancos. A stack local padrão em 3107 foi mantida.
+
+Para retornar apenas esta correção, usar rollback para `dpl_2i63NjkNdT9ZrdbbCpSHyX9funUX` no projeto clone-tabnews. Não há migração de dados a desfazer; não restaurar conteúdo excluído. Relatórios privados: .qa/admin-fix-staged-qa.json, .qa/admin-fix-public-qa.json, .qa/admin-fix-official-alias-verification.json e .qa/admin-fix-user-activity-verification.json.
