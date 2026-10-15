@@ -430,12 +430,14 @@ export default function CommunityPage() {
                   value={editName}
                   onChange={(event) => setEditName(event.target.value)}
                   placeholder="Nome da comunidade"
+                  aria-label="Nome da comunidade"
                   className="field-input"
                 />
                 <textarea
                   value={editDescription}
                   onChange={(event) => setEditDescription(event.target.value)}
                   placeholder="Descricao da comunidade"
+                  aria-label="Descrição da comunidade"
                   className="field-input min-h-[120px] resize-y"
                 />
                 <label className="block text-sm text-slate-300">
@@ -544,6 +546,7 @@ export default function CommunityPage() {
               </div>
 
               <textarea
+                aria-label="Sua publicação na comunidade"
                 placeholder={
                   canPublish
                     ? "Escreva uma nota para a comunidade..."

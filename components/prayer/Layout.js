@@ -22,6 +22,19 @@ export default function PrayerLayout({
 }) {
   const router = useRouter();
   const { data: session } = useSession();
+  const currentSection =
+    {
+      "/minhas-velas": "/capelinha",
+      "/feed": "/comunidade",
+      "/comunidades/[id]": "/comunidade",
+    }[router.pathname] || router.pathname;
+  const accountCurrent = [
+    "/profile",
+    "/user/edit",
+    "/upload",
+    "/login",
+  ].includes(router.pathname);
+
   return (
     <div className={`prayer-app ${legacy ? "prayer-legacy" : ""}`}>
       <Head>
@@ -62,7 +75,7 @@ export default function PrayerLayout({
             <Link
               key={link.href}
               href={link.href}
-              aria-current={router.pathname === link.href ? "page" : undefined}
+              aria-current={currentSection === link.href ? "page" : undefined}
             >
               {link.label}
             </Link>
@@ -73,6 +86,11 @@ export default function PrayerLayout({
             href="/administracao"
             className="p-account p-admin-shortcut"
             aria-label="Abrir administração"
+            aria-current={
+              ["/administracao", "/admin"].includes(router.pathname)
+                ? "page"
+                : undefined
+            }
           >
             <Icon name="shield" size={17} />
             <span>Administração</span>
@@ -82,6 +100,7 @@ export default function PrayerLayout({
           href={session ? "/profile" : "/login"}
           className="p-account"
           aria-label={session ? "Minha conta" : "Entrar"}
+          aria-current={accountCurrent ? "page" : undefined}
         >
           <Icon name="user" size={17} />
           <span>
@@ -119,13 +138,16 @@ export default function PrayerLayout({
           <Link
             key={link.href}
             href={link.href}
-            aria-current={router.pathname === link.href ? "page" : undefined}
+            aria-current={currentSection === link.href ? "page" : undefined}
           >
             <Icon name={link.icon} size={21} />
             <span>{link.short || link.label}</span>
           </Link>
         ))}
-        <Link href={session ? "/profile" : "/login"}>
+        <Link
+          href={session ? "/profile" : "/login"}
+          aria-current={accountCurrent ? "page" : undefined}
+        >
           <Icon name="user" size={21} />
           <span>Minha conta</span>
         </Link>

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { SessionProvider, useSession } from "next-auth/react";
 import "../styles/globals.css";
 import "../styles/prayer.css";
+import "../styles/design-system.css";
 
 function PresenceHeartbeat() {
   const { data: session, status } = useSession();

@@ -238,3 +238,17 @@ Dados anteriores das 12 coleções conferidas preservados; nenhuma escrita de te
 A chave temporária de QA foi revogada e sua rejeição confirmada (302 na URL imutável protegida). Proteção Vercel e rotina de retenção existentes permanecem; nenhuma variável, credencial, DNS, recurso MongoDB ou serviço pago alterado. Sem push, merge ou alterações na main. Homologação local retomada em localhost:3107. Rollback disponível para dpl_4NJnkkRWyVY5m3hsrkqqPzKFLNdv, mantendo o banco atual e os registros novos.
 
 Limitações conscientes: seis velas por página do cenário, API em lotes de vinte com carregamento adicional; PNG original de 2,25 MB sem recompressão; novas velas de outros navegadores aparecem por atualização manual/retorno à aba, sem Pusher. Nenhum impedimento crítico restante para esta atualização visual.
+
+## Redesign UX/UI — em validação, 15/10/2026
+
+Missão autorizada para produção, restrita a UX/UI/CSS. Referências 7524726 e 2b7b6ba preservadas. Nova camada styles/design-system.css com tokens reutilizáveis, tipografia existente sem downloads, container1280/leitura740, cabeçalho72/64, controles48, contraste e foco. Importação em \_app; Layout só recebe indicação visual aria-current para seção/conta/administração; feed e grupo só recebem nomes acessíveis de campos. Chapel.module.css altera somente tipografia. Nenhum arquivo funcional protegido modificado. Arquitetura e auditoria em docs/AUDITORIA_UX_UI.md.
+
+Resultados parciais: 158 testes/27 suítes, lint/Prettier/build, 110 combinações de páginas/larguras e axe em 11 páginas/perfis aprovados. Rosário completo82 passos e retomada, foco/teclado/zoom200%, navegação e acesso admin passaram. Capturas privadas antes/depois e relatórios em .qa/ux-\*. Ajustes posteriores apenas ampliaram botões auxiliares de11para14px; rodada final completa em curso com servidor3117 de Atlas isolado, sem credenciais reais de usuários.
+
+Publicação planejada no projeto oficial, sem novas chaves de QA, mudanças de credenciais/variáveis/DNS ou serviços. Deploy --skip-domain, checar READY/metadados/commit e preservar rollback dpl_4uRVQpZ4NT8AdzYb5zd7oxBJ5Ucf. Repetir smoke público e conferir integridade somente por leitura. Main sem alterações; nenhum push ou merge.
+
+## Redesign UX/UI — testes finais aprovados, 15/10/2026
+
+Rodada final: 110 combinações de rota/largura sem overflow/erros JS; comunidade positiva com edição aberta em mais cinco larguras; axe sem violações em 12 escopos de página/perfil; cinco grupos de interações (teclado, Rosário82 etapas/retomada, fonte, zoom200%, navegação e administração); cinco grupos reais de exclusão com transação e auditoria, apenas conteúdo fictício no Atlas separado; quatro grupos visuais da Capelinha e acendimento privado com troca de escopo. Imagem original mantida por SHA. Todos os arquivos de lógica protegidos conferidos por git diff e permanecem idênticos à referência.
+
+Relatórios privados em .qa/ux-\*.json, .qa/admin-delete-integration-report.json e capturas. Auditoria pública local em docs/AUDITORIA_UX_UI.md. Comparação somente de leitura dos 12 conjuntos de dados de produção aprovada em .qa/ux-production-integrity-predeploy.json; snapshot de hashes em .qa/ux-production-before.json. Uma vela/progresso reais em uso, preservados. Não restaurar dados para forçar contagens iniciais se houver atividade legítima. Nenhum token de proteção adicional foi criado para esta entrega; manter credenciais e configurações atuais.

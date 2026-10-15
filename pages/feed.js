@@ -328,6 +328,7 @@ export default function Feed() {
                       <input
                         type="text"
                         placeholder="Nome da comunidade"
+                        aria-label="Nome da comunidade"
                         value={communityName}
                         onChange={(event) =>
                           setCommunityName(event.target.value)
@@ -336,6 +337,7 @@ export default function Feed() {
                       />
                       <textarea
                         placeholder="Descricao curta para apresentar a comunidade"
+                        aria-label="Descrição da comunidade"
                         value={communityDescription}
                         onChange={(event) =>
                           setCommunityDescription(event.target.value)
@@ -557,6 +559,7 @@ export default function Feed() {
 
               <textarea
                 placeholder="Escreva uma mensagem para a comunidade..."
+                aria-label="Sua publicação"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 className="field-input min-h-[140px] resize-y"
