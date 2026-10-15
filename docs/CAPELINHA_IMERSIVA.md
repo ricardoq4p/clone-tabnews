@@ -21,4 +21,19 @@ O PNG original pesa aproximadamente 2,25 MB; não foi recomprimido para respeita
 
 A API fornece vinte intenções por lote; “Ver mais intenções” continua carregando lotes adicionais. O cenário permite navegar por todas as velas ativas carregadas, seis por página, preservando a organização do santuário.
 
-Projeto oficial: clone-tabnews. Não há push, merge, mudança de DNS, credenciais ou serviços. Rollback da alteração visual: deployment dpl_4NJnkkRWyVY5m3hsrkqqPzKFLNdv, sem restauração de banco. Publicação e verificação final serão registradas após promoção.
+Projeto oficial: clone-tabnews. Não há push, merge, mudança de DNS, credenciais ou serviços. Rollback da alteração visual: deployment dpl_4NJnkkRWyVY5m3hsrkqqPzKFLNdv, sem restauração de banco. Publicação e verificação final concluídas em 15/10/2026.
+
+## Publicação concluída
+
+- URL oficial: https://panteralab.com.br/capelinha
+- Commit de código: `752472643961bba8fbeda0e0d034e823779bf0a9`.
+- Deployment: `dpl_4uRVQpZ4NT8AdzYb5zd7oxBJ5Ucf`.
+- Base administrativa `2b7b6ba` preservada como ancestral.
+- Quatro grupos de smoke protegidos e quatro públicos aprovados: imagem byte a byte idêntica, quatro resoluções, páginas essenciais e autorização administrativa para visitantes.
+- Dados originais das 12 coleções preservados por conferência de conteúdo; um novo progresso do Rosário salvo durante a preparação foi validado e preservado como atividade legítima. Nenhuma escrita de teste em produção.
+- Chave temporária de QA revogada; URLs imutáveis continuam protegidas. Sem mudanças de DNS, variáveis, credenciais ou serviços.
+- ESLint aprovado nos 159 arquivos versionados, Prettier aprovado e build concluído. Aviso preexistente do framework: React 18 será descontinuado na próxima versão principal do Next; atualização de dependências fica fora desta entrega visual.
+
+Rollback operacional: usar Vercel CLI `rollback dpl_4NJnkkRWyVY5m3hsrkqqPzKFLNdv` no escopo/projeto oficial existente. Confirmar o alias panteralab.com.br após concluir. Não restaurar backup nem reverter dados para desfazer uma alteração visual.
+
+Arquivos: pages/capelinha.js; components/prayer/ChapelScene.js; lib/chapel-scene.js; styles/Chapel.module.css; public/sacred/capelinha-076db5e69b37.png; tests/chapel-scene.test.js; este relatório; PLANO_DESENVOLVIMENTO.md.
