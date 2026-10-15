@@ -66,3 +66,22 @@ Publicar somente no projeto oficial clone-tabnews, com o domínio existente. A b
 Rodada final concluída sem falhas de aplicação. A captura de conteúdo espera as áreas relevantes ficarem prontas; esperar ausência global de tráfego não foi usado como critério porque há presença e pré-carregamento em segundo plano. Comparações privadas em .qa/ux-before-_.png e .qa/ux-after-_.png; capturas do Rosário em oração em .qa/ux-praying-\*.png. Auditoria .qa/ux-after-audit.json, axe .qa/ux-axe-report.json, comunidade .qa/ux-group-qa.json, interações .qa/ux-functional-report.json, velas .qa/ux-chapel-browser-qa.json e .qa/ux-private-candle-qa.json, administração .qa/admin-delete-integration-report.json. Esses arquivos não são enviados ao Git ou à Vercel.
 
 Conferência somente de leitura do banco oficial: 12 coleções, incluindo 18 usuários, uma vela e um progresso em uso. Os registros são comparados individualmente por hash; horários normais de presença/login são tratados separadamente, sem alterar dados. Nenhuma conta fictícia foi copiada para produção. Pré-verificação confirmou o projeto oficial e 28 variáveis restritas a Production, sem mudar seus valores ou criar tokens.
+
+## Publicação concluída — 15/10/2026
+
+- URL oficial: https://panteralab.com.br .
+- Commit publicado e identificado nos metadados: eef33a30fa8324427da236b0c963c847b3a2150b.
+- Deployment: dpl_4Xxk5EoNqsyTjCepE9Fb3ZdiAcAx, projeto oficial clone-tabnews.
+- Vercel build READY; publicação inicialmente sem trocar o domínio, seguida de promoção. Alias e alvo Production confirmados por API.
+- Smoke público: 45 combinações (nove páginas × cinco larguras), tokens/container1280/body16 e cabeçalho72/64 efetivamente carregados, sem rolagem horizontal, erros JavaScript ou respostas de recursos >=500.
+- Axe sem violações nas páginas públicas início/Rosário/Capelinha; checagem adicional local com vela ativa selecionada também aprovada, com controles equivalentes acessíveis.
+- Imagem original novamente conferida por hash no domínio público; privacidade da API de intenções e bloqueio administrativo de visitantes preservados.
+- Todos os registros originais das 12 coleções preservados por comparação individual; contas/senhas/perfis/papéis sem mudanças. Nenhuma escrita de teste em produção.
+- Nenhuma alteração de DNS, credenciais, variáveis, integrações, modelos, APIs ou serviços. URLs imutáveis continuam protegidas; nenhuma chave de QA foi criada. Sem push/merge/main.
+- Servidor temporário com Atlas de teste encerrado; homologação local retomada em localhost:3107.
+
+Evidências privadas: .qa/ux-public-qa.json, .qa/ux-production-integrity-after.json, .qa/ux-official-alias.json, .qa/ux-deployment-status.json e capturas .qa/ux-public-\*.png. Elas não são publicadas com o código.
+
+Rollback: Vercel CLI rollback para dpl_4uRVQpZ4NT8AdzYb5zd7oxBJ5Ucf no mesmo projeto/escopo. Conferir o alias panteralab.com.br após concluir. Não restaurar backup nem reverter registros para desfazer este redesign.
+
+Pendências de evolução: avaliação humana com leitores de tela e aparelhos físicos; otimização futura do PNG original de 2,25MB somente se houver autorização para gerar derivados; atualização do React 18, cujo aviso de descontinuação futura no Next já existia. Nenhuma dessas frentes altera ou bloqueia a presente atualização de apresentação. Integrações desativadas antes desta entrega continuam com o mesmo estado.
