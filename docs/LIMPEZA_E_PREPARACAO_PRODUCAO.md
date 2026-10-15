@@ -30,7 +30,7 @@ O backup criptografado anterior e sua chave permanecem intactos. SHA-256 reconfe
 
 Novo usuário MongoDB de produção com readWrite somente em tabnews e escopo tabnews-cluster; conexão validada com 18 usuários e comunidade vazia, acesso a outro banco negado. O usuário antigo perdeu atlasAdmin e ficou readWrite no mesmo banco/cluster, exclusivo do deployment anterior e de seu rollback protegido. A senha antiga não foi trocada para preservar o rollback; não usar esse usuário em novos deploys. Previews antigos removidos e novos escopos não o recebem. Avaliar revogação após encerrar a janela de rollback.
 
-NEXTAUTH_SECRET novo e credencial MongoDB nova são exclusivos dos novos deployments de produção. As variáveis do projeto antigo serão limitadas a Production antes de construir a candidata, sem valores publicados neste documento. A homologação mantém projeto, banco e segredos próprios.
+NEXTAUTH_SECRET novo e credencial MongoDB nova são exclusivos dos novos deployments de produção. As 28 variáveis do projeto oficial foram conferidas como exclusivamente Production, sem valores publicados neste documento. Novo segredo NextAuth, conexão MongoDB e segredo cron são distintos dos ambientes de teste. A homologação mantém projeto, banco e segredos próprios.
 
 Rollback: deployment anterior `dpl_79kS5op2dxw4hqeknq3v5iEthgAj`, com seus valores históricos e usuário agora restrito, permanece preservado. Não reconstruir cegamente esse deployment: seu inventário de fontes contém arquivo antigo `.vercel.production.env` e cache. Novos uploads excluem também `*.env`. Voltar ao deployment não restaura dados nem comentários intencionalmente excluídos. A rotina cron precisa ser desativada em rollback porque a plataforma pode manter o agendamento.
 
@@ -42,4 +42,35 @@ Rollback: deployment anterior `dpl_79kS5op2dxw4hqeknq3v5iEthgAj`, com seus valor
 
 ## Estado da publicação
 
-A candidata será publicada com --target production --skip-domain no projeto oficial. Conferir proteção, configuração, endpoints e integridade antes da promoção; manter domínio na versão anterior se houver falha. O registro final desta seção será atualizado após essa validação.
+**Publicado com sucesso:** https://panteralab.com.br . Código implantado: `8db6bcb`, deployment `dpl_2i63NjkNdT9ZrdbbCpSHyX9funUX`, projeto oficial existente `clone-tabnews`. Branch de desenvolvimento; nenhum push, merge ou alteração da main. Nenhuma alteração de DNS ou nova associação conflitante.
+
+Construído em target Production com --skip-domain. API confirmou autoAssignCustomDomains=false e domínio ainda na versão anterior durante toda a validação. Sete grupos no deployment protegido passaram, incluindo 82 etapas do Rosário, páginas 390/1440px, APIs, registro/recuperação/reenvio desligados antes de alterações, contas fictícias recusadas, administração negada ao visitante, privacidade e igualdade byte a byte dos registros protegidos. O administrador existente foi confirmado como a conta verificada do contato fornecido pelo responsável; não foi pedido nem utilizado seu password.
+
+Depois dos resultados aprovados, o deployment foi promovido. A API do alias confirmou panteralab.com.br apontando exatamente para esse ID. Outros sete grupos passaram no domínio oficial, sem bypass, com zero erros JavaScript e registros protegidos novamente idênticos. Não foram criadas contas fictícias nem publicações/velas de teste em produção. Login/cadastro/reset positivos e permissões de três perfis foram exercitados na etapa local segura; não simular autenticação de usuário real em produção nem alegar que sua senha foi testada.
+
+A chave temporária de QA foi revogada; o domínio oficial é público e a URL imutável da Vercel continua exigindo autenticação, inclusive quando enviada a chave revogada. A configuração de cron foi confirmada ativa no deployment correto, schedule 0 6 \* \* \* (diariamente, por volta de 03h de Brasília). Uma invocação autorizada no estágio protegido encontrou zero elegíveis e removeu zero velas. A primeira execução agendada ainda deve ser acompanhada. Sem upgrade ou contratação.
+
+### Recursos e limitações ao entrar no ar
+
+Disponíveis: Rosário visitante/cadastrado, retomada local/na conta, contas antigas e login, Capelinha, privacidade pública/anônima/privada, 168 horas, histórico, intercessões, comunidade vazia para novos conteúdos, comentários, moderação, administração e solicitações de dados.
+
+Desligados: cadastro de novas contas, recuperação e reenvio de email, novos uploads Cloudinary, avisos Pusher e assistente IA. Credenciais existentes não são ativação. Para habilitar, validar cada serviço e somente então alterar a flag correspondente. Dados de perfil e imagens já existentes permanecem. A troca do segredo NextAuth exige entrar novamente; não há alteração de senha das contas.
+
+Rollback disponível para o deployment anterior preservado, com usuário antigo agora readWrite restrito e conexão verificada. Segredos do deployment anterior não são substituídos automaticamente quando variáveis do projeto mudam. Não restaurar variáveis antigas em Preview/Development nem reconstruir fonte antiga com .env. A configuração atual mantém os novos deploys isolados.
+
+```powershell
+.qa/runtime/node.exe .qa/vercel-cli/node_modules/vercel/dist/index.js rollback dpl_79kS5op2dxw4hqeknq3v5iEthgAj --scope ricardo-alves-dos-santos-projects --global-config .qa/vercel-auth --non-interactive --no-color --yes
+```
+
+Em rollback, desabilitar a rotina em Vercel > clone-tabnews > Settings > Cron Jobs; conferir o alias e as páginas. Não apagar nem importar o banco; as exclusões autorizadas não devem ser revertidas como parte de rollback de código. O código legado tem limitações de segurança/integracões já diagnosticadas, portanto o retorno deve ser temporário e acompanhado. O rollback não foi executado, para não desfazer uma publicação saudável.
+
+### Operação e próximos passos
+
+- Acompanhar erros/login e o primeiro cron agendado; verificar remaining=0 e falhas da rotina. Lote atual de 100: revisar capacidade/monitoramento antes de volume superior a 100 intenções vencidas por dia. Nenhuma intenção anterior à versão 2026-2 é alvo dessa rotina.
+- Pedidos de exclusão/exportação/correção continuam com atendimento humano pelo responsável. Retirar exposição pública imediatamente quando cabível, conferir identidade e escopo, planejar a operação, registrar o atendimento sem reproduzir intenção sensível nos logs. Marcar um pedido como atendido não apaga os dados sozinho.
+- A regra de 90 dias aprovada aplica-se às novas intenções; contas/comunidade/progresso/logs/backups não recebem descarte automático nesta mudança. O backup prévio foi preservado por decisão expressa. Definir retenção dessas outras categorias e revisão jurídica operacional, inclusive menores/transferências, sem alegar certificação geral LGPD. Nova necessidade de descarte deve ter escopo próprio aprovado.
+- Manter os PRs #15/#16 e commits posteriores coordenados antes de qualquer futuro push/merge. main ainda contém a versão antiga; um deploy Git dessa branch poderá reverter a nova plataforma. Não fazer push incidentalmente. Não mudar produção para o projeto de homologação.
+- Reavaliar a janela de rollback e então revogar a credencial legada; ela não é usada pelo código novo, mas é necessária ao deployment antigo preservado. Não devolver permissão atlasAdmin.
+- Brevo, Cloudinary, Pusher e IA precisam de validação própria antes da habilitação. Revisões editoriais católicas e acessibilidade em dispositivos físicos continuam indicadas; recursos de oração não foram apresentados como aprovação eclesiástica.
+
+Evidências privadas: `.qa/production-env-after-change-metadata.json`, `.qa/production-admin-and-rollback-verification.json`, `.qa/production-stage-qa-report.json`, `.qa/production-public-qa-report.json`, `.qa/production-final-project-status.json`, `.qa/production-official-alias-verification.json`. Não imprimir os arquivos de segredos ou credenciais.
