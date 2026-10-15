@@ -266,6 +266,11 @@ export default function Profile() {
           aria-label="Seu espaço de oração"
           className="mb-6 flex flex-wrap gap-3"
         >
+          {session?.user?.role === "superadmin" ? (
+            <Link href="/administracao" className="secondary-button px-4 py-3">
+              Administrar comunidade
+            </Link>
+          ) : null}
           <Link href="/rosario" className="secondary-button px-4 py-3">
             Meu Rosário
           </Link>

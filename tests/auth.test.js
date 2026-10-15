@@ -110,3 +110,22 @@ test("homologation identity cannot login on production", async () => {
     else process.env.VERCEL_ENV = old;
   }
 });
+
+test("verified superadmin role is propagated from MongoDB through JWT into session", async () => {
+  User.findById.mockReturnValue({
+    select: jest.fn().mockResolvedValue({
+      isVerified: true,
+      role: "superadmin",
+      sessionVersion: 0,
+    }),
+  });
+  const token = await authOptions.callbacks.jwt({
+    token: { id: "admin-id", role: "user", sessionVersion: 0 },
+  });
+  const session = await authOptions.callbacks.session({
+    session: { user: { email: "owner@example.test" } },
+    token,
+  });
+  expect(session.user.id).toBe("admin-id");
+  expect(session.user.role).toBe("superadmin");
+});

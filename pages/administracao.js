@@ -108,6 +108,39 @@ export default function Administracao() {
       if (gen === generation.current) setBusy(false);
     }
   }
+  async function removeContent(item) {
+    if (!needsReason() || !["message", "comment"].includes(item.type)) return;
+    if (
+      !window.confirm(
+        item.type === "message"
+          ? "Excluir definitivamente esta publicação e todos os seus comentários? Esta ação não pode ser desfeita."
+          : "Excluir definitivamente este comentário? Esta ação não pode ser desfeita.",
+      )
+    )
+      return;
+    const gen = generation.current;
+    setBusy(true);
+    setError("");
+    try {
+      const result = await requestJson(
+        "/api/admin/excluir",
+        jsonRequest("DELETE", {
+          type: item.type,
+          id: item._id,
+          reason,
+          accountId: session.user.id,
+        }),
+      );
+      if (gen !== generation.current) return;
+      setSelected(null);
+      setNotice(result.message);
+      await load();
+    } catch (err) {
+      if (gen === generation.current) setError(err.message);
+    } finally {
+      if (gen === generation.current) setBusy(false);
+    }
+  }
   return (
     <PrayerLayout title="Administração">
       <div className="p-container p-admin">
@@ -219,6 +252,13 @@ export default function Administracao() {
                   </>
                 ) : (
                   <>
+                    {["message", "comment"].includes(tab) ? (
+                      <p className="p-notice">
+                        Informe o motivo e escolha “Revisar conteúdo” para
+                        ocultar, restaurar ou excluir definitivamente uma
+                        publicação ou comentário.
+                      </p>
+                    ) : null}
                     <label className="p-field p-admin-reason">
                       Motivo da revisão ou da ação
                       <textarea
@@ -270,6 +310,15 @@ export default function Administracao() {
                           >
                             Restaurar visibilidade
                           </button>
+                          {["message", "comment"].includes(selected.type) ? (
+                            <button
+                              className="p-button p-button-outline"
+                              disabled={busy}
+                              onClick={() => removeContent(selected)}
+                            >
+                              Excluir definitivamente
+                            </button>
+                          ) : null}
                           <button
                             className="p-inline-button"
                             onClick={() => setSelected(null)}

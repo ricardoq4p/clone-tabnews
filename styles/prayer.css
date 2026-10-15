@@ -2962,3 +2962,25 @@
   font-size: 10px;
   line-height: 1.5;
 }
+
+@media (max-width: 720px) {
+  .p-admin-shortcut span {
+    display: none;
+  }
+  .p-admin-shortcut {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .p-header {
+    gap: 10px;
+  }
+  .p-admin-shortcut + .p-account {
+    padding: 10px;
+    flex-shrink: 0;
+  }
+  .p-admin-shortcut + .p-account span {
+    display: none;
+  }
+}

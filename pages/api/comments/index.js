@@ -1,3 +1,5 @@
+import { deleteCommunityContent } from "@/lib/community-deletion";
+import { ApiError } from "@/lib/api";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import Comment from "@/lib/models/Comment";
@@ -93,7 +95,7 @@ export default async function handler(req, res) {
     if (!canDeleteContent(comment, session))
       return res.status(403).json({ error: "Sem permissao" });
     const parent = await readableMessage(comment.messageId, session);
-    await Comment.findByIdAndDelete(id);
+    await deleteCommunityContent("comment", id, session);
     // An inaccessible/orphaned thread never generates a public event.
     if (parent)
       await notifyChange(
@@ -102,7 +104,9 @@ export default async function handler(req, res) {
         parent.message.communityId?.toString(),
       );
     return res.status(200).json({ success: true });
-  } catch {
+  } catch (error) {
+    if (error instanceof ApiError)
+      return res.status(error.status).json({ error: error.message });
     return res
       .status(500)
       .json({ error: "Nao foi possivel concluir a operacao" });

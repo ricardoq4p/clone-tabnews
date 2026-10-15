@@ -68,7 +68,21 @@ export default function PrayerLayout({
             </Link>
           ))}
         </nav>
-        <Link href={session ? "/profile" : "/login"} className="p-account">
+        {session?.user?.role === "superadmin" ? (
+          <Link
+            href="/administracao"
+            className="p-account p-admin-shortcut"
+            aria-label="Abrir administração"
+          >
+            <Icon name="shield" size={17} />
+            <span>Administração</span>
+          </Link>
+        ) : null}
+        <Link
+          href={session ? "/profile" : "/login"}
+          className="p-account"
+          aria-label={session ? "Minha conta" : "Entrar"}
+        >
           <Icon name="user" size={17} />
           <span>
             {session

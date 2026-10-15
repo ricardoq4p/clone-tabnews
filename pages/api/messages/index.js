@@ -1,8 +1,9 @@
+import { deleteCommunityContent } from "@/lib/community-deletion";
+import { ApiError } from "@/lib/api";
 import { supportSummary } from "@/lib/prayer-support";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import Message from "@/lib/models/Message";
-import Comment from "@/lib/models/Comment";
 import Community from "@/lib/models/Community";
 import { getServerSession } from "next-auth";
 import { authOptions } from "../auth/[...nextauth]";
@@ -157,15 +158,16 @@ export default async function handler(req, res) {
       return res.status(404).json({ error: "Mensagem nao encontrada" });
     if (!canDeleteContent(message, session))
       return res.status(403).json({ error: "Sem permissao" });
-    await Message.findByIdAndDelete(id);
-    await Comment.deleteMany({ messageId: id });
+    await deleteCommunityContent("message", id, session);
     await notifyChange(
       "feed",
       "delete-message",
       message.communityId?.toString(),
     );
     return res.status(200).json({ success: true });
-  } catch {
+  } catch (error) {
+    if (error instanceof ApiError)
+      return res.status(error.status).json({ error: error.message });
     return res
       .status(500)
       .json({ error: "Nao foi possivel concluir a operacao" });

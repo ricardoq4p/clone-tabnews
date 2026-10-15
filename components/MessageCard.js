@@ -1,3 +1,4 @@
+import { canDeleteContent } from "@/lib/permissions";
 import { realtimeEnabled } from "@/lib/integration-policy";
 import Image from "next/image";
 import Link from "next/link";
@@ -20,13 +21,7 @@ export default function MessageCard({ msg, onDeleted }) {
   const [deletingCommentId, setDeletingCommentId] = useState("");
   const messageId = msg?._id || null;
 
-  const messageUserId =
-    typeof msg.userId === "string" ? msg.userId : msg.userId?._id;
-  const isAuthor = Boolean(
-    messageUserId && session?.user?.id === messageUserId,
-  );
-  const isSuperadmin = session?.user?.role === "superadmin";
-  const canDeleteMessage = isAuthor || isSuperadmin;
+  const canDeleteMessage = canDeleteContent(msg, session);
   const authorName = msg.userId?.name || msg.author || "Usuario";
   const authorAvatar =
     msg.userId?.avatar || msg.avatar || "/sacred/favicon.svg";
@@ -236,6 +231,7 @@ export default function MessageCard({ msg, onDeleted }) {
           {canDeleteMessage ? (
             <button
               onClick={handleDelete}
+              aria-label="Excluir publicação"
               disabled={deleting}
               className="secondary-button rounded-full px-4 py-2 text-sm"
             >
@@ -327,14 +323,10 @@ export default function MessageCard({ msg, onDeleted }) {
                   currentComment.avatar ||
                   currentComment.userId?.avatar ||
                   "/sacred/favicon.svg";
-                const currentCommentUserId =
-                  typeof currentComment.userId === "string"
-                    ? currentComment.userId
-                    : currentComment.userId?._id;
-                const canDeleteComment =
-                  isSuperadmin ||
-                  (currentCommentUserId &&
-                    currentCommentUserId === session?.user?.id);
+                const canDeleteComment = canDeleteContent(
+                  currentComment,
+                  session,
+                );
 
                 return (
                   <div
@@ -365,6 +357,7 @@ export default function MessageCard({ msg, onDeleted }) {
                           onClick={() =>
                             handleDeleteComment(currentComment._id)
                           }
+                          aria-label="Excluir comentário"
                           disabled={deletingCommentId === currentComment._id}
                           className="secondary-button rounded-full px-3 py-1.5 text-xs"
                         >
