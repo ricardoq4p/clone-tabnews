@@ -12,7 +12,12 @@
     "lint": "eslint .",
     "build": "next build",
     "start": "next start",
-    "test:browser": "node scripts/browser-qa.cjs"
+    "test:browser": "node scripts/browser-qa.cjs",
+    "homologacao:build": "node scripts/local-homologation.cjs build",
+    "homologacao:start": "node scripts/local-homologation.cjs start",
+    "homologacao:stop": "node scripts/local-homologation.cjs stop",
+    "homologacao:status": "node scripts/local-homologation.cjs status",
+    "test:local": "node scripts/local-integration-qa.cjs"
   },
   "author": "",
   "license": "MIT",

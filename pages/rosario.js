@@ -121,6 +121,12 @@ export default function Rosario() {
             ) : null}
             {!praying || !progress ? (
               <>
+                {progress && completed ? (
+                  <p className="p-notice" role="status">
+                    Seu último roteiro foi concluído. Que a oração continue no
+                    seu dia.
+                  </p>
+                ) : null}
                 {progress && !completed ? (
                   <section className="p-resume">
                     <Icon name="rosary" size={30} />

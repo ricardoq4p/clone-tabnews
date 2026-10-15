@@ -54,4 +54,4 @@ Não configurar descarte automático sem política aprovada. Planejar backup/ret
 
 ## Limites da validação automatizada
 
-Os testes unitários e de API usam substitutos dos serviços; o navegador usa fixtures nos fluxos autenticados. Não houve conexão a MongoDB, SMTP, Pusher ou Cloudinary reais. O backend foi compilado e o frontend exercitado localmente; a homologação acima continua necessária.
+A suíte unitária/API usa substitutos dos serviços, e o script browser-qa usa fixtures nos fluxos autenticados. A etapa posterior acrescentou local-integration-qa com MongoDB e SMTP locais reais, sem substituir respostas da aplicação. Essa rodada foi aprovada; veja RELATORIO_HOMOLOGACAO.md e HOMOLOGACAO_LOCAL.md. Brevo, Cloudinary e Pusher externos de teste permanecem pendentes, assim como as revisões operacionais acima.

@@ -29,7 +29,7 @@ export default async function handler(req, res) {
     const updatedUser = await User.findOneAndUpdate(
       { email: session.user.email },
       { calorieGoal: Math.round(parsedGoal) },
-      { new: true },
+      { returnDocument: "after" },
     ).select("calorieGoal");
 
     if (!updatedUser) {

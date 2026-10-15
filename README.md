@@ -11,6 +11,10 @@ Comunidade católica em Next.js, com Santo Rosário Guiado, Capelinha Virtual e 
 - `/administracao`: filas paginadas, revisão auditada, edição versionada do Rosário, suspensão de acesso e estatísticas agregadas.
 - `/privacidade`, `/fontes` e `/sobre`: cuidados com dados, referências religiosas e créditos.
 
+## Homologação local
+
+Veja [como experimentar a plataforma](docs/HOMOLOGACAO_LOCAL.md). A stack local usa MongoDB autenticado e Mailpit, com credenciais próprias, sem depender de serviços externos. Após a preparação: `npm run homologacao:start`; abrir http://localhost:3107 e http://localhost:8025. Contas de teste ficam no arquivo local ignorado `.qa/ACESSOS_LOCAIS.md`.
+
 ## Desenvolvimento seguro
 
 Use **Node 22** e `npm ci`. Configure `.env.local` a partir de `.env.example`, usando exclusivamente recursos de desenvolvimento/homologação. Execute `npm run dev`.

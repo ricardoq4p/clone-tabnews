@@ -94,7 +94,9 @@ export const authOptions = {
     },
 
     async session({ session, token }) {
-      if (!token.valid) return null;
+      // NextAuth 4 serializes null as an empty HTTP body. Its client and
+      // getServerSession both map an empty JSON object to an absent session.
+      if (!token.valid) return {};
       if (session?.user) {
         session.user.id = token.id;
         session.user.role = token.role;

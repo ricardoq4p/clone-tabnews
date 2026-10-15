@@ -2924,3 +2924,13 @@
 .prayer-legacy main .text-cyan-100 {
   color: #526f64;
 }
+
+.prayer-app .p-homologation-banner {
+  padding: 0.65rem 1rem;
+  background: #e8dfc8;
+  color: #473b22;
+  text-align: center;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  border-bottom: 1px solid #d7c9a8;
+}

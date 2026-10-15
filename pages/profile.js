@@ -12,6 +12,7 @@ export default function Profile() {
   const [avatar, setAvatar] = useState("");
   const [profileData, setProfileData] = useState(null);
   const [uploading, setUploading] = useState(false);
+  const [avatarError, setAvatarError] = useState("");
   const [secretOpen, setSecretOpen] = useState(false);
   const [calorieDescription, setCalorieDescription] = useState("");
   const [calorieGoal, setCalorieGoal] = useState(1200);
@@ -78,9 +79,15 @@ export default function Profile() {
 
   const handleImage = async (file) => {
     if (!file) return;
+    if (
+      !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+      !process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+    )
+      return;
 
     try {
       setUploading(true);
+      setAvatarError("");
 
       const compressed = await imageCompression(file, {
         maxSizeMB: 0.05,
@@ -105,8 +112,10 @@ export default function Profile() {
 
       const data = await res.json();
       const imageUrl = data.secure_url;
+      if (!res.ok || !imageUrl)
+        throw new Error("Não foi possível enviar sua imagem.");
 
-      await fetch("/api/users/avatar", {
+      const savedAvatar = await fetch("/api/users/avatar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -114,9 +123,10 @@ export default function Profile() {
         body: JSON.stringify({ avatar: imageUrl }),
       });
 
+      if (!savedAvatar.ok) throw new Error("Não foi possível salvar sua foto.");
       setAvatar(imageUrl);
     } catch (err) {
-      console.error("Erro no upload:", err);
+      setAvatarError(err.message || "Não foi possível atualizar sua foto.");
     } finally {
       setUploading(false);
     }
@@ -286,6 +296,11 @@ export default function Profile() {
               <label className="mt-6 w-full text-left text-sm text-slate-300">
                 <span className="mb-2 block">Trocar foto de perfil</span>
                 <input
+                  disabled={
+                    uploading ||
+                    !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+                    !process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
+                  }
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleImage(e.target.files?.[0])}
@@ -293,6 +308,18 @@ export default function Profile() {
                 />
               </label>
 
+              {!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+              !process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ? (
+                <p className="mt-3 text-sm text-slate-500">
+                  Envio de fotos indisponível neste ambiente. O armazenamento de
+                  imagens ainda precisa ser configurado.
+                </p>
+              ) : null}
+              {avatarError ? (
+                <p role="alert" className="p-error">
+                  {avatarError}
+                </p>
+              ) : null}
               {uploading ? (
                 <p className="mt-3 text-sm text-cyan-200">
                   Enviando nova imagem...

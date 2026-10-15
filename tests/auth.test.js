@@ -76,5 +76,19 @@ test("password reset version invalidates an existing JWT", async () => {
   });
   expect(
     await authOptions.callbacks.session({ session: { user: {} }, token }),
-  ).toBeNull();
+  ).toEqual({});
+});
+
+test("revoked session has a JSON-safe payload without personal data", async () => {
+  const result = await authOptions.callbacks.session({
+    session: {
+      user: {
+        email: "private@example.test",
+        name: "Private",
+        role: "superadmin",
+      },
+    },
+    token: { valid: false },
+  });
+  expect(JSON.stringify(result)).toBe("{}");
 });

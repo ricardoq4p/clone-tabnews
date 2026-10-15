@@ -72,7 +72,7 @@ export default withApi(
       saved = await RosaryProgress.findOneAndUpdate(
         { userId: session.user.id, revision: expectedRevision },
         { $set: data, $inc: { revision: 1 } },
-        { new: true },
+        { returnDocument: "after" },
       );
     if (!saved) {
       const item = await RosaryProgress.findOne({

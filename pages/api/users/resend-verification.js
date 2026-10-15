@@ -36,7 +36,7 @@ export default async function handler(req, res) {
     const user = await User.findOneAndUpdate(
       { email, isVerified: false },
       { $set: verification.fields },
-      { new: true },
+      { returnDocument: "after" },
     );
     if (user) {
       try {

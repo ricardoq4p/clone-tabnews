@@ -1,12 +1,12 @@
 # PanteraLab — plano e registro de desenvolvimento
 
-Atualizado em 15/10/2026. Primeira versão integrada implementada e verificada localmente. **Ainda não homologada para produção.**
+Atualizado em 15/10/2026. Primeira versão integrada e homologação local com MongoDB/SMTP reais concluídas. **Homologação externa e liberação para produção ainda pendentes.**
 
 ## Autorização e situação do repositório
 
 O usuário autorizou o desenvolvimento autônomo após a solicitação inicial de análise. Permanecem obrigatórios: preservar contas e recursos existentes, não operar banco de produção, não alterar credenciais, não contratar serviços e não publicar sem autorização expressa.
 
-Branch: `feat/catholic-prayer-platform`, baseada em `feat/prayer-community-security` no commit `312bb08` (PR #15). Entrega registrada no commit `6773239` e no [PR de rascunho #16](https://github.com/ricardoq4p/clone-tabnews/pull/16), sobre essa branch de segurança, mantendo a revisão das duas etapas separada. Não houve merge na main nem deploy. Nenhum banco ou serviço externo real foi usado para gravações ou testes.
+Branch: `feat/catholic-prayer-platform`, baseada em `feat/prayer-community-security` no commit `312bb08` (PR #15). Entrega registrada no commit `6773239` e no [PR de rascunho #16](https://github.com/ricardoq4p/clone-tabnews/pull/16), sobre essa branch de segurança, mantendo a revisão das duas etapas separada. Não houve merge na main nem deploy manual. A integração Vercel existente criou previews automáticos dos pushes anteriores; seu isolamento não foi comprovado. Nesta etapa não fazer novos pushes: publicação externa exige autorização. A homologação atual usa somente MongoDB e SMTP locais com credenciais próprias.
 
 ## Arquitetura escolhida
 
@@ -64,14 +64,14 @@ Implementadas página inicial, shell, login e telas informativas, CSS de oraçã
 
 Concluída a verificação local; publicação permanece pendente. Detalhes operacionais em `docs/HOMOLOGACAO.md`; dependências em `docs/SEGURANCA_DEPENDENCIAS.md`.
 
-## Verificações executadas
+## Verificações da primeira entrega (antes da homologação integrada)
 
 - Node **22.23.3** oficial, checksum SHA-256 verificado. Runtime portátil ignorado em `.qa/runtime/`; Node global 20.12.1 não serve para esta entrega. Em outra sessão, usar instalação Node 22 e `npm ci`.
 - **95 testes em 19 suítes aprovados**: segurança anterior, APIs, schemas/índices, Rosário, privacidade, expiração, concorrência simulada, conflitos, exclusão com dependências, email renderizado sem envio e imagem processada com Sharp real.
 - ESLint com `--max-warnings 0`, Prettier e build Next.js **16.4.1** verificados. React 18 preservado; Next avisa sobre futura migração para React 19 antes do Next 17.
 - Playwright/Edge isolado: início, oração/retomada, troca de conta na mesma página, teclado, matriz responsiva, Capelinha, comunidade e moderação/editor. Nenhum erro JavaScript nesses fluxos. Autenticação e dados dos fluxos autenticados são fixtures HTTP explícitas; não comprovam integração real.
 - Auditoria das dependências **de produção: zero alertas**. Ferramentas de desenvolvimento/build/testes ainda têm **40 alertas (33 altos, 7 moderados)**, registrados com plano de migração separado. Não usar `npm audit fix --force` indiscriminadamente.
-- Nenhum envio SMTP, acesso MongoDB real ou publicação. Screenshots e relatórios locais em `.qa/`, não versionados. Servidores de preview locais encerrados ao concluir a sessão.
+- Nenhum envio SMTP, acesso MongoDB real ou publicação. Screenshots e relatórios locais em `.qa/`, não versionados. Esses previews iniciais foram encerrados. A stack de homologação descrita abaixo permanece ligada a pedido do usuário.
 
 ## Problemas encontrados e soluções
 
@@ -85,8 +85,8 @@ Concluída a verificação local; publicação permanece pendente. Detalhes oper
 ## Pendências e próximos passos
 
 1. Revisar o PR de segurança #15 e depois o PR desta branch; não fazer merge/deploy automaticamente.
-2. Provisionar ambiente de homologação separado com Node 22 e serviços de teste; seguir integralmente `docs/HOMOLOGACAO.md`.
-3. Validar cadastro/email/reset, uploads, Pusher, índices, concorrência e sincronização com duas contas/dispositivos reais de teste.
+2. Manter o ambiente local preparado; provisionar serviços externos de teste somente com credenciais próprias e, para preview externo, autorização expressa. Seguir `docs/HOMOLOGACAO.md`.
+3. Cadastro, confirmação, SMTP local, reset, índices, concorrência, sessões e duas contas foram validados localmente. Homologar ainda Brevo, uploads Cloudinary e transporte Pusher reais, além de dispositivos físicos.
 4. Revisão editorial católica, acessibilidade assistiva e política operacional de dados: controlador/contato, retenção, solicitações, menores e consentimento. Não declarar conformidade LGPD completa antes disso.
 5. Migrar a cadeia de ferramentas vulneráveis em mudança isolada; considerar React 19 antes de futuras atualizações principais.
 6. Somente após homologação e autorização expressa do usuário, preparar publicação. Não há deploy autorizado nesta entrega.
@@ -94,3 +94,21 @@ Concluída a verificação local; publicação permanece pendente. Detalhes oper
 ## Como retomar em outra sessão
 
 Ler este arquivo e os documentos citados, conferir branch/status e PRs, usar Node 22, instalar com `npm ci`. Não usar credenciais de produção. Executar `npm test`, `npm run lint`, `npm run lint:check`, `npm run build`. Browser QA opcional: `npm run test:browser`, com PLAYWRIGHT_MODULE e QA_BROWSER_EXECUTABLE se necessário, QA_BASE_URL local. As fixtures estão explicitamente no script, nunca no produto. Novas edições do conteúdo embutido exigem novo arquivo/versão e preservação das anteriores.
+
+## Homologação local — etapa concluída em 15/10/2026
+
+O usuário informou que ainda não possui serviços exclusivos de teste e escolheu homologação local. Stack preparada em loopback: aplicação http://localhost:3107, Mailpit http://localhost:8025, SMTP 127.0.0.1:1025 e MongoDB autenticado 127.0.0.1:27027/panteralab_homologacao. Segredos próprios, contas e dados fictícios em `.qa/`, ignorado pelo Git. Não copiar para produção.
+
+**104 testes unitários/API em 20 suítes aprovados**, ESLint sem avisos, Prettier e build Next 16.4.1 aprovados. Integração Playwright/Edge + MongoDB/SMTP reais passou em **14 grupos de verificações**, sem erros JavaScript. Relatório local final em `.qa/local-integration-report.json`, de 15/10/2026 às 14:10:50 de Brasília. As primeiras tentativas encontraram problemas corrigidos; o relatório final registra a execução concluída.
+
+Validados: cadastro sem privilégio, confirmação/reenvio por SMTP local, cookies reais, reset de uso único e revogação, suspensão/reativação, Rosário completo de 82 e 292 etapas, progresso e conflito real, velas 168h e privacidade, doze intercessões concorrentes e duas pessoas distintas, expiração sem navegador, histórico e ausência de TTL em velas, moderação auditada, grupos privados e solicitações de dados. Visual com visitante, participante e administrador em 390/1440 px e login pelo formulário real. Matriz adicional da primeira entrega cobriu 320/768/1024 px.
+
+Correções adicionais: resposta JSON segura para sessão revogada (null produzia corpo vazio no NextAuth 4), opções Mongoose atuais, índice `_id` redundante removido apenas do schema, upload sem falso sucesso/configuração ausente, rotas antigas de edição direcionadas ao perfil, respostas antigas do painel descartadas e aviso da última oração concluída. SMTP local exige configuração local exata e não altera autenticação.
+
+Arquivos operacionais: `scripts/install-local-services.ps1`, `scripts/local-homologation.cjs`, `scripts/local-integration-qa.cjs`. Scripts npm homologacao:build/start/stop/status e test:local. Guia de uso em `docs/HOMOLOGACAO_LOCAL.md`; relatório completo e revisão dos PRs em `docs/RELATORIO_HOMOLOGACAO.md`. As contas e senhas estão em `.qa/ACESSOS_LOCAIS.md`; não imprimir ou versionar segredos.
+
+O ambiente permanece ligado para o usuário experimentar. Parar somente se solicitado ou para uma atualização necessária, preservando banco e emails. Após reinício do computador, usar homologacao:start. O launcher recusa portas ocupadas e valida os processos que encerra. Usa limite local de login 50/min e janelas de cadastro/reset/recuperação de um minuto para repetição; produção não foi alterada.
+
+PRs #15 e #16 revisados: ambos rascunhos e sem conflitos informados; #16 depende de #15, confirmado por ancestralidade. Correções desta etapa ficam em commits **locais** da branch de desenvolvimento; nenhum push para evitar disparar Vercel sem autorização. Antes de sincronizar, revisar gatilhos de preview e isolamento das variáveis.
+
+Pendentes: entrega real Brevo, upload Cloudinary, transporte Pusher, acessibilidade assistiva/aparelhos físicos, carga/backup, revisão editorial católica e política operacional/jurídica. Os serviços externos estão desligados aqui. Não declarar homologação completa para lançamento nem conformidade LGPD concluída. Ver lista detalhada no relatório; ainda não publicar.

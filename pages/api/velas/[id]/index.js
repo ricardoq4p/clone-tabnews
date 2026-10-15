@@ -30,7 +30,7 @@ export default withApi(
       candle = await Candle.findOneAndUpdate(
         { _id: candle._id, ownerId: session.user.id },
         { $set: update },
-        { new: true },
+        { returnDocument: "after" },
       ).lean();
     }
     const summary = await supportSummary(

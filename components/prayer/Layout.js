@@ -34,6 +34,11 @@ export default function PrayerLayout({
       <a className="p-skip" href="#conteudo">
         Ir para o conteúdo
       </a>
+      {process.env.NEXT_PUBLIC_APP_ENV === "homologacao-local" ? (
+        <div className="p-homologation-banner" role="note">
+          Homologação local · dados de teste · emails disponíveis na caixa local
+        </div>
+      ) : null}
       <header className="p-header">
         <Link href="/" className="p-brand" aria-label="PanteraLab, início">
           <span className="p-brand-mark">

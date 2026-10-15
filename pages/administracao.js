@@ -73,21 +73,24 @@ export default function Administracao() {
   }
   async function review(type, id) {
     if (!needsReason()) return;
+    const gen = generation.current;
     setBusy(true);
     setError("");
     try {
       const result = await requestJson(
         `/api/admin/revisao?${new URLSearchParams({ type, id, reason })}`,
       );
+      if (gen !== generation.current) return;
       setSelected({ ...result.item, type });
     } catch (err) {
-      setError(err.message);
+      if (gen === generation.current) setError(err.message);
     } finally {
-      setBusy(false);
+      if (gen === generation.current) setBusy(false);
     }
   }
   async function action(url, payload) {
     if (!needsReason()) return;
+    const gen = generation.current;
     setBusy(true);
     setError("");
     try {
@@ -95,13 +98,14 @@ export default function Administracao() {
         url,
         jsonRequest("PATCH", { ...payload, reason }),
       );
+      if (gen !== generation.current) return;
       setNotice(result.message);
       setSelected(null);
       await load();
     } catch (err) {
-      setError(err.message);
+      if (gen === generation.current) setError(err.message);
     } finally {
-      setBusy(false);
+      if (gen === generation.current) setBusy(false);
     }
   }
   return (
