@@ -1,6 +1,9 @@
+import { useRouter } from "next/router";
+import PrayerLayout from "../components/prayer/Layout";
 import { useEffect } from "react";
 import { SessionProvider, useSession } from "next-auth/react";
 import "../styles/globals.css";
+import "../styles/prayer.css";
 
 function PresenceHeartbeat() {
   const { data: session, status } = useSession();
@@ -46,11 +49,39 @@ function PresenceHeartbeat() {
   return null;
 }
 
+function RoutedPage({ Component, pageProps, legacy }) {
+  const route = useRouter();
+  const { data: session } = useSession();
+  return legacy ? (
+    <PrayerLayout legacy title="Sua comunidade de oração">
+      <Component
+        key={`${session?.user?.id || "visitor"}:${session?.user?.role || "guest"}:${route.asPath.split("#")[0]}`}
+        {...pageProps}
+      />
+    </PrayerLayout>
+  ) : (
+    <Component
+      key={`${session?.user?.id || "visitor"}:${session?.user?.role || "guest"}`}
+      {...pageProps}
+    />
+  );
+}
+
 export default function App({ Component, pageProps }) {
+  const router = useRouter();
+  const legacy = [
+    "/feed",
+    "/profile",
+    "/admin",
+    "/comunidades/[id]",
+    "/user/[username]",
+    "/user/edit",
+    "/upload",
+  ].includes(router.pathname);
   return (
     <SessionProvider session={pageProps.session}>
       <PresenceHeartbeat />
-      <Component {...pageProps} />
+      <RoutedPage Component={Component} pageProps={pageProps} legacy={legacy} />
     </SessionProvider>
   );
 }

@@ -12,10 +12,12 @@ export default async function handler(req, res) {
   await connectToDatabase();
 
   const { username } = req.query;
+  if (typeof username !== "string" || !username || username.length > 254)
+    return res.status(400).json({ error: "Identificador inválido" });
 
   try {
     const user = await User.findOne({ username }).select(
-      "username name avatar",
+      "username name avatar createdAt",
     );
 
     if (!user) {

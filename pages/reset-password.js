@@ -5,7 +5,10 @@ import AuthLayout from "../components/AuthLayout";
 
 export default function ResetPassword() {
   const router = useRouter();
-  const token = useMemo(() => String(router.query.token || ""), [router.query.token]);
+  const token = useMemo(
+    () => String(router.query.token || ""),
+    [router.query.token],
+  );
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
@@ -75,8 +78,12 @@ export default function ResetPassword() {
       }
     >
       <div className="mb-6">
-        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">Nova senha</p>
-        <h2 className="mt-2 text-2xl font-semibold text-white">Redefina seu acesso</h2>
+        <p className="text-sm uppercase tracking-[0.24em] text-slate-500">
+          Nova senha
+        </p>
+        <h2 className="mt-2 text-2xl font-semibold text-white">
+          Redefina seu acesso
+        </h2>
       </div>
 
       {error ? (
@@ -116,7 +123,11 @@ export default function ResetPassword() {
           />
         </label>
 
-        <button type="submit" disabled={loading} className="primary-button w-full">
+        <button
+          type="submit"
+          disabled={loading}
+          className="primary-button w-full"
+        >
           {loading ? "Salvando..." : "Salvar nova senha"}
         </button>
       </form>
