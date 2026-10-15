@@ -4,10 +4,12 @@ Atualizado em 15/10/2026. O usuário autorizou um preview externo isolado, sem c
 
 ## Situação verificada
 
-- Branch local: feat/catholic-prayer-platform. A homologação local funciona com MongoDB autenticado e SMTP próprios; não transportar suas credenciais para a nuvem.
-- O projeto Vercel antigo tem automação de previews nos PRs. Suas variáveis e a proteção de acesso ainda não foram inspecionadas, portanto seu isolamento não está comprovado.
-- Não há CLI autenticada nem token Vercel disponível no processo ou nos locais padrão de sessão consultados. Não há chave Atlas no processo.
-- Vercel e MongoDB Atlas foram encontrados como integrações disponíveis, mas a instalação/conexão ainda não foi confirmada. O usuário informou que vai conectar ambos. Retomar a verificação quando isso ocorrer; não solicitar segredos pelo chat.
+- Branch local feat/catholic-prayer-platform; nenhum push nesta etapa. Homologação local permanece funcionando.
+- Vercel CLI 64.2.0 autenticada; plano Hobby e papel OWNER confirmados na equipe autorizada.
+- Criado projeto separado panteralab-homologacao, ID prj_ZdM6aXzCNoJPZURVCGHj1KTbRIUe: Node 22.x, sem Git, sem variáveis herdadas, com Vercel Authentication confirmado. Não houve deployment.
+- Consulta de metadados do projeto antigo confirmou registros de banco/segredos com escopos compartilhados entre Production e Preview. Nenhum valor foi copiado e nenhuma configuração antiga foi alterada; o fluxo será CLI direta no projeto novo, sem push.
+- Atlas CLI 1.59.2 instalada e verificada por hash, mas ainda não autenticada. A CLI retornou HTTP 401 e DEVICE_AUTHORIZATION_EXPIRED apesar do sucesso informado na interface. Uma tentativa pelo navegador padrão está aguardando a etapa de identidade do usuário. Nenhum recurso Atlas foi criado.
+- O navegador do Codex está aberto e autenticado segundo o usuário, mas esta conversa não dispõe de controle programático desse navegador. Não extrair cookies; autenticar CLIs pelos fluxos oficiais.
 
 ## Configuração proposta
 
@@ -91,3 +93,9 @@ Só registrar os itens como aprovados depois de executá-los no preview real. Os
 - [Usuários e privilégios de banco no Atlas](https://www.mongodb.com/docs/atlas/security-add-mongodb-users/)
 
 Essas opções dependem do plano, da conta e das permissões efetivamente disponíveis, que ainda precisam ser verificadas.
+
+## Atualização de execução: projeto separado criado
+
+A CLI Vercel foi autenticada. Foi criado panteralab-homologacao, ID prj_ZdM6aXzCNoJPZURVCGHj1KTbRIUe, no plano Hobby existente, sem integração Git, sem variáveis herdadas e com Vercel Authentication confirmado. Node 22.x e nenhum domínio personalizado associado. O projeto antigo foi apenas consultado por metadados; seus registros compartilham escopos Production/Preview, portanto não será usado nem acionado por push.
+
+Um dry-run validou 191 arquivos (1.289.390 bytes), sem dados/credenciais locais. Não houve upload/deploy. A autenticação Atlas ainda retorna HTTP 401 apesar do sucesso informado na interface; nenhum recurso MongoDB remoto foi criado. A publicação depende de resolver esse impedimento e testar uma conexão exclusiva, conforme os critérios acima. Não há link de aplicação pronto ainda.

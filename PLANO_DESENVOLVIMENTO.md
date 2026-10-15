@@ -2,6 +2,10 @@
 
 Atualizado em 15/10/2026. Primeira versão integrada e homologação local com MongoDB/SMTP reais concluídas. **Homologação externa e liberação para produção ainda pendentes.**
 
+## Estado atual para retomada
+
+Projeto Vercel de homologação separado já criado e protegido: prj_ZdM6aXzCNoJPZURVCGHj1KTbRIUe. CLI Vercel autenticada; não recriar projeto nem reutilizar o antigo. Atlas ainda não autenticou; códigos anteriores retornaram DEVICE_AUTHORIZATION_EXPIRED. Usuário foi orientado a concluir identidade pelo fluxo oficial no navegador padrão. Falta comprovar banco exclusivo; nenhum deploy/push novo permitido antes disso. Ver os registros mais recentes no fim deste documento e docs/PREVIEW_VERCEL.md. Homologação local segue nas portas 3107/8025.
+
 ## Autorização e situação do repositório
 
 O usuário autorizou o desenvolvimento autônomo após a solicitação inicial de análise. Permanecem obrigatórios: preservar contas e recursos existentes, não operar banco de produção, não alterar credenciais, não contratar serviços e não publicar sem autorização expressa.
@@ -122,3 +126,25 @@ Não há acesso Vercel autenticado/CLI/token disponível nos pontos verificados.
 Preparados docs/PREVIEW_VERCEL.md, .env.preview.example sem segredos e .vercelignore excluindo todos os artefatos/credenciais locais. Acrescentado bloqueio explícito de email e falha antes de criar SMTP quando faltam credenciais. Interface permite aviso de homologação Vercel e noindex, que não substitui proteção de acesso. 108 testes aprovados em 21 suítes nesta preparação; ESLint sem avisos, Prettier e build Node 22/Next 16.4.1 aprovados. Stack local recompilada e reiniciada, respondendo 200 nas portas 3107 e 8025. Deploy remoto ainda não executado.
 
 Próxima ação: confirmar conexão real dos serviços; consultar projetos, variáveis/escopos e proteção Vercel sem imprimir segredos. Se houver credenciais misturadas no projeto antigo, interromper essa parte e apresentar configuração segura. Criar projeto Vercel novo sem deploy Production automático e Atlas Free separado, somente após conferir gratuidade/permissões. Verificar todo o roteiro antes de entregar link. Não reutilizar massa local nem inferir isolamento pelo nome da branch.
+
+## Acesso por CLI — continuação em 15/10/2026
+
+O usuário confirmou contas autenticadas no navegador do Codex e autorizou uso das sessões/CLI, criação de recursos gratuitos separados e deploy direto sem push. A conversa não dispõe de ferramenta de automação do navegador autenticado; a sessão visível não concede acesso automático às CLIs. Não extrair cookies ou credenciais do navegador.
+
+Foram instaladas ferramentas somente em `.qa/`, ignorado e excluído do deploy: Vercel CLI 64.2.0 via npm (sem scripts de instalação), e Atlas CLI 1.59.2 portátil, SHA-256 conferido contra release oficial. Não alteradas as dependências do produto.
+
+Login Vercel iniciado com `node .qa/vercel-cli/node_modules/vercel/dist/index.js login --global-config .qa/vercel-auth --no-color`. Perfil OAuth Atlas iniciado com `.qa/runtime/atlas.exe auth login --authType UserAccount --output json --noBrowser --profile panteralab-homologacao`. As confirmações devem ser feitas pelo usuário nos sites oficiais. A primeira confirmação declarada da Vercel ainda não foi observada pela CLI; não tratar como autenticada até whoami/API confirmar. Códigos de dispositivo expiram; não registrar códigos/tokens no repositório nem imprimir arquivos de autenticação.
+
+Para sondar autenticação Vercel, incluir `--non-interactive`, pois alguns comandos iniciam login automaticamente na ausência de sessão. Sessão Vercel fica exclusivamente em `.qa/vercel-auth`. Nenhum projeto/cluster foi criado, nenhum push ou deploy foi realizado nesta tentativa. Retomar verificando autenticação real e só então consultar metadados dos projetos existentes e criar recursos isolados. Não usar o fluxo de deploy temporário sugerido pela CLI quando deslogada.
+
+## Infraestrutura Vercel criada — estado confirmado em 15/10/2026
+
+A CLI Vercel foi autenticada com sucesso. Conta tem papel OWNER na equipe ricardo-alves-dos-santos-projects, plano Hobby. Consulta somente de metadados confirmou que o projeto antigo clone-tabnews usa os mesmos registros de MONGODB_URI, NEXTAUTH_SECRET e credenciais de serviços nos escopos Production/Preview/Development. Não alterar esse projeto nem fazer push na branch vinculada. O usuário autorizou expressamente o fluxo direto em projeto novo, sem push.
+
+Criado por API o novo projeto **panteralab-homologacao**, ID `prj_ZdM6aXzCNoJPZURVCGHj1KTbRIUe`, equipe `team_Vt0Io5oaNuqVHV3JhHFQIoYj`. Confirmados por nova leitura: framework Next.js, Node 22.x, sem vínculo Git, nenhuma variável herdada, publicSource=false e proteção Vercel Authentication com deploymentType=prod_deployment_urls_and_all_previews. autoAssignCustomDomains=false; nenhum domínio oficial foi associado. Não há deployment desse projeto ainda. Não usar --prod, não instalar integrações pagas.
+
+Dry-run real da CLI com --target=preview e ID explícito do projeto: 191 arquivos, 1.289.390 bytes; nenhum .qa, .env, .vercel, node_modules, .next ou cache incluído. Relatórios sem segredos em `.qa/vercel-preview-project.json`, `.qa/vercel-projects-metadata.json` e `.qa/vercel-package-dry.json`. Não inferir que já houve upload: --dry não publica.
+
+**Impedimento atual:** Atlas CLI 1.59.2 ainda não autenticou. O usuário informou sucesso nas páginas de autorização, mas a CLI continuou retornando not logged in/HTTP 401 e os códigos expiraram. Não criar outro recurso ou publicar sem comprovar o banco isolado. Foi solicitado apenas o texto da mensagem do site após a autorização para diagnosticar a discrepância; não repetir geração de códigos indiscriminadamente. Não acessar cookies do navegador. Nenhum projeto, cluster ou usuário Atlas foi criado.
+
+Próximo trabalho: resolver a autenticação Atlas (ou configuração manual exclusiva de homologação com conexão guardada em arquivo local ignorado), conferir organização/permissões e criar projeto/cluster M0 gratuito explícito — a CLI tem FLEX como default, portanto nunca omitir --tier M0. Criar usuário readWrite somente em panteralab_homologacao_vercel, avaliar rede sem alterar produção, testar conexão. Depois configurar somente Preview do projeto novo, segredo novo, URL HTTPS exata, proteção e serviços ausentes desativados. Provisionar contas fictícias novas com acesso guardado localmente; definir fluxo de confirmação de cadastro de teste sem SMTP externo. Só então publicar diretamente com ID do projeto e target Preview, sem push, e executar os testes reais hospedados. Falta o banco, portanto ainda não existe link de aplicação publicado nesta etapa.
