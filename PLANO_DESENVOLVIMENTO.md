@@ -6,7 +6,7 @@ Atualizado em 15/10/2026. Primeira versão integrada implementada e verificada l
 
 O usuário autorizou o desenvolvimento autônomo após a solicitação inicial de análise. Permanecem obrigatórios: preservar contas e recursos existentes, não operar banco de produção, não alterar credenciais, não contratar serviços e não publicar sem autorização expressa.
 
-Branch: `feat/catholic-prayer-platform`, baseada em `feat/prayer-community-security` no commit `312bb08` (PR #15). A entrega será proposta em PR de rascunho sobre essa branch de segurança, mantendo a revisão das duas etapas separada. Não houve merge na main nem deploy. Nenhum banco ou serviço externo real foi usado para gravações ou testes.
+Branch: `feat/catholic-prayer-platform`, baseada em `feat/prayer-community-security` no commit `312bb08` (PR #15). Entrega registrada no commit `6773239` e no [PR de rascunho #16](https://github.com/ricardoq4p/clone-tabnews/pull/16), sobre essa branch de segurança, mantendo a revisão das duas etapas separada. Não houve merge na main nem deploy. Nenhum banco ou serviço externo real foi usado para gravações ou testes.
 
 ## Arquitetura escolhida
 
@@ -71,7 +71,7 @@ Concluída a verificação local; publicação permanece pendente. Detalhes oper
 - ESLint com `--max-warnings 0`, Prettier e build Next.js **16.4.1** verificados. React 18 preservado; Next avisa sobre futura migração para React 19 antes do Next 17.
 - Playwright/Edge isolado: início, oração/retomada, troca de conta na mesma página, teclado, matriz responsiva, Capelinha, comunidade e moderação/editor. Nenhum erro JavaScript nesses fluxos. Autenticação e dados dos fluxos autenticados são fixtures HTTP explícitas; não comprovam integração real.
 - Auditoria das dependências **de produção: zero alertas**. Ferramentas de desenvolvimento/build/testes ainda têm **40 alertas (33 altos, 7 moderados)**, registrados com plano de migração separado. Não usar `npm audit fix --force` indiscriminadamente.
-- Nenhum envio SMTP, acesso MongoDB real ou publicação. Screenshots e relatórios locais em `.qa/`, não versionados. Servidores de preview devem ser encerrados ao terminar a sessão.
+- Nenhum envio SMTP, acesso MongoDB real ou publicação. Screenshots e relatórios locais em `.qa/`, não versionados. Servidores de preview locais encerrados ao concluir a sessão.
 
 ## Problemas encontrados e soluções
 
