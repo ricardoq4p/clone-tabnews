@@ -6,6 +6,15 @@ import Icon from "@/components/prayer/Icon";
 import Beads from "@/components/rosary/Beads";
 import { useRosary } from "@/lib/rosary/useRosary";
 import { buildRosary, mysteriesForDay } from "@/lib/rosary/engine";
+const WEEKDAYS = [
+  "domingo",
+  "segunda-feira",
+  "terça-feira",
+  "quarta-feira",
+  "quinta-feira",
+  "sexta-feira",
+  "sábado",
+];
 export default function Rosario() {
   const rosary = useRosary();
   const { content, progress, ready } = rosary;
@@ -170,9 +179,23 @@ export default function Rosario() {
                           aria-pressed={selected === set.id}
                         >
                           <span className={`p-set-dot ${set.color}`} />
-                          <span>
+                          <span className="p-mystery-copy">
                             <strong>{set.title}</strong>
                             <small>{set.subtitle}</small>
+                            <span className="p-mystery-days">
+                              <Icon name="calendar" size={13} />
+                              <span>
+                                {[...set.days]
+                                  .sort((a, b) => (a || 7) - (b || 7))
+                                  .map((day) => WEEKDAYS[day])
+                                  .join(" e ")}
+                              </span>
+                            </span>
+                            {daySet === set.id ? (
+                              <span className="p-mystery-today">
+                                Mistérios de hoje
+                              </span>
+                            ) : null}
                           </span>
                           {selected === set.id ? (
                             <Icon name="check" size={18} />
@@ -184,7 +207,8 @@ export default function Rosario() {
                       <Icon name="sun" size={15} />
                       Sugestão de hoje:{" "}
                       {content.sets.find((set) => set.id === daySet)?.title}, no
-                      horário de Brasília. Você pode escolher outro conjunto.
+                      horário de Brasília. A distribuição semanal é uma tradição
+                      devocional: você pode escolher qualquer conjunto.
                     </p>
                     <div className="p-rosary-preferences">
                       <label className="p-check">

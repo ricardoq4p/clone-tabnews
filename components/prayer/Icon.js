@@ -59,6 +59,12 @@ const paths = {
     </>
   ),
   close: <path d="m5 5 14 14M5 19 19 5" />,
+  calendar: (
+    <>
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4M8 3v4M3 11h18M8 15h2m4 0h2" />
+    </>
+  ),
   clock: (
     <>
       <circle cx="12" cy="12" r="9" />

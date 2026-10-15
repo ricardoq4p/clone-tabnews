@@ -158,3 +158,9 @@ Preview READY: https://panteralab-homologacao-jyr9y4lm3.vercel.app . IDs, isolam
 Novos módulos: `lib/preview-origin.js` calcula a origem exata do deployment somente no projeto dedicado; `lib/preview-registration.js` exige ID/Preview, email fictício, SMTP desligado, URI/TLS e banco/host corretos antes de disponibilizar confirmação inline. Fluxos normais preservados. Cadastro de homologação recusa email real e falha fechado se configuração divergir. 125 testes unitários/API aprovados em 23 suítes.
 
 Brevo/Cloudinary/Pusher/IA externos permanecem desligados. Conteúdo religioso e política operacional/jurídica aguardam revisão humana. Homologação hospedada e evidências: `docs/RELATORIO_PREVIEW.md`. Para continuar, ler esse relatório e conferir proteção/target por API; o projeto antigo continua inadequado para push automático com isolamento. Produção permanece sem autorização.
+
+## Cartões dos mistérios — 15/10/2026
+
+Acrescentados dias tradicionais abaixo das descrições, com ícone de calendário e selo “Mistérios de hoje” independente da seleção. Os dias são derivados do calendário já existente no conteúdo, sem alterar edições arquivadas, progresso ou cálculo America/Sao_Paulo. A explicação informa que se trata de tradição devocional e permite qualquer conjunto.
+
+Arquivos do produto: `pages/rosario.js`, `components/prayer/Icon.js`, `styles/prayer.css`. Testes: 125/125 em 23 suítes; ESLint sem avisos; Prettier; build Node 22/Next aprovado. Navegador real: sete dias, meia-noite de Brasília com fuso Asia/Tokyo, seleção manual preservada na troca do dia, retomada local e larguras 320/390/768/1440 sem transbordamento. Capturas `.qa/mystery-cards-*.png` revisadas. Banco Atlas M0 isolado e nove variáveis apenas Preview reconferidos; nenhuma variável alterada. Publicar diretamente no projeto de homologação e registrar URL/resultado após validação remota; sem push.
