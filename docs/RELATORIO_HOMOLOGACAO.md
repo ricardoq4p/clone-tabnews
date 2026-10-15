@@ -1,3 +1,5 @@
+> Atualização de 15/10/2026: o Preview externo isolado foi publicado e testado. Consulte [RELATORIO_PREVIEW.md](RELATORIO_PREVIEW.md) para o estado atual. O restante deste documento registra a etapa local e as revisões humanas pendentes.
+
 # Relatório de homologação — PanteraLab
 
 Data: 15/10/2026. Ambiente: exclusivamente local, separado de produção. Resultado atual: **plataforma disponível para avaliação visual; homologação externa ainda pendente**.

@@ -1,101 +1,40 @@
-# Preview Vercel isolado — preparação e critérios de publicação
+# Preview Vercel isolado — publicado em 15/10/2026
 
-Atualizado em 15/10/2026. O usuário autorizou um preview externo isolado, sem custos, sem produção e sem alterar panteralab.com.br. **Nenhum novo deploy ou push foi realizado nesta etapa.**
+URL: https://panteralab-homologacao-jyr9y4lm3.vercel.app
 
-## Situação verificada
+## Acesso
 
-- Branch local feat/catholic-prayer-platform; nenhum push nesta etapa. Homologação local permanece funcionando.
-- Vercel CLI 64.2.0 autenticada; plano Hobby e papel OWNER confirmados na equipe autorizada.
-- Criado projeto separado panteralab-homologacao, ID prj_ZdM6aXzCNoJPZURVCGHj1KTbRIUe: Node 22.x, sem Git, sem variáveis herdadas, com Vercel Authentication confirmado. Não houve deployment.
-- Consulta de metadados do projeto antigo confirmou registros de banco/segredos com escopos compartilhados entre Production e Preview. Nenhum valor foi copiado e nenhuma configuração antiga foi alterada; o fluxo será CLI direta no projeto novo, sem push.
-- Atlas CLI 1.59.2 instalada e verificada por hash, mas ainda não autenticada. A CLI retornou HTTP 401 e DEVICE_AUTHORIZATION_EXPIRED apesar do sucesso informado na interface. Uma tentativa pelo navegador padrão está aguardando a etapa de identidade do usuário. Nenhum recurso Atlas foi criado.
-- O navegador do Codex está aberto e autenticado segundo o usuário, mas esta conversa não dispõe de controle programático desse navegador. Não extrair cookies; autenticar CLIs pelos fluxos oficiais.
+Primeiro autenticar na Vercel com a conta proprietária do projeto. Depois entrar na aplicação com uma conta fictícia. As três contas e senhas estão exclusivamente no arquivo local `.qa/ACESSOS_PREVIEW.md`, ignorado pelo Git e excluído do upload. Nenhuma senha está neste documento. Usar apenas dados fictícios.
 
-## Configuração proposta
+O cadastro também pode ser experimentado com endereço inventado terminado em `@panteralab.test`. A página apresenta um botão para confirmar a conta de teste; não envia email. A confirmação mantém o token de uso único e o login normal. Endereços reais são recusados neste modo. Recuperação e reenvio de email não estão homologados externamente.
 
-### Projeto e publicação
+## Isolamento confirmado
 
-Criar um **novo projeto Vercel**, com nome sugerido panteralab-homologacao (sujeito à disponibilidade), na conta autorizada. Não importar/copiar variáveis do projeto antigo e conferir também variáveis compartilhadas da equipe e integrações herdadas. Não associar domínio personalizado.
+- Vercel Hobby: novo projeto `panteralab-homologacao`, ID `prj_ZdM6aXzCNoJPZURVCGHj1KTbRIUe`, sem vínculo Git e sem domínio personalizado. Node 22.x. Vercel Authentication cobre todos os previews e URLs de deployment.
+- Deployment atual: `dpl_tx1GCn3obATRvb7M87ZUCbbXRpVj`, READY, Preview (a API representa este target como null). Nenhuma promoção.
+- Atlas: novo projeto `6ad1140763ef399af1157ec9`, cluster `panteralab-homologacao`, AWS US_EAST_1, tier M0 gratuito; banco `panteralab_homologacao_vercel`.
+- Usuário novo limitado a readWrite neste banco e neste cluster. Senha e segredo NextAuth novos. Gravação real aprovada e acesso a outro banco recusado.
+- Nove variáveis exclusivamente no escopo Preview: MONGODB_URI, NEXTAUTH_SECRET, NEXT_PUBLIC_APP_ENV, EMAIL_DELIVERY_DISABLED, PANTERALAB_LOCAL_SMTP, PANTERALAB_PREVIEW_REGISTRATION, PANTERALAB_PREVIEW_MONGODB_HOST, ALLOW_LEGACY_EMAIL_VERIFICATION_FALLBACK e TRUST_PROXY_HEADERS.
+- NEXTAUTH_URL é calculada no servidor a partir de VERCEL_URL, somente quando o ID do projeto e o ambiente Preview conferem. Callbacks, cookies HTTPS e links de confirmação usam a URL exata do deployment.
+- Brevo, Cloudinary, Pusher e IA sem credenciais e desativados. Não há contratação ou consumo pago desses serviços.
+- O projeto Vercel antigo compartilha registros de credenciais entre Production e Preview. Foi apenas inspecionado; nenhum valor foi copiado e nenhuma configuração foi alterada. Sem push, merge, mudança de main, DNS ou panteralab.com.br.
 
-Criar o projeto sem um fluxo de importação que publique automaticamente no target Production. Usar somente deploy com target **Preview**; nunca --prod, promoção ou alias de produção. Somente o domínio .vercel.app efetivamente atribuído será informado ao usuário. Não inventar um endereço antes de criá-lo.
+## Rede e prazo
 
-Um novo projeto não impede que um push nesta branch dispare o projeto antigo. Antes de qualquer push, inspecionar esse caminho também. Se o projeto antigo mistura segredos entre Production e Preview, interromper publicação/push e apresentar o problema; não alterar silenciosamente suas configurações de produção. Quando permitido e verificado, um deploy por CLI a partir do checkout local no projeto novo pode evitar o gatilho Git antigo, sem exigir push.
+Vercel Hobby usa saída com IP dinâmico. Para conectar sem serviço pago, a lista de acesso SOMENTE do projeto Atlas novo contém `0.0.0.0/0` temporário até **22/10/2026 às 14:48:23 de Brasília** (17:48:23 UTC). Depois disso o banco ficará indisponível para a aplicação até nova configuração autorizada. A expiração não apaga os dados.
 
-### Proteção de acesso
+Essa abertura permite tentativas externas de autenticação e não elimina risco de indisponibilidade. Mitigações: dados fictícios, TLS, senha aleatória de 48 bytes, papel restrito, projeto independente e prazo automático. Antes de uso contínuo, reavaliar a rede; não ampliar acesso do projeto de produção.
 
-Habilitar e verificar Vercel Authentication para previews antes de disponibilizar a aplicação. Confirmar a cobertura de todas as URLs e aliases do preview e quem pode acessá-los. Utilizar somente opções já incluídas no plano da conta; se houver cobrança ou upgrade obrigatório, parar. A proteção do ambiente é separada do login dos participantes da aplicação.
+## Ocorrência de publicação
 
-Não criar bypass permanente, link público de acesso compartilhado ou variável de automação que contorne essa proteção sem necessidade e autorização específicas. Testar acesso sem sessão Vercel e comprovar que o conteúdo/API não ficam públicos. Noindex é apenas indicação aos buscadores, não controle de acesso.
+A CLI 64.2.0 classificou o primeiro envio do projeto novo como Production apesar de `--target=preview`. O build `dpl_A4n9YrQRfh3kMi6wenuEKVNbune2` foi imediatamente cancelado, antes de READY, sem receber as variáveis exclusivas de Preview. Nenhum recurso do projeto de produção original foi alterado. O segundo envio foi confirmado por API como Preview e é o endereço entregue. Conferir sempre o target retornado, mesmo com parâmetro explícito.
 
-### MongoDB
+## Limitações e continuidade
 
-Criar um projeto Atlas e um cluster **Free** exclusivos de homologação, se disponíveis sem cobrança. Não usar o cluster de produção, mesmo com outro nome de database. Banco sugerido: panteralab_homologacao_vercel. Criar usuário novo com senha aleatória e readWrite somente nesse banco, sem privilégios administrativos ou readWriteAnyDatabase.
+O Rosário, Capelinha, comunidade, autenticação e administração usam o banco real de teste. Upload externo, entrega Brevo, Pusher e IA continuam desligados. O servidor SMTP local/Mailpit não existe na Vercel; o modo local recusa esse ambiente.
 
-Verificar plano gratuito, projeto/cluster reais, TLS e conectividade com a Vercel antes de disponibilizar a aplicação. Não ampliar a allowlist de rede de um projeto existente de produção. Caso a conectividade exija abertura de rede adicional, documentar as opções e os limites do plano antes de aplicar; não fingir que uma conexão não validada está pronta.
+Não fazer push enquanto o projeto antigo puder gerar Preview com segredos compartilhados. O deploy atual usa o checkout local e não depende de push. Mudanças posteriores exigem novo deployment Preview e conferência do target, projeto, proteção e escopos; nunca `--prod`.
 
-Criar somente dados fictícios e usuários exclusivos. Não enviar o banco, emails ou senhas da stack local ao repositório ou à Vercel. Não executar migração ou carga de produção.
+A chave temporária de automação criada exclusivamente para os testes foi revogada; não existe link de bypass entregue. Acesso com a chave revogada foi recusado após propagação da configuração.
 
-### Variáveis do novo projeto
-
-Configurar exclusivamente no escopo Preview, após conferir o ID do projeto destino. Modelo sem segredos: `.env.preview.example`.
-
-| Variável                                 | Valor/procedência                                                               |
-| ---------------------------------------- | ------------------------------------------------------------------------------- |
-| MONGODB_URI                              | Novo cluster e usuário exclusivos, banco panteralab_homologacao_vercel          |
-| NEXTAUTH_SECRET                          | Gerado novamente para este preview; não reutilizar segredo local ou de produção |
-| NEXTAUTH_URL                             | URL HTTPS exata e estável do preview, conferida na Vercel                       |
-| NEXT_PUBLIC_APP_ENV                      | homologacao-vercel                                                              |
-| EMAIL_DELIVERY_DISABLED                  | true enquanto não existir SMTP de teste                                         |
-| PANTERALAB_LOCAL_SMTP                    | false; localhost SMTP não existe na função Vercel                               |
-| ALLOW_LEGACY_EMAIL_VERIFICATION_FALLBACK | false                                                                           |
-| TRUST_PROXY_HEADERS                      | false inicialmente; alterar só após validar o proxy e suas implicações          |
-| BREVO\_\*, EMAIL_FROM                    | Ausentes enquanto não houver serviço próprio de teste                           |
-| PUSHER*\* e NEXT_PUBLIC_PUSHER*\*        | Ausentes enquanto não houver aplicativo próprio de teste                        |
-| NEXT*PUBLIC_CLOUDINARY*\*                | Ausentes enquanto não houver cloud/preset próprios de teste                     |
-| OPENAI_API_KEY                           | Ausente; IA desligada e sem consumo pago                                        |
-| SUPERADMIN_EMAIL                         | Ausente; email não concede papel administrativo                                 |
-
-Conferir nomes, escopos, referências compartilhadas e origem de cada valor, sem imprimir os segredos. Na proteção adicional do código, EMAIL_DELIVERY_DISABLED=true impede criar qualquer transporte SMTP; credenciais ausentes também falham antes de abrir conexão. O modo SMTP local recusa ambiente Vercel.
-
-Se o hostname estável só for atribuído ao criar o primeiro deployment protegido, conferir e ajustar NEXTAUTH_URL no projeto novo e repetir o Preview antes de criar contas ou entregar o link. Validar callback, cookies HTTPS, csrf/origem e links absolutos. Não usar panteralab.com.br, localhost ou a URL do projeto antigo.
-
-### Contas e emails de teste
-
-Sem SMTP de teste, confirmação/reenvio e recuperação por email ficam indisponíveis. O cadastro mantém a exigência de verificação; não acrescentar um bypass de autenticação.
-
-Para permitir testar a Capelinha, após confirmar o cluster e o isolamento, provisionar contas fictícias verificadas por rotina administrativa controlada no banco exclusivo. Criar senhas novas para o preview e apresentar os acessos em arquivo local ignorado ou canal apropriado, nunca no Git/PR/logs. A rotina e os registros devem deixar claro que se trata de massa de teste. O administrador também recebe papel explicitamente, sem confiar no email.
-
-## Proteção do pacote
-
-`.vercelignore` exclui `.qa/`, bancos, emails capturados, runtimes, node_modules, .next, .vercel, logs e arquivos .env. Não publicar artefatos de build local com configuração de localhost. Compilar novamente com as variáveis do projeto novo. Confirmar o conjunto de arquivos enviado pela CLI antes do deploy. Não versionar segredos, arquivos de acesso nem exportações de ambientes.
-
-## Verificação após deploy
-
-1. Acesso bloqueado sem autenticação Vercel; todos os aliases/URLs protegidos.
-2. IDs do projeto/cluster e target Preview conferidos; domínio de produção e main intactos.
-3. Página inicial, quatro conjuntos do Rosário, roteiro completo, imagens locais e retomada como visitante.
-4. Login real de dois participantes, cookies HTTPS, logout e isolamento de progresso/histórico.
-5. Três visibilidades de vela, 168h determinadas no servidor, intercessão única concorrente e histórico.
-6. Expiração de vela sintética criada especificamente para a fronteira do teste; nenhuma alteração em dados existentes de produção.
-7. Papel administrativo, auditoria antes de ler texto privado e moderação sem renovação de prazo.
-8. Mobile e teclado; ausência de erros no cliente e nos logs do novo projeto.
-9. Falhas previstas de email/upload/tempo real informadas como indisponibilidade, sem tentativas externas indevidas.
-10. Entregar URL real, proteção/acessos, serviços verificados, limitações e relatório atualizado.
-
-Só registrar os itens como aprovados depois de executá-los no preview real. Os testes locais não comprovam a configuração de um projeto Vercel remoto.
-
-## Referências oficiais consultadas
-
-- [Variáveis de ambiente da Vercel](https://vercel.com/docs/environment-variables)
-- [Deployment Protection](https://vercel.com/docs/deployment-protection)
-- [Vercel Authentication](https://vercel.com/docs/deployment-protection/methods-to-protect-deployments/vercel-authentication)
-- [Atlas Free Cluster](https://www.mongodb.com/docs/atlas/tutorial/deploy-free-tier-cluster/)
-- [Usuários e privilégios de banco no Atlas](https://www.mongodb.com/docs/atlas/security-add-mongodb-users/)
-
-Essas opções dependem do plano, da conta e das permissões efetivamente disponíveis, que ainda precisam ser verificadas.
-
-## Atualização de execução: projeto separado criado
-
-A CLI Vercel foi autenticada. Foi criado panteralab-homologacao, ID prj_ZdM6aXzCNoJPZURVCGHj1KTbRIUe, no plano Hobby existente, sem integração Git, sem variáveis herdadas e com Vercel Authentication confirmado. Node 22.x e nenhum domínio personalizado associado. O projeto antigo foi apenas consultado por metadados; seus registros compartilham escopos Production/Preview, portanto não será usado nem acionado por push.
-
-Um dry-run validou 191 arquivos (1.289.390 bytes), sem dados/credenciais locais. Não houve upload/deploy. A autenticação Atlas ainda retorna HTTP 401 apesar do sucesso informado na interface; nenhum recurso MongoDB remoto foi criado. A publicação depende de resolver esse impedimento e testar uma conexão exclusiva, conforme os critérios acima. Não há link de aplicação pronto ainda.
+Consultar `docs/RELATORIO_PREVIEW.md` para resultados dos testes e `docs/RELATORIO_HOMOLOGACAO.md` para a revisão dos PRs, conteúdo religioso e políticas de privacidade. A publicação de homologação não autoriza lançamento em produção.

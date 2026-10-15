@@ -10,6 +10,7 @@ export default function Register() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [verificationUrl, setVerificationUrl] = useState("");
 
   const router = useRouter();
 
@@ -18,6 +19,7 @@ export default function Register() {
     setLoading(true);
     setError("");
     setSuccess("");
+    setVerificationUrl("");
 
     try {
       const res = await fetch("/api/users/register", {
@@ -50,6 +52,10 @@ export default function Register() {
           "Cadastro realizado. Verifique seu email antes de entrar.",
       );
 
+      if (data?.verificationUrl) {
+        setVerificationUrl(data.verificationUrl);
+        return;
+      }
       setTimeout(() => {
         router.push("/login");
       }, 2500);
@@ -95,6 +101,19 @@ export default function Register() {
         </div>
       ) : null}
 
+      {process.env.NEXT_PUBLIC_APP_ENV === "homologacao-vercel" ? (
+        <p className="p-notice">
+          Use um endereço fictício como seu-nome@panteralab.test. A confirmação
+          aparecerá aqui; nenhum email será enviado.
+        </p>
+      ) : null}
+      {verificationUrl ? (
+        <p className="mb-5">
+          <Link href={verificationUrl} className="p-button">
+            Confirmar minha conta de teste
+          </Link>
+        </p>
+      ) : null}
       <form onSubmit={handleSubmit} className="space-y-4">
         <label className="block text-sm text-slate-300">
           <span className="mb-2 block">Nome</span>

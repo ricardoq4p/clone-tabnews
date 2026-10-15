@@ -1,3 +1,8 @@
+import {
+  isPreviewRegistrationEnabled,
+  isPreviewTestEmail,
+  previewVerificationUrl,
+} from "@/lib/preview-registration";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
 import { hash } from "bcryptjs";
 import connectToDatabase from "@/lib/db";
@@ -18,6 +23,16 @@ export default async function handler(req, res) {
   try {
     const { email, password, name } = req.body || {};
     const normalizedEmail = normalizeEmail(email);
+    const preview = isPreviewRegistrationEnabled();
+    if (process.env.PANTERALAB_PREVIEW_REGISTRATION === "true" && !preview)
+      return res.status(503).json({
+        error: "O cadastro de teste ainda não está configurado neste ambiente.",
+      });
+    if (preview && !isPreviewTestEmail(normalizedEmail))
+      return res.status(400).json({
+        error:
+          "Nesta homologação, utilize somente um email fictício terminado em @panteralab.test.",
+      });
     const rate = await checkRateLimit({
       key: `register:${getClientIp(req)}:${normalizedEmail}`,
       ip: getClientIp(req),
@@ -59,6 +74,15 @@ export default async function handler(req, res) {
       isVerified: false,
       ...verification.fields,
     });
+    if (preview)
+      return res.status(201).json({
+        message:
+          "Conta fictícia criada. Confirme pelo link de teste abaixo; nenhum email foi enviado.",
+        verificationUrl: previewVerificationUrl(
+          normalizedEmail,
+          verification.token,
+        ),
+      });
     try {
       await sendVerificationEmail(user, verification.token);
     } catch {
