@@ -2,7 +2,7 @@
 
 ## Resultado e acesso
 
-Preview protegido e pronto para avaliação: https://panteralab-homologacao-jyr9y4lm3.vercel.app
+Preview protegido e pronto para avaliação: https://panteralab-homologacao-rao9tm8jy.vercel.app
 
 Autenticar primeiro na Vercel como proprietário do projeto. Na aplicação, usar as contas fictícias de participante ou administrador guardadas em `.qa/ACESSOS_PREVIEW.md`. Não há senha em arquivos versionados. Pode cadastrar uma nova conta com email fictício `@panteralab.test` e confirmar pelo botão apresentado na página. Usar somente dados fictícios.
 
@@ -48,3 +48,9 @@ Revisão humana religiosa: textos e variantes das orações, vinte meditações/
 Revisão humana de privacidade/operação: controlador e contato, dados sensíveis e de terceiros, menores, retenção de velas/logs/backups, atendimento real de exportação/exclusão, acesso excepcional de moderadores, contratos/transferências e resposta a incidentes. Anônimo significa autoria oculta publicamente; o sistema mantém o vínculo interno. Não há declaração de conformidade LGPD completa. Lista detalhada em `docs/RELATORIO_HOMOLOGACAO.md`.
 
 PR #16 depende do PR #15. Ambos foram revisados na etapa local; não houve merge, alteração de main ou push nesta etapa. O projeto antigo usa escopos de credenciais compartilhados e permanece intocado. O Preview foi publicado diretamente do checkout da branch de desenvolvimento no projeto novo. Nenhum domínio oficial ou configuração de produção foi alterado.
+
+## Atualização dos cartões do Rosário — 15/10/2026
+
+Nova URL no início deste relatório; deployment Preview `dpl_BDiL34U6gjQmwtg7SFTU9CLF5GWj` READY, código `8e9ba31`. Dias tradicionais agora aparecem em cada cartão com calendário; selo “Mistérios de hoje” usa o cálculo existente de Brasília e continua no cartão correto mesmo ao selecionar outro conjunto. Sem alteração de conteúdo arquivado ou progresso.
+
+Revalidação: 125 testes/23 suítes, ESLint sem avisos, Prettier e build local/remoto aprovados. Browser QA repetido no Preview: sete dias com navegador em Asia/Tokyo, virada à meia-noite de Brasília, escolha manual mantida, retomada local e larguras 320/390/768/1440 sem transbordamento. Roteiro e capturas locais em `.qa/mystery-cards-qa.cjs` e `.qa/mystery-cards-*.png`. As 12 integrações acima registram a homologação anterior; nesta alteração visual foi repetido o roteiro específico dos cartões, além da suíte unitária/API completa. Atlas M0 e nove variáveis Preview existentes reconferidos; nenhuma variável alterada. Chave temporária de QA revogada e bloqueio de acesso reconfirmado. Sem push.

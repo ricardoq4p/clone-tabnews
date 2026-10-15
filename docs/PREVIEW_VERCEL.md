@@ -1,6 +1,6 @@
 # Preview Vercel isolado — publicado em 15/10/2026
 
-URL: https://panteralab-homologacao-jyr9y4lm3.vercel.app
+URL: https://panteralab-homologacao-rao9tm8jy.vercel.app
 
 ## Acesso
 
@@ -11,7 +11,7 @@ O cadastro também pode ser experimentado com endereço inventado terminado em `
 ## Isolamento confirmado
 
 - Vercel Hobby: novo projeto `panteralab-homologacao`, ID `prj_ZdM6aXzCNoJPZURVCGHj1KTbRIUe`, sem vínculo Git e sem domínio personalizado. Node 22.x. Vercel Authentication cobre todos os previews e URLs de deployment.
-- Deployment atual: `dpl_tx1GCn3obATRvb7M87ZUCbbXRpVj`, READY, Preview (a API representa este target como null). Nenhuma promoção.
+- Deployment atual: `dpl_BDiL34U6gjQmwtg7SFTU9CLF5GWj`, READY, Preview (a API representa este target como null). Nenhuma promoção.
 - Atlas: novo projeto `6ad1140763ef399af1157ec9`, cluster `panteralab-homologacao`, AWS US_EAST_1, tier M0 gratuito; banco `panteralab_homologacao_vercel`.
 - Usuário novo limitado a readWrite neste banco e neste cluster. Senha e segredo NextAuth novos. Gravação real aprovada e acesso a outro banco recusado.
 - Nove variáveis exclusivamente no escopo Preview: MONGODB_URI, NEXTAUTH_SECRET, NEXT_PUBLIC_APP_ENV, EMAIL_DELIVERY_DISABLED, PANTERALAB_LOCAL_SMTP, PANTERALAB_PREVIEW_REGISTRATION, PANTERALAB_PREVIEW_MONGODB_HOST, ALLOW_LEGACY_EMAIL_VERIFICATION_FALLBACK e TRUST_PROXY_HEADERS.
