@@ -8,3 +8,6 @@ node_modules
 .env
 .env.*
 *.log
+
+# Include nonstandard CLI exports such as .vercel.production.env.
+*.env

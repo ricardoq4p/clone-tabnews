@@ -1,7 +1,11 @@
+import {
+  serverIntegrationEnabled,
+  EMAIL_UNAVAILABLE,
+} from "@/lib/integration-policy";
 import { useState } from "react";
 import Link from "next/link";
 import AuthLayout from "../components/AuthLayout";
-export default function ResendVerification() {
+export default function ResendVerification({ emailAvailable = true }) {
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -23,6 +27,13 @@ export default function ResendVerification() {
       setBusy(false);
     }
   }
+  if (!emailAvailable)
+    return (
+      <AuthLayout title="Emails temporariamente indisponíveis">
+        <p role="status">{EMAIL_UNAVAILABLE}</p>
+        <Link href="/login">Entrar na minha conta</Link>
+      </AuthLayout>
+    );
   return (
     <AuthLayout
       title="Confirme seu email"
@@ -49,4 +60,8 @@ export default function ResendVerification() {
       </form>
     </AuthLayout>
   );
+}
+
+export async function getServerSideProps() {
+  return { props: { emailAvailable: serverIntegrationEnabled("email") } };
 }

@@ -1,3 +1,4 @@
+import { realtimeEnabled } from "@/lib/integration-policy";
 import Pusher from "pusher-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -81,6 +82,7 @@ export default function Comunidade() {
   }, [load, session?.user?.id]);
   useEffect(() => {
     if (
+      !realtimeEnabled ||
       !process.env.NEXT_PUBLIC_PUSHER_KEY ||
       !process.env.NEXT_PUBLIC_PUSHER_CLUSTER
     )

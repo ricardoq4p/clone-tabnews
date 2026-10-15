@@ -1,4 +1,9 @@
 import {
+  serverIntegrationEnabled,
+  EMAIL_UNAVAILABLE,
+  isProductionTestAccount,
+} from "@/lib/integration-policy";
+import {
   isPreviewRegistrationEnabled,
   isPreviewTestEmail,
   previewVerificationUrl,
@@ -24,6 +29,12 @@ export default async function handler(req, res) {
     const { email, password, name } = req.body || {};
     const normalizedEmail = normalizeEmail(email);
     const preview = isPreviewRegistrationEnabled();
+    if (isProductionTestAccount(normalizedEmail))
+      return res.status(400).json({
+        error: "Utilize um endereço de email real para cadastrar sua conta.",
+      });
+    if (!preview && !serverIntegrationEnabled("email"))
+      return res.status(503).json({ error: EMAIL_UNAVAILABLE });
     if (process.env.PANTERALAB_PREVIEW_REGISTRATION === "true" && !preview)
       return res.status(503).json({
         error: "O cadastro de teste ainda não está configurado neste ambiente.",

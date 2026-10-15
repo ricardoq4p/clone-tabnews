@@ -1,3 +1,4 @@
+import { uploadsEnabled } from "@/lib/integration-policy";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -80,6 +81,7 @@ export default function Profile() {
   const handleImage = async (file) => {
     if (!file) return;
     if (
+      !uploadsEnabled ||
       !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
       !process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
     )
@@ -298,6 +300,7 @@ export default function Profile() {
                 <input
                   disabled={
                     uploading ||
+                    !uploadsEnabled ||
                     !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
                     !process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET
                   }
@@ -308,7 +311,8 @@ export default function Profile() {
                 />
               </label>
 
-              {!process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
+              {!uploadsEnabled ||
+              !process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ||
               !process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET ? (
                 <p className="mt-3 text-sm text-slate-500">
                   Envio de fotos indisponível neste ambiente. O armazenamento de

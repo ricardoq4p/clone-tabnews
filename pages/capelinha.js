@@ -380,6 +380,9 @@ export default function Capelinha({ initialView = "public" }) {
                           onChange={(e) => setAccepted(e.target.checked)}
                         />
                         <span>
+                          Autorizo o PanteraLab a guardar minha intenção e
+                          exibi-la conforme a visibilidade escolhida, inclusive
+                          as informações religiosas que eu decidir compartilhar.
                           Li as{" "}
                           <Link href="/privacidade" className="p-inline-link">
                             informações de privacidade

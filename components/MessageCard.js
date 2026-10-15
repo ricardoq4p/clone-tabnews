@@ -1,3 +1,4 @@
+import { realtimeEnabled } from "@/lib/integration-policy";
 import Image from "next/image";
 import Link from "next/link";
 import PrayerButton from "./prayer/PrayerButton";
@@ -70,6 +71,7 @@ export default function MessageCard({ msg, onDeleted }) {
     if (
       !messageId ||
       !commentsOpen ||
+      !realtimeEnabled ||
       !process.env.NEXT_PUBLIC_PUSHER_KEY ||
       !process.env.NEXT_PUBLIC_PUSHER_CLUSTER
     ) {

@@ -1,3 +1,4 @@
+import { PRIVACY_VERSION } from "@/lib/candle-retention";
 import { withApi, requireCondition } from "@/lib/api";
 import Candle from "@/lib/models/Candle";
 import User from "@/lib/models/User";
@@ -64,7 +65,7 @@ export default withApi(
     const user = await User.findById(session.user.id).select("name").lean();
     requireCondition(user, 401, "Conta indisponível.");
     const candle = await Candle.create({
-      policyVersion: "2026-1",
+      policyVersion: PRIVACY_VERSION,
       acceptedAt: now,
       ownerId: session.user.id,
       authorName: String(user.name || "Participante").slice(0, 100),

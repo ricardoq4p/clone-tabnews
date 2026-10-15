@@ -1,3 +1,7 @@
+import {
+  serverIntegrationEnabled,
+  EMAIL_UNAVAILABLE,
+} from "@/lib/integration-policy";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
 import { escapeHtml, validEmail } from "@/lib/validation";
 import connectToDatabase from "../../../lib/db";
@@ -17,6 +21,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Metodo nao permitido" });
   }
 
+  if (!serverIntegrationEnabled("email"))
+    return res.status(503).json({ error: EMAIL_UNAVAILABLE });
   try {
     const normalizedEmail = normalizeEmail(req.body?.email);
     const rateLimitResult = await checkRateLimit({

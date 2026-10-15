@@ -92,3 +92,21 @@ test("revoked session has a JSON-safe payload without personal data", async () =
   });
   expect(JSON.stringify(result)).toBe("{}");
 });
+
+test("homologation identity cannot login on production", async () => {
+  const old = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "production";
+  try {
+    await expect(
+      authorize(
+        { email: "ana@panteralab.test", password: "test-password" },
+        {},
+      ),
+    ).rejects.toThrow();
+    expect(User.findOne).not.toHaveBeenCalled();
+    expect(compare).not.toHaveBeenCalled();
+  } finally {
+    if (old === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = old;
+  }
+});

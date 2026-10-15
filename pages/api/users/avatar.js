@@ -1,3 +1,4 @@
+import { serverIntegrationEnabled } from "@/lib/integration-policy";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
 import { validImageUrl } from "@/lib/validation";
 import connectToDatabase from "@/lib/db";
@@ -8,6 +9,10 @@ import { authOptions } from "../auth/[...nextauth]";
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "private, no-store");
   if (rejectCrossOriginMutation(req, res)) return;
+  if (!serverIntegrationEnabled("uploads"))
+    return res
+      .status(503)
+      .json({ error: "Envio de imagens temporariamente indisponível." });
   await connectToDatabase();
 
   // 🔹 POST → salvar avatar (URL do Cloudinary)

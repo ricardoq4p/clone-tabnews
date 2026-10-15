@@ -1,3 +1,4 @@
+import { isProductionTestAccount } from "@/lib/integration-policy";
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
@@ -22,6 +23,8 @@ export const authOptions = {
         }
 
         const normalizedEmail = normalizeEmail(credentials.email);
+        if (isProductionTestAccount(normalizedEmail))
+          throw new Error("Email e senha invalidos");
         const rateLimitResult = await checkRateLimit({
           ip: getClientIp(req),
           identity: normalizedEmail,

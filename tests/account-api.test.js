@@ -22,6 +22,8 @@ import User from "../lib/models/User";
 import { sendVerificationEmail } from "../lib/verification-email";
 import register from "../pages/api/users/register";
 import reset from "../pages/api/users/reset-password";
+import forgot from "../pages/api/users/forgot-password";
+import resend from "../pages/api/users/resend-verification";
 const response = () => ({
   status: jest.fn().mockReturnThis(),
   json: jest.fn().mockReturnThis(),
@@ -128,3 +130,53 @@ test("racing token reuse cannot report a successful password reset", async () =>
   );
   expect(res.status).toHaveBeenCalledWith(400);
 });
+
+test("disabled production signup does not create an account or send email", async () => {
+  const old = process.env.VERCEL_ENV;
+  process.env.VERCEL_ENV = "production";
+  try {
+    const res = response();
+    await register(
+      {
+        method: "POST",
+        body: {
+          email: "real@example.com",
+          name: "Maria",
+          password: "valid-password",
+        },
+      },
+      res,
+    );
+    expect(res.status).toHaveBeenCalledWith(503);
+    expect(User.findOne).not.toHaveBeenCalled();
+    expect(User.create).not.toHaveBeenCalled();
+    expect(sendVerificationEmail).not.toHaveBeenCalled();
+  } finally {
+    if (old === undefined) delete process.env.VERCEL_ENV;
+    else process.env.VERCEL_ENV = old;
+  }
+});
+
+test.each([
+  ["forgot", forgot],
+  ["resend", resend],
+])(
+  "disabled production %s cannot mutate an account token",
+  async (_name, handler) => {
+    const old = process.env.VERCEL_ENV;
+    process.env.VERCEL_ENV = "production";
+    try {
+      const res = response();
+      await handler(
+        { method: "POST", body: { email: "real@example.com" } },
+        res,
+      );
+      expect(res.status).toHaveBeenCalledWith(503);
+      expect(User.findOne).not.toHaveBeenCalled();
+      expect(User.updateOne).not.toHaveBeenCalled();
+    } finally {
+      if (old === undefined) delete process.env.VERCEL_ENV;
+      else process.env.VERCEL_ENV = old;
+    }
+  },
+);

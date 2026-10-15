@@ -1,3 +1,5 @@
+> Continuação: limpeza autorizada e correções posteriores registradas em [LIMPEZA_E_PREPARACAO_PRODUCAO.md](LIMPEZA_E_PREPARACAO_PRODUCAO.md). Este documento mantém o diagnóstico anterior à limpeza.
+
 # Avaliação de lançamento em produção — 15/10/2026
 
 ## Decisão

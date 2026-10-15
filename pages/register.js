@@ -1,9 +1,15 @@
+import { configurePreviewOrigin } from "@/lib/preview-origin";
+import { isPreviewRegistrationEnabled } from "@/lib/preview-registration";
+import {
+  serverIntegrationEnabled,
+  EMAIL_UNAVAILABLE,
+} from "@/lib/integration-policy";
 import { useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import AuthLayout from "../components/AuthLayout";
 
-export default function Register() {
+export default function Register({ emailAvailable = true }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,6 +72,13 @@ export default function Register() {
     }
   };
 
+  if (!emailAvailable)
+    return (
+      <AuthLayout title="Emails temporariamente indisponíveis">
+        <p role="status">{EMAIL_UNAVAILABLE}</p>
+        <Link href="/login">Entrar na minha conta</Link>
+      </AuthLayout>
+    );
   return (
     <AuthLayout
       title="Crie sua conta e entre no fluxo sem atrito."
@@ -161,4 +174,14 @@ export default function Register() {
       </form>
     </AuthLayout>
   );
+}
+
+export async function getServerSideProps() {
+  configurePreviewOrigin();
+  return {
+    props: {
+      emailAvailable:
+        isPreviewRegistrationEnabled() || serverIntegrationEnabled("email"),
+    },
+  };
 }

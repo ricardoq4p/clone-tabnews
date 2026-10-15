@@ -79,7 +79,7 @@ test("creation ignores injected owner, timestamps, role and expiry", async () =>
       ownerId: owner,
       createdAt: now,
       expiresAt: new Date("2026-10-22T18:00:00Z"),
-      policyVersion: "2026-1",
+      policyVersion: "2026-2",
     }),
   );
   expect(Candle.create.mock.calls[0][0].role).toBeUndefined();

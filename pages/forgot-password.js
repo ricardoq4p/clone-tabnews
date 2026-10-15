@@ -1,8 +1,12 @@
+import {
+  serverIntegrationEnabled,
+  EMAIL_UNAVAILABLE,
+} from "@/lib/integration-policy";
 import { useState } from "react";
 import Link from "next/link";
 import AuthLayout from "../components/AuthLayout";
 
-export default function ForgotPassword() {
+export default function ForgotPassword({ emailAvailable = true }) {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -42,6 +46,13 @@ export default function ForgotPassword() {
     }
   };
 
+  if (!emailAvailable)
+    return (
+      <AuthLayout title="Emails temporariamente indisponíveis">
+        <p role="status">{EMAIL_UNAVAILABLE}</p>
+        <Link href="/login">Entrar na minha conta</Link>
+      </AuthLayout>
+    );
   return (
     <AuthLayout
       title="Recupere o acesso sem sair do fluxo."
@@ -102,4 +113,8 @@ export default function ForgotPassword() {
       </form>
     </AuthLayout>
   );
+}
+
+export async function getServerSideProps() {
+  return { props: { emailAvailable: serverIntegrationEnabled("email") } };
 }

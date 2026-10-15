@@ -1,3 +1,4 @@
+import { realtimeEnabled, uploadsEnabled } from "@/lib/integration-policy";
 import Image from "next/image";
 import LoadMoreButton from "../components/LoadMoreButton";
 import { useEffect, useState } from "react";
@@ -66,6 +67,12 @@ export default function Feed() {
       .catch(() => setMessages([]))
       .finally(() => setFeedLoading(false));
 
+    if (
+      !realtimeEnabled ||
+      !process.env.NEXT_PUBLIC_PUSHER_KEY ||
+      !process.env.NEXT_PUBLIC_PUSHER_CLUSTER
+    )
+      return;
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
       channelAuthorization: { endpoint: "/api/pusher/auth", transport: "ajax" },
@@ -190,6 +197,7 @@ export default function Feed() {
         useWebWorker: true,
       });
 
+      if (!uploadsEnabled) return;
       const formData = new FormData();
       formData.append("file", compressed);
       formData.append(
@@ -299,6 +307,7 @@ export default function Feed() {
                         <span className="mb-2 block">Imagem da comunidade</span>
                         <input
                           type="file"
+                          disabled={!uploadsEnabled}
                           accept="image/*"
                           onChange={(event) =>
                             handleCommunityImage(event.target.files?.[0])

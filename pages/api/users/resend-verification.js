@@ -1,3 +1,7 @@
+import {
+  serverIntegrationEnabled,
+  EMAIL_UNAVAILABLE,
+} from "@/lib/integration-policy";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import User from "@/lib/models/User";
@@ -16,6 +20,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Metodo nao permitido" });
   const message =
     "Se houver uma conta pendente, enviaremos um novo link de confirmacao.";
+  if (!serverIntegrationEnabled("email"))
+    return res.status(503).json({ error: EMAIL_UNAVAILABLE });
   try {
     const email = normalizeEmail(req.body?.email);
     if (!validEmail(email))

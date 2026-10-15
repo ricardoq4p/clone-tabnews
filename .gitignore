@@ -6,3 +6,6 @@ node_modules
 .npm-cache
 
 .qa/
+
+# Include nonstandard CLI exports such as .vercel.production.env.
+*.env
