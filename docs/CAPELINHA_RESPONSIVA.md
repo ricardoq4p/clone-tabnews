@@ -51,3 +51,23 @@ Preparar deployment no projeto oficial, sem promover domínio automaticamente.
 Confirmar READY e metadado do commit testado antes da promoção. Validar domínio,
 imagem e geometria publicadas depois. Sem alterações de DNS, variáveis ou contas.
 Rollback visual: `dpl_4Xxk5EoNqsyTjCepE9Fb3ZdiAcAx`, sem restaurar banco.
+
+## Publicação concluída — 16/10/2026
+
+- Código publicado: `ac6d8fe`, branch `fix/chapel-viewport-fit`, enviada ao GitHub.
+- Deployment oficial: `dpl_5P5Se3jgd1v4mYjDrXsejVBEd6QU`, READY. Build Vercel
+  aprovado e metadado `testedCommit` conferido antes da promoção.
+- Alias `panteralab.com.br` e alvo Production confirmados no novo deployment.
+- Matriz de sete resoluções repetida com sucesso no domínio público; seis velas
+  sintéticas fornecidas exclusivamente por interceptação das APIs no navegador.
+  Mouse, toque, teclado, paginação e atualização novamente aprovados.
+- Em 1280×720, a imagem termina em y=707,94 e o controle de atualização em
+  y=672,53. Em 1366×768, imagem até y=755,88 e atualização até y=676.
+- SHA-256 do PNG servido continua idêntico ao original. Início, Capelinha,
+  Rosário e administração responderam HTTP 200.
+- Capturas públicas de desktop e celular inspecionadas; sem erros JavaScript.
+- Nenhuma gravação de teste no banco de produção. Sem alteração de configurações,
+  variáveis, DNS, APIs, identidade administrativa, dependências ou dados.
+- A ligação local de homologação foi preservada; o upload foi feito de uma
+  exportação limpa do commit, vinculada somente ao projeto oficial. Artefatos
+  `.qa`, credenciais e configurações locais não foram enviados.
