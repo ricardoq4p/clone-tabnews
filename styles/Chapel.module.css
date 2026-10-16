@@ -55,6 +55,7 @@
   display: block;
   width: 100%;
   height: auto;
+  object-fit: contain;
 }
 .candle {
   position: absolute;
@@ -257,4 +258,74 @@
 
 .viewControls {
   padding-bottom: 1rem;
+}
+
+/* Keep the original 3:2 coordinate space: image and candles shrink together.
+   The minimum allows natural scrolling in short windows and at browser zoom. */
+@media (min-width: 1024px) {
+  .page > :global(.p-container) :global(.p-page-head) {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: clamp(1.5rem, 4vw, 4rem);
+    padding-block: clamp(0.75rem, 2dvh, 1.5rem);
+  }
+  .page > :global(.p-container) :global(.p-breadcrumb),
+  .page > :global(.p-container) :global(.p-page-head > .p-eyebrow) {
+    grid-column: 1 / -1;
+  }
+  .page > :global(.p-container) :global(.p-breadcrumb) {
+    margin-bottom: 0.25rem;
+  }
+  .page > :global(.p-container) :global(.p-page-head h1) {
+    font-size: clamp(1.75rem, 3.5dvh, 2.5rem);
+    margin-block: 0.5rem 0.25rem;
+  }
+  .page > :global(.p-container) :global(.p-page-head > p:last-child) {
+    align-self: center;
+    margin-top: 0;
+    font-size: 0.9375rem;
+  }
+  .viewControls {
+    padding-bottom: 0.5rem;
+  }
+  .page .viewControls :global(.p-tabs) {
+    margin-block: 0;
+  }
+  .sanctuary {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) clamp(16rem, 25vw, 21rem);
+    align-items: start;
+    gap: clamp(1rem, 2vw, 2rem);
+    padding: 0.75rem clamp(1rem, 3vw, 3rem);
+  }
+  .scene {
+    width: min(
+      100%,
+      calc(max(18rem, calc(100dvh - var(--chapel-top, 22rem) - 1.5rem)) * 1.5)
+    );
+    max-width: 1536px;
+  }
+  .sceneControls {
+    width: 100%;
+    padding: 0;
+  }
+  .sanctuary .sceneCaption h2 {
+    font-size: clamp(1.25rem, 2.8dvh, 1.75rem);
+    margin-block: 0.5rem;
+  }
+  .sanctuary .sceneCaption p {
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .sanctuary .sceneCaption .eyebrow {
+    font-size: 0.6875rem;
+  }
+  .choices {
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .navigation {
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
 }

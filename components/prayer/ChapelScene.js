@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import CandleCard from "./CandleCard";
 import {
@@ -18,6 +18,30 @@ export default function ChapelScene({
 }) {
   const [page, setPage] = useState(0);
   const [selectedId, setSelectedId] = useState(null);
+  const sanctuaryRef = useRef(null);
+  useEffect(() => {
+    const sanctuary = sanctuaryRef.current;
+    // Presentation only: account for the real header, introduction and tabs,
+    // including wrapped text/zoom. Coordinates inside the scene stay unchanged.
+    const measure = () => {
+      const top = sanctuary.getBoundingClientRect().top + window.scrollY;
+      sanctuary.style.setProperty("--chapel-top", `${Math.ceil(top)}px`);
+    };
+    const observer = new ResizeObserver(measure);
+    [
+      document.querySelector(".p-header"),
+      sanctuary.previousElementSibling,
+      sanctuary.previousElementSibling?.previousElementSibling,
+    ].forEach((element) => {
+      if (element) observer.observe(element);
+    });
+    window.addEventListener("resize", measure);
+    measure();
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
   const active = activeSceneCandles(candles, now, history);
   const pages = Math.max(1, Math.ceil(active.length / CHAPEL_PAGE_SIZE));
   const currentPage = Math.min(page, pages - 1);
@@ -30,6 +54,7 @@ export default function ChapelScene({
     `Selecionar vela ${currentPage * CHAPEL_PAGE_SIZE + index + 1}`;
   return (
     <section
+      ref={sanctuaryRef}
       className={styles.sanctuary}
       aria-label="Cenário da Capelinha Virtual"
     >
