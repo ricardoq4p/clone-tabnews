@@ -42,6 +42,9 @@ async function photo(page, name) {
       viewport: { width: 1440, height: 1000 },
       reducedMotion: "reduce",
     });
+    await context.route("**/api/auth/session", (route) =>
+      route.fulfill({ json: {} }),
+    );
     const page = await context.newPage();
     track(page);
     page.setDefaultTimeout(30000);
@@ -52,7 +55,7 @@ async function photo(page, name) {
     await photo(page, "home-desktop.png");
     report.push("Desktop home: 200, language, responsive layout");
     await page
-      .getByRole("link", { name: "Rezar o Santo Rosário", exact: true })
+      .getByRole("link", { name: "Começar a rezar", exact: true })
       .click();
     await page.getByRole("button", { name: "Começar este momento" }).waitFor();
     await page.getByRole("button", { name: /Luminosos/ }).click();
@@ -129,7 +132,7 @@ async function photo(page, name) {
         }),
       ),
     );
-    await page.getByRole("link", { name: "Ana", exact: true }).waitFor();
+    await page.locator(".p-account").filter({ hasText: "Ana" }).waitFor();
     await page.getByRole("button", { name: "Começar este momento" }).waitFor();
     assert.equal(
       await page.evaluate(
@@ -168,7 +171,7 @@ async function photo(page, name) {
         }),
       ),
     );
-    await page.getByRole("link", { name: "Beatriz", exact: true }).waitFor();
+    await page.locator(".p-account").filter({ hasText: "Beatriz" }).waitFor();
     await page.getByRole("button", { name: "Começar este momento" }).waitFor();
     assert.equal(
       await page.evaluate(
@@ -197,6 +200,9 @@ async function photo(page, name) {
       deviceScaleFactor: 1,
       reducedMotion: "reduce",
     });
+    await mobile.route("**/api/auth/session", (route) =>
+      route.fulfill({ json: {} }),
+    );
     const phone = await mobile.newPage();
     track(phone);
     await phone.goto(base, { waitUntil: "networkidle" });

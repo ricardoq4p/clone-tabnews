@@ -3,6 +3,22 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import Icon from "./Icon";
+import localFont from "next/font/local";
+
+const pixel = localFont({
+  src: "../../public/fonts/pixelify-latin.woff2",
+  variable: "--font-retro-pixel",
+  display: "swap",
+  weight: "400 700",
+  fallback: ["Courier New", "monospace"],
+});
+const mono = localFont({
+  src: "../../public/fonts/ibm-plex-mono-latin.woff2",
+  variable: "--font-retro-mono",
+  display: "swap",
+  weight: "400",
+  fallback: ["Courier New", "monospace"],
+});
 const links = [
   { href: "/", label: "Início", icon: "home" },
   {
@@ -12,7 +28,12 @@ const links = [
     icon: "rosary",
   },
   { href: "/capelinha", label: "Capelinha", icon: "candle" },
-  { href: "/comunidade", label: "Comunidade", icon: "people" },
+  {
+    href: "/comunidade",
+    label: "Comunidades",
+    short: "Comunidade",
+    icon: "people",
+  },
 ];
 export default function PrayerLayout({
   children,
@@ -36,11 +57,13 @@ export default function PrayerLayout({
   ].includes(router.pathname);
 
   return (
-    <div className={`prayer-app ${legacy ? "prayer-legacy" : ""}`}>
+    <div
+      className={`prayer-app ${pixel.variable} ${mono.variable} ${legacy ? "prayer-legacy" : ""}`}
+    >
       <Head>
         <title>{`${title} · PanteraLab`}</title>
         <meta name="description" content={description} />
-        <meta name="theme-color" content="#f6f3ec" />
+        <meta name="theme-color" content="#080B0A" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/sacred/favicon.svg" />
         {["homologacao-local", "homologacao-vercel"].includes(
@@ -109,6 +132,11 @@ export default function PrayerLayout({
               : "Entrar"}
           </span>
         </Link>
+        {!session ? (
+          <Link href="/register" className="p-account p-register">
+            Criar conta
+          </Link>
+        ) : null}
       </header>
       <main id="conteudo" tabIndex={-1}>
         {children}

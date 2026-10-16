@@ -5,6 +5,7 @@ import { SessionProvider, useSession } from "next-auth/react";
 import "../styles/globals.css";
 import "../styles/prayer.css";
 import "../styles/design-system.css";
+import "../styles/retro.css";
 
 function PresenceHeartbeat() {
   const { data: session, status } = useSession();

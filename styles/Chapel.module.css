@@ -1,8 +1,8 @@
 .page {
-  --chapel-ivory: #f4ebdd;
-  --chapel-gold: #b68a4c;
-  --chapel-ink: #34251d;
-  background: #f4ebdd;
+  --chapel-ivory: var(--p-ink);
+  --chapel-gold: var(--p-gold);
+  --chapel-ink: var(--p-ink);
+  background: var(--p-paper);
   color: var(--chapel-ink);
   padding-bottom: 3rem;
 }
@@ -15,33 +15,33 @@
 }
 .page :global(.p-panel),
 .page :global(.p-candle-card) {
-  background: #fffaf2;
-  border-color: #d8c3a5;
-  box-shadow: 0 8px 28px #76512f0a;
-  border-radius: 12px;
+  background: var(--p-white);
+  border-color: var(--p-line);
+  box-shadow: none;
+  border-radius: var(--p-radius);
 }
 .page :global(.p-chapel-layout) {
   padding-top: 2.5rem;
 }
 .page :global(.p-button) {
-  background: #76512f;
-  color: #fffaf2;
-  border-color: #76512f;
+  background: var(--p-terminal);
+  color: var(--p-paper);
+  border-color: var(--p-terminal);
 }
 .page :global(.p-button:hover) {
-  background: #583b25;
+  background: #6bff9e;
 }
 .page :global(.p-button-outline) {
   background: transparent;
-  color: #583b25;
+  color: var(--p-ink);
 }
 .page :global(.p-tabs button[aria-pressed="true"]) {
-  color: #203d59;
-  border-color: #76512f;
+  color: var(--p-terminal);
+  border-color: var(--p-terminal);
 }
 .sanctuary {
-  background: #34251d;
-  color: #f4ebdd;
+  background: var(--p-paper);
+  color: var(--p-ink);
 }
 .scene {
   position: relative;
@@ -128,7 +128,7 @@
 }
 .page button:focus-visible,
 .page a:focus-visible {
-  outline: 3px solid #203d59;
+  outline: 3px solid var(--p-focus);
   outline-offset: 4px;
 }
 .sanctuary button:focus-visible {
@@ -144,22 +144,22 @@
   text-align: center;
 }
 .eyebrow {
-  color: #ddbd8c;
+  color: var(--p-gold);
   font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.18em;
 }
 .sceneCaption h2 {
-  font-family: var(--font-serif, Georgia, serif);
+  font-family: var(--p-font-heading);
   font-size: clamp(1.5rem, 3vw, 2rem);
   margin: 0.6rem 0;
-  color: #f4ebdd;
+  color: var(--p-ink);
 }
 .sceneCaption p {
   line-height: 1.7;
 }
 .privacyNote {
-  color: #d8c3a5;
+  color: var(--p-muted);
   font-size: 0.875rem;
   margin-top: 0.5rem;
 }
@@ -175,21 +175,21 @@
 .selectedHeading button {
   min-height: 44px;
   padding: 0.65rem 1rem;
-  background: #49352a;
-  border: 1px solid #b68a4c;
-  color: #f4ebdd;
-  border-radius: 6px;
+  background: var(--p-white);
+  border: 1px solid var(--p-border-strong);
+  color: var(--p-ink);
+  border-radius: var(--p-radius-control);
   font-size: 0.9375rem;
 }
 .choices button:hover,
 .navigation button:hover,
 .selectedHeading button:hover {
-  background: #62472f;
+  background: var(--p-surface-soft);
 }
 .choices button[aria-pressed="true"] {
-  background: #f4ebdd;
-  color: #34251d;
-  border-color: #f4ebdd;
+  background: var(--p-surface-soft);
+  color: var(--p-ink);
+  border-color: var(--p-ink);
 }
 .navigation {
   display: flex;
@@ -207,7 +207,7 @@
 .selection {
   max-width: 700px;
   margin: 0 auto;
-  color: #34251d;
+  color: var(--p-ink);
 }
 .selectedHeading {
   display: flex;
@@ -215,10 +215,10 @@
   align-items: center;
   gap: 1rem;
   margin: 1.5rem 0 1rem;
-  color: #f4ebdd;
+  color: var(--p-ink);
 }
 .selectedHeading h3 {
-  font-family: Georgia, serif;
+  font-family: var(--p-font-heading);
   font-size: 1.1rem;
 }
 @keyframes chapel-flicker {

@@ -2343,7 +2343,7 @@
   gap: 20px;
 }
 .p-social article {
-  border-radius: 7px !important;
+  border-radius: var(--p-radius) !important;
   background: var(--p-white);
   border: 1px solid var(--p-line);
   box-shadow: none;
@@ -2359,7 +2359,7 @@
 }
 .p-social .bg-white\/5,
 .p-social .bg-white\/\[0\.03\] {
-  background: #f4f2e9 !important;
+  background: var(--p-paper) !important;
 }
 .p-social .border-white\/10,
 .p-social .border-white\/8 {
@@ -2382,7 +2382,7 @@
   border-color: #dedccc;
   font-size: 10px;
   background: #faf9f4;
-  border-radius: 5px !important;
+  border-radius: var(--p-radius-control) !important;
 }
 .p-social .primary-button,
 .p-auth-form .primary-button {
@@ -2487,9 +2487,8 @@
   color: #627a64;
 }
 .p-auth-form h2 {
-  font:
-    29px Georgia,
-    serif !important;
+  font-family: var(--p-font-heading);
+  font-size: 29px;
 }
 .p-auth-form .text-red-200 {
   color: #913f38;

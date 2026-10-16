@@ -1,0 +1,820 @@
+/* Retro Digital: scoped to the shared prayer shell; religious artwork is untouched. */
+.prayer-app {
+  --p-terminal: #00e85a;
+  --p-terminal-secondary: #00a844;
+  --p-retro-red: #e94a42;
+  --p-font-mono: var(--font-retro-mono), "Courier New", monospace;
+  --p-font-heading: var(--font-retro-pixel), "Courier New", monospace;
+  background: var(--p-paper);
+  color: var(--p-ink);
+  color-scheme: dark;
+}
+.prayer-app ::selection {
+  background: var(--p-terminal);
+  color: var(--p-paper);
+}
+.prayer-app :is(h1, h2, h3) {
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.prayer-app em {
+  font-style: normal;
+  color: var(--p-terminal);
+}
+.prayer-app
+  :is(
+    .p-header,
+    .p-footer,
+    .p-eyebrow,
+    .p-section-label,
+    .p-number,
+    .p-tabs,
+    .p-button,
+    .p-account,
+    .p-text-link,
+    .p-inline-link,
+    .p-inline-button,
+    .primary-button,
+    .secondary-button
+  ) {
+  font-family: var(--p-font-mono);
+}
+.prayer-app .p-header {
+  height: auto;
+  min-height: 76px;
+  gap: 12px;
+}
+.prayer-app .p-brand {
+  font-family: var(--p-font-heading);
+  color: var(--p-terminal);
+  font-size: 30px;
+  letter-spacing: 0;
+}
+.prayer-app .p-brand small {
+  font-family: var(--p-font-mono);
+  color: var(--p-muted);
+  font-size: 9px;
+}
+.prayer-app .p-brand-mark {
+  color: var(--p-gold);
+  background: transparent;
+  border: 1px solid var(--p-line);
+  border-radius: 0;
+  width: 34px;
+  height: 36px;
+}
+.prayer-app .p-nav a {
+  font-size: 12px;
+  padding-inline: 12px;
+}
+.prayer-app .p-nav a[aria-current] {
+  color: var(--p-terminal);
+  background: var(--p-surface-soft);
+}
+.prayer-app .p-nav a[aria-current]::after {
+  background: var(--p-terminal);
+}
+.prayer-app .p-account {
+  font-size: 12px;
+  border-radius: 2px;
+}
+.prayer-app .p-register {
+  color: var(--p-paper);
+  background: var(--p-terminal);
+  border-color: var(--p-terminal);
+}
+.prayer-app .p-register:hover {
+  background: #6bff9e;
+  color: var(--p-paper);
+}
+.prayer-app :is(.p-button, .primary-button) {
+  background: var(--p-terminal);
+  border: 1px solid var(--p-terminal);
+  color: var(--p-paper) !important;
+  box-shadow: none;
+  font-size: 13px;
+}
+.prayer-app :is(.p-button, .primary-button):hover {
+  background: #6bff9e;
+  border-color: #6bff9e;
+}
+.prayer-app
+  :is(
+    .p-button-outline,
+    .p-button-light,
+    .p-button-secondary,
+    .secondary-button
+  ) {
+  background: transparent;
+  border: 1px solid var(--p-border-strong);
+  color: var(--p-ink) !important;
+  box-shadow: none;
+}
+.prayer-app
+  :is(
+    .p-button-outline,
+    .p-button-light,
+    .p-button-secondary,
+    .secondary-button
+  ):hover {
+  background: var(--p-surface-soft);
+  border-color: var(--p-terminal);
+}
+.prayer-app :is(.p-panel, .p-path-card, .p-social article, .glass-panel) {
+  background: var(--p-white);
+  border-color: var(--p-line);
+  box-shadow: none;
+  backdrop-filter: none;
+}
+.prayer-app .p-panel {
+  padding: 24px;
+}
+.prayer-app :is(.p-text-link, .p-inline-link, .p-inline-button) {
+  color: var(--p-terminal);
+}
+.prayer-app a:hover {
+  text-decoration-color: var(--p-terminal);
+}
+.prayer-app :is(.p-text-link, .p-inline-link, .p-inline-button):hover {
+  text-decoration: underline;
+}
+.prayer-app .p-eyebrow {
+  font-size: 11px !important;
+  letter-spacing: 0.1em;
+}
+.prayer-app .p-page-head {
+  padding-block: 28px 24px;
+}
+.prayer-app .p-page-head h1 {
+  font-size: clamp(1.9rem, 3.1vw, 2.6rem);
+}
+.prayer-app .p-page-head > p:last-child {
+  font-size: 16px;
+}
+.prayer-app .p-tabs {
+  border-color: var(--p-line);
+}
+.prayer-app .p-tabs :is(button, a) {
+  font-size: 13px;
+}
+.prayer-app .p-tabs :is([aria-pressed="true"], [aria-current]) {
+  color: var(--p-terminal);
+  border-color: var(--p-terminal);
+  background: var(--p-surface-soft);
+}
+.prayer-app .p-tabs :is(button, a):hover {
+  background: var(--p-surface-soft);
+}
+.prayer-app :is(.p-error, [role="alert"]) {
+  color: var(--p-danger) !important;
+}
+.prayer-app .p-error {
+  background: #291715;
+  border: 1px solid #a64c45;
+  border-radius: 2px;
+}
+.prayer-app
+  :is(
+    .p-notice,
+    .p-resume,
+    .p-conflict,
+    .p-review-panel,
+    .p-review-content,
+    .p-request-history
+  ) {
+  background: var(--p-surface-soft);
+  color: var(--p-ink);
+  border-color: var(--p-line);
+}
+.prayer-app .p-empty {
+  border-color: var(--p-border-strong);
+  border-radius: 2px;
+}
+.prayer-app :is(input[type="checkbox"], input[type="radio"]) {
+  accent-color: var(--p-terminal);
+}
+.prayer-app
+  :is(
+    .p-field input,
+    .p-field textarea,
+    .p-field select,
+    .field-input,
+    .p-input,
+    .p-report select,
+    .p-composer-bottom select,
+    .p-admin-reason textarea
+  ) {
+  background: var(--p-paper);
+  color: var(--p-ink);
+  border-color: var(--p-border-strong);
+  border-radius: 2px;
+  box-shadow: none;
+}
+.prayer-app :is(input, textarea)::placeholder {
+  color: var(--p-muted);
+  opacity: 1;
+}
+.prayer-app .p-visibility label:has(input:checked) {
+  background: var(--p-surface-soft);
+  border-color: var(--p-terminal);
+}
+.prayer-app
+  :is(
+    .p-mystery-option,
+    .p-preview-mysteries,
+    .p-prayer-card,
+    .p-contemplation,
+    .p-beads-panel
+  ) {
+  background: var(--p-white);
+  color: var(--p-ink);
+  border-radius: 2px;
+  border-color: var(--p-line);
+  box-shadow: none;
+}
+.prayer-app .p-mystery-option.is-selected {
+  background: var(--p-surface-soft);
+  border-color: var(--p-terminal);
+  box-shadow: inset 3px 0 var(--p-terminal);
+}
+.prayer-app .p-mystery-option strong {
+  font-family: var(--p-font-heading);
+  font-size: 26px;
+}
+.prayer-app .p-mystery-today {
+  background: var(--p-surface-soft);
+  color: var(--p-gold);
+  border: 1px solid var(--p-line);
+  border-radius: 0;
+}
+.prayer-app .p-preview-mysteries li {
+  border-color: var(--p-line);
+}
+.prayer-app .p-prayer-text {
+  font-family: var(--p-font-body);
+  font-size: calc(22px * var(--prayer-scale, 1));
+  line-height: 1.85;
+  color: var(--p-ink);
+}
+.prayer-app .p-prayer-label {
+  color: var(--p-muted);
+}
+.prayer-app .p-rosary-progress progress {
+  accent-color: var(--p-terminal);
+}
+.prayer-app .p-rosary-progress progress::-webkit-progress-bar {
+  background: var(--p-line);
+}
+.prayer-app .p-rosary-progress progress::-webkit-progress-value {
+  background: var(--p-terminal);
+}
+.prayer-app .p-rosary-progress progress::-moz-progress-bar {
+  background: var(--p-terminal);
+}
+.prayer-app .p-bead > span {
+  background: var(--p-line);
+  border-color: var(--p-border-strong);
+}
+.prayer-app .p-bead.is-done > span {
+  background: var(--p-terminal-secondary);
+}
+.prayer-app .p-bead.is-current > span {
+  background: var(--p-gold);
+  box-shadow:
+    0 0 0 3px var(--p-paper),
+    0 0 0 4px var(--p-gold);
+}
+.prayer-app :is(.p-font-button, .p-pray-button) {
+  color: var(--p-ink) !important;
+  border-color: var(--p-border-strong);
+  background: transparent;
+  border-radius: 2px;
+}
+.prayer-app .p-pray-button.is-prayed {
+  background: var(--p-surface-soft);
+  color: var(--p-terminal) !important;
+}
+.prayer-app :is(.p-candle-card-art, .p-community-prayer) {
+  background: var(--p-surface-soft);
+}
+.prayer-app .p-candle-privacy {
+  background: var(--p-paper);
+  color: var(--p-muted);
+  border-color: var(--p-line);
+  border-radius: 2px;
+}
+.prayer-app
+  .p-social
+  :is(.bg-white\/5, .bg-white\/\[0\.03\], .bg-slate-950\/30),
+.prayer-legacy main :is(.bg-slate-950\/30, .bg-slate-950\/20) {
+  background: var(--p-paper);
+}
+.prayer-app .p-social :is(.text-white, .text-slate-200, .text-slate-300),
+.prayer-app .p-auth-form :is(.text-white, .text-slate-300),
+.prayer-legacy
+  main
+  :is(.text-white, .text-slate-100, .text-slate-200, .text-slate-300) {
+  color: var(--p-ink);
+}
+.prayer-app .p-social :is(.text-slate-400, .text-slate-500),
+.prayer-app .p-auth-form :is(.text-slate-400, .text-slate-500) {
+  color: var(--p-muted);
+}
+.prayer-app
+  :is(.p-social, .p-auth-form, .prayer-legacy)
+  :is(.text-red-200, .text-red-300) {
+  color: var(--p-danger);
+}
+.prayer-app .p-auth-form :is(.text-emerald-200, .text-cyan-200) {
+  color: var(--p-terminal);
+}
+.prayer-app .p-social :is(.rounded-3xl, .rounded-2xl),
+.prayer-legacy main :is(.rounded-3xl, .rounded-2xl) {
+  border-radius: 2px;
+}
+.prayer-legacy main :is(h1, h2, h3) {
+  font-family: var(--p-font-heading);
+  letter-spacing: 0;
+}
+.prayer-app .p-auth-form h2 {
+  font-family: var(--p-font-heading);
+}
+.prayer-app .p-community-dialog {
+  background: var(--p-white);
+  color: var(--p-ink);
+  border-color: var(--p-border-strong);
+  border-radius: 2px;
+}
+.prayer-app .p-community-avatar {
+  background: var(--p-surface-soft);
+  color: var(--p-gold);
+  border-radius: 2px;
+}
+.prayer-app .p-community-danger {
+  color: var(--p-ink) !important;
+  background: #642c27;
+  border-color: #a64c45;
+}
+.prayer-app .p-community-danger:hover {
+  background: #843c35;
+}
+.prayer-app
+  :is(
+    .p-admin-records article,
+    .p-admin-reason,
+    .p-editor-section,
+    .p-report form
+  ) {
+  border-color: var(--p-line);
+}
+.prayer-app table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--p-white);
+}
+.prayer-app :is(th, td) {
+  padding: 12px;
+  text-align: start;
+  border-bottom: 1px solid var(--p-line);
+}
+.prayer-app th {
+  font-family: var(--p-font-mono);
+  color: var(--p-terminal);
+}
+.prayer-app .p-mobile-nav {
+  backdrop-filter: none;
+}
+.prayer-app .p-mobile-nav a[aria-current] {
+  color: var(--p-terminal);
+  background: var(--p-surface-soft);
+}
+.prayer-app .p-footer {
+  border-top: 1px solid var(--p-line);
+  margin-top: 32px;
+}
+.prayer-app .p-footer-brand {
+  font-family: var(--p-font-heading);
+  font-size: 24px;
+  color: var(--p-terminal);
+}
+.prayer-app .p-footer :is(p, .p-footer-note) {
+  font-size: 12px !important;
+}
+.prayer-app .p-footer > div:nth-child(2) {
+  font-size: 12px;
+}
+/* Home: compact terminal windows, with no simulated activity or statistics. */
+.prayer-app .r-home {
+  padding-top: 24px;
+}
+.r-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--p-line);
+  color: var(--p-muted);
+  font: 10px/1.6 var(--p-font-mono);
+  letter-spacing: 0.08em;
+}
+.r-status > span:first-child {
+  color: var(--p-terminal);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.r-status-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--p-terminal);
+}
+.prayer-app .r-home .p-hero {
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(24px, 4vw, 64px);
+  padding-block: 32px;
+}
+.prayer-app .r-home .p-hero h1 {
+  font-size: clamp(2.5rem, 4.1vw, 3.7rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  margin-block: 18px;
+}
+.prayer-app .r-home .p-lead {
+  font-size: 16px;
+  line-height: 1.75;
+  max-width: 500px;
+}
+.prayer-app .r-home .p-actions {
+  margin-top: 24px;
+  gap: 12px;
+}
+.prayer-app .r-home .p-quiet {
+  font-size: 12px;
+  margin-top: 16px !important;
+}
+.r-hero-window {
+  margin: 0;
+  border: 1px solid var(--p-border-strong);
+  background: var(--p-white);
+  min-width: 0;
+  box-shadow: 5px 5px 0 var(--p-surface-soft);
+}
+.r-window-bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  color: var(--p-terminal);
+  background: var(--p-surface-soft);
+  border-bottom: 1px solid var(--p-line);
+  font: 11px/1.5 var(--p-font-mono);
+}
+.r-window-bar > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.r-window-bar svg {
+  color: var(--p-gold);
+}
+.r-hero-window > img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3/2;
+  object-fit: contain;
+  display: block;
+}
+.r-window-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  color: var(--p-muted);
+  border-top: 1px solid var(--p-line);
+  font-size: 12px;
+}
+.r-window-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  color: var(--p-gold);
+}
+.prayer-app .r-paths {
+  padding-block: 8px 24px;
+}
+.prayer-app .r-paths .p-section-heading {
+  align-items: center;
+  margin-bottom: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--p-line);
+}
+.prayer-app .r-paths .p-section-heading h2 {
+  font-size: 28px;
+  margin-top: 8px;
+}
+.prayer-app .r-paths .p-section-heading > p {
+  font-size: 13px;
+}
+.prayer-app .r-paths .p-path-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+.prayer-app .r-paths .p-path-card {
+  border-radius: 2px;
+  min-width: 0;
+}
+.prayer-app .r-paths .p-path-card:hover {
+  border-color: var(--p-terminal);
+  box-shadow: none;
+}
+.prayer-app .r-paths .p-path-art {
+  height: 130px;
+  min-height: 0;
+  background: var(--p-surface-soft);
+  border-bottom: 1px solid var(--p-line);
+}
+.r-paths .p-path-art img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+}
+.prayer-app .r-paths .p-path-art > span {
+  left: 12px;
+  bottom: 10px;
+  padding: 4px 8px;
+  border: 1px solid var(--p-line);
+  background: var(--p-paper);
+  color: var(--p-gold);
+  font: 10px/1.5 var(--p-font-mono);
+  letter-spacing: 0.08em;
+}
+.prayer-app .r-paths .p-path-copy {
+  padding: 18px 20px;
+}
+.prayer-app .r-paths .p-path-copy h3 {
+  font-size: 28px;
+  margin: 4px 0 10px;
+}
+.prayer-app .r-paths .p-path-copy p {
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 12px;
+}
+.prayer-app .r-paths .p-text-link {
+  font-size: 12px;
+}
+.r-lower-panels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+.prayer-app .r-lower-panels .p-daily {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  padding: 20px;
+  gap: 8px 16px;
+  border: 1px solid var(--p-line);
+  background: var(--p-white);
+  border-radius: 2px;
+}
+.prayer-app .r-lower-panels .p-daily h2 {
+  font-size: 28px;
+}
+.prayer-app .r-lower-panels .p-daily-icon {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--p-line);
+  border-radius: 0;
+  background: var(--p-surface-soft);
+  color: var(--p-gold);
+}
+.prayer-app .r-lower-panels .p-daily-date {
+  display: block;
+  grid-column: 2;
+  margin-left: 0 !important;
+  font-size: 13px;
+}
+.prayer-app .r-lower-panels .p-daily .p-text-link {
+  grid-column: 2;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-size: 12px;
+}
+.prayer-app .r-account-panel {
+  padding: 20px;
+}
+.r-account-panel h2 {
+  font-size: 28px;
+  margin: 10px 0;
+}
+.r-account-panel > p:not(.p-eyebrow) {
+  color: var(--p-muted);
+  font-size: 14px;
+}
+.r-account-panel .p-text-link {
+  margin-top: 8px;
+  font-size: 12px;
+}
+.r-home-note {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 24px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--p-line);
+  color: var(--p-muted);
+  font-size: 13px;
+}
+.r-home-note > svg {
+  color: var(--p-gold);
+  flex-shrink: 0;
+}
+.r-home-note a {
+  margin-left: auto;
+  color: var(--p-terminal);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+@media (min-width: 961px) {
+  .prayer-app .p-nav {
+    margin-right: auto;
+  }
+}
+@media (max-width: 1100px) {
+  .prayer-app .p-nav a {
+    padding-inline: 8px;
+    font-size: 11px;
+  }
+  .prayer-app .p-admin-shortcut span {
+    display: none;
+  }
+}
+@media (max-width: 960px) {
+  .prayer-app .p-header {
+    min-height: 68px;
+  }
+  .prayer-app .p-header .p-account:not(.p-register):not(.p-admin-shortcut) {
+    margin-left: auto;
+  }
+  .prayer-app .r-home .p-hero h1 {
+    font-size: clamp(2.3rem, 5vw, 3rem);
+  }
+  .prayer-app .r-home .p-actions .p-button {
+    width: 100%;
+  }
+  .r-window-footer {
+    flex-wrap: wrap;
+  }
+  .prayer-app .r-paths .p-path-copy {
+    padding: 16px;
+  }
+}
+@media (max-width: 720px) {
+  .prayer-app .p-brand {
+    font-size: 25px;
+  }
+  .prayer-app .p-header {
+    gap: 8px;
+  }
+  .prayer-app .p-account {
+    padding-inline: 10px;
+  }
+  .prayer-app .p-register {
+    font-size: 11px;
+  }
+  .prayer-app .p-account:not(.p-register) > svg {
+    display: none;
+  }
+  .prayer-app .r-home {
+    padding-top: 12px;
+  }
+  .r-status {
+    font-size: 9px;
+  }
+  .r-status > span:last-child {
+    display: none;
+  }
+  .prayer-app .r-home .p-hero {
+    grid-template-columns: 1fr;
+    padding-block: 24px;
+    gap: 24px;
+    text-align: left;
+  }
+  .prayer-app .r-home .p-hero .p-eyebrow {
+    justify-content: flex-start;
+  }
+  .prayer-app .r-home .p-hero h1 {
+    font-size: clamp(2.5rem, 10vw, 3.2rem);
+  }
+  .prayer-app .r-home .p-lead {
+    font-size: 16px;
+    margin: 0;
+  }
+  .prayer-app .r-home .p-actions {
+    margin-top: 18px;
+  }
+  .r-hero-window {
+    max-width: 500px;
+    width: 100%;
+    justify-self: center;
+  }
+  .r-window-footer {
+    font-size: 12px;
+  }
+  .prayer-app .r-paths .p-section-heading {
+    display: block;
+  }
+  .prayer-app .r-paths .p-section-heading > p {
+    display: none;
+  }
+  .prayer-app .r-paths .p-path-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .prayer-app .r-paths .p-path-art {
+    height: 140px;
+  }
+  .prayer-app .r-paths .p-path-copy {
+    padding: 20px;
+  }
+  .r-lower-panels {
+    grid-template-columns: 1fr;
+  }
+  .r-home-note {
+    align-items: flex-start;
+  }
+  .r-home-note p {
+    flex: 1;
+  }
+  .r-home-note a {
+    margin-left: 28px;
+  }
+  .prayer-app .p-footer {
+    margin-top: 24px;
+  }
+}
+@media (max-width: 360px) {
+  .prayer-app .p-brand {
+    font-size: 23px;
+    gap: 0;
+  }
+  .prayer-app .p-brand-mark {
+    display: none;
+  }
+  .prayer-app .p-account {
+    font-size: 11px;
+    padding-inline: 8px;
+  }
+  .prayer-app .p-mobile-nav a {
+    font-size: 10px;
+  }
+  .r-window-bar {
+    font-size: 10px;
+  }
+}
+
+.prayer-app .p-auth-values > span {
+  color: var(--p-muted);
+}
+@media (min-width: 721px) {
+  .r-hero-window {
+    max-width: 520px;
+    justify-self: end;
+  }
+}
+@media (max-width: 720px) {
+  .r-home-note p {
+    flex-basis: 80%;
+  }
+}
+/* Existing account/group selectors include main; retain their specificity. */
+.prayer-app.prayer-legacy main .primary-button {
+  background: var(--p-terminal);
+  color: var(--p-paper) !important;
+  border: 1px solid var(--p-terminal);
+}
+.prayer-app.prayer-legacy main .primary-button:hover {
+  background: #6bff9e;
+}
+.prayer-app.prayer-legacy main .secondary-button {
+  background: transparent;
+  color: var(--p-ink);
+  border-color: var(--p-border-strong);
+  border-radius: var(--p-radius-control);
+}
+.prayer-app.prayer-legacy main .secondary-button:hover {
+  background: var(--p-surface-soft);
+  border-color: var(--p-terminal);
+}
+.prayer-app.prayer-legacy main .field-input {
+  background: var(--p-paper);
+  color: var(--p-ink);
+  border-color: var(--p-border-strong);
+}

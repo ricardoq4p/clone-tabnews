@@ -1,18 +1,18 @@
 /* Shared presentation layer. Domain logic and devotional content remain unchanged. */
 .prayer-app {
   --p-font-body: Arial, Helvetica, sans-serif;
-  --p-font-heading: Georgia, "Times New Roman", serif;
-  --p-ink: #253e48;
-  --p-muted: #56625c;
-  --p-gold: #765b2d;
-  --p-line: #dcd6c8;
-  --p-border-strong: #918a7b;
-  --p-paper: #f6f3ec;
-  --p-white: #fffefb;
-  --p-surface-soft: #eeece2;
-  --p-success: #365c42;
-  --p-danger: #963c34;
-  --p-focus: #203d59;
+  --p-font-heading: var(--font-retro-pixel), "Courier New", monospace;
+  --p-ink: #f2ead5;
+  --p-muted: #a7c4bc;
+  --p-gold: #ffb84d;
+  --p-line: #254a36;
+  --p-border-strong: #59816b;
+  --p-paper: #080b0a;
+  --p-white: #101613;
+  --p-surface-soft: #17241b;
+  --p-success: #00e85a;
+  --p-danger: #ff8e86;
+  --p-focus: #ffb84d;
   --p-space-1: 0.25rem;
   --p-space-2: 0.5rem;
   --p-space-3: 0.75rem;
@@ -24,9 +24,9 @@
   --p-gutter: 2rem;
   --p-container: 1280px;
   --p-reading: 740px;
-  --p-radius: 12px;
-  --p-radius-control: 7px;
-  --p-shadow: 0 8px 28px #34251d08;
+  --p-radius: 2px;
+  --p-radius-control: 2px;
+  --p-shadow: none;
   --p-control-height: 48px;
   font-family: var(--p-font-body);
   font-size: 16px;
@@ -106,7 +106,7 @@
   color: var(--p-ink);
 }
 .prayer-app .p-nav a[aria-current] {
-  background: #eae5d7;
+  background: #172b20;
   color: var(--p-ink);
   font-weight: 600;
 }
@@ -253,7 +253,7 @@
 }
 .prayer-app .p-path-card:hover {
   transform: none;
-  box-shadow: 0 10px 30px #34251d10;
+  box-shadow: 0 10px 30px #00000000;
 }
 .prayer-app .p-path-copy {
   display: flex;
@@ -516,8 +516,8 @@
 }
 .prayer-app .p-candle-privacy {
   font-size: 12px;
-  background: #fffaf2;
-  color: #5b5142;
+  background: #101613;
+  color: #a7c4bc;
 }
 .prayer-app .p-candle-manage {
   flex-wrap: wrap;
@@ -600,10 +600,10 @@
   color: var(--p-ink);
   padding: 1.5rem;
   max-width: min(42rem, calc(100% - 2rem));
-  box-shadow: 0 20px 60px #34251d25;
+  box-shadow: 0 20px 60px #00000000;
 }
 .prayer-app dialog::backdrop {
-  background: #253e4866;
+  background: #080b0acc;
 }
 .prayer-legacy main > div {
   min-height: 0;
@@ -632,10 +632,10 @@
   color: var(--p-success);
 }
 .prayer-legacy main :is(.bg-cyan-300, .bg-cyan-400) {
-  background-color: #b68a4c;
+  background-color: #ffb84d;
 }
 .prayer-legacy main .field-input::file-selector-button {
-  background: #e9e2d3;
+  background: #17241b;
   color: var(--p-ink);
   border-radius: 4px;
 }
@@ -700,8 +700,8 @@
     border-radius: var(--p-radius-control);
   }
   .prayer-app .p-mobile-nav a[aria-current] {
-    color: #5e4722;
-    background: #eee7d8;
+    color: #00e85a;
+    background: #172b20;
     font-weight: 600;
   }
   .prayer-app .p-mobile-nav a:focus-visible {
@@ -826,7 +826,7 @@
   color: var(--p-gold);
 }
 .prayer-legacy main :is([class*="ring-cyan-"]) {
-  --tw-ring-color: #d8c3a5;
+  --tw-ring-color: #59816b;
 }
 .prayer-app :is(.p-button, .primary-button, .secondary-button) {
   overflow-wrap: normal;
@@ -834,7 +834,7 @@
   flex-shrink: 0;
 }
 .prayer-app .p-account[aria-current] {
-  background: #eae5d7;
+  background: #172b20;
   border-color: var(--p-gold);
 }
 .prayer-app .p-font-button {
