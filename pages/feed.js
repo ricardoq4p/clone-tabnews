@@ -1,4 +1,4 @@
-import { realtimeEnabled, uploadsEnabled } from "@/lib/integration-policy";
+import { realtimeEnabled } from "@/lib/integration-policy";
 import Image from "next/image";
 import LoadMoreButton from "../components/LoadMoreButton";
 import { useEffect, useState } from "react";
@@ -6,7 +6,7 @@ import MessageCard from "../components/MessageCard";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import Pusher from "pusher-js";
-import imageCompression from "browser-image-compression";
+import CommunityImageUploader from "../components/CommunityImageUploader";
 
 export default function Feed() {
   const [messages, setMessages] = useState([]);
@@ -184,51 +184,6 @@ export default function Feed() {
     }
   };
 
-  const handleCommunityImage = async (file) => {
-    if (!file) return;
-
-    try {
-      setCommunitySubmitting(true);
-      setCommunityError("");
-
-      const compressed = await imageCompression(file, {
-        maxSizeMB: 0.08,
-        maxWidthOrHeight: 600,
-        useWebWorker: true,
-      });
-
-      if (!uploadsEnabled) return;
-      const formData = new FormData();
-      formData.append("file", compressed);
-      formData.append(
-        "upload_preset",
-        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
-      );
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok || !data?.secure_url) {
-        throw new Error("Nao foi possivel enviar a imagem da comunidade.");
-      }
-
-      setCommunityAvatar(data.secure_url);
-    } catch (error) {
-      setCommunityError(
-        error.message || "Nao foi possivel enviar a imagem da comunidade.",
-      );
-    } finally {
-      setCommunitySubmitting(false);
-    }
-  };
-
   const handleCommunityMembership = async (community) => {
     if (!community?._id || communityActionId) return;
 
@@ -303,28 +258,13 @@ export default function Feed() {
                       Nova comunidade
                     </p>
                     <div className="mt-4 space-y-3">
-                      <label className="block text-sm text-slate-300">
-                        <span className="mb-2 block">Imagem da comunidade</span>
-                        <input
-                          type="file"
-                          disabled={!uploadsEnabled}
-                          accept="image/*"
-                          onChange={(event) =>
-                            handleCommunityImage(event.target.files?.[0])
-                          }
-                          className="field-input cursor-pointer file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-200"
-                        />
-                      </label>
-                      {communityAvatar ? (
-                        <Image
-                          unoptimized
-                          width={128}
-                          height={128}
-                          src={communityAvatar}
-                          alt="Preview da comunidade"
-                          className="h-16 w-16 rounded-2xl object-cover ring-1 ring-cyan-300/20"
-                        />
-                      ) : null}
+                      <CommunityImageUploader
+                        value={communityAvatar}
+                        onChange={setCommunityAvatar}
+                        disabled={communitySubmitting}
+                        label="Imagem da comunidade"
+                        id="create-community-image"
+                      />
                       <input
                         type="text"
                         placeholder="Nome da comunidade"

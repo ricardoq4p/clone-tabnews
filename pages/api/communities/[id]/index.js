@@ -105,17 +105,24 @@ export default async function handler(req, res) {
       const trimmedDescription =
         typeof description === "string" ? description.trim() : "";
 
-      if (
-        !validText(trimmedName, 60) ||
-        typeof description !== "string" ||
-        trimmedDescription.length > 220 ||
-        !["public", "private"].includes(privacy) ||
-        typeof avatar !== "string" ||
-        (avatar && !validImageUrl(avatar))
-      ) {
+      if (!validText(trimmedName, 60)) {
         return res
           .status(400)
           .json({ error: "Digite um nome para a comunidade" });
+      }
+
+      if (typeof description !== "string" || trimmedDescription.length > 220) {
+        return res
+          .status(400)
+          .json({ error: "Descrição deve ter no máximo 220 caracteres" });
+      }
+
+      if (!["public", "private"].includes(privacy)) {
+        return res.status(400).json({ error: "Privacidade inválida" });
+      }
+
+      if (typeof avatar !== "string" || (avatar && !validImageUrl(avatar))) {
+        return res.status(400).json({ error: "Imagem da comunidade inválida" });
       }
 
       const duplicatedCommunity = await Community.findOne({

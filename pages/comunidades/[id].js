@@ -1,11 +1,11 @@
-import { realtimeEnabled, uploadsEnabled } from "@/lib/integration-policy";
+import { realtimeEnabled } from "@/lib/integration-policy";
 import Image from "next/image";
 import LoadMoreButton from "../../components/LoadMoreButton";
 import { useEffect, useState } from "react";
 import { signOut, useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import Pusher from "pusher-js";
-import imageCompression from "browser-image-compression";
+import CommunityImageUploader from "../../components/CommunityImageUploader";
 import MessageCard from "../../components/MessageCard";
 
 function formatDate(date) {
@@ -217,51 +217,6 @@ export default function CommunityPage() {
     }
   };
 
-  const handleCommunityImage = async (file) => {
-    if (!file) return;
-
-    try {
-      setEditSaving(true);
-      setCommunityError("");
-
-      const compressed = await imageCompression(file, {
-        maxSizeMB: 0.08,
-        maxWidthOrHeight: 600,
-        useWebWorker: true,
-      });
-
-      if (!uploadsEnabled) return;
-      const formData = new FormData();
-      formData.append("file", compressed);
-      formData.append(
-        "upload_preset",
-        process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET,
-      );
-
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        },
-      );
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok || !data?.secure_url) {
-        throw new Error("Nao foi possivel enviar a imagem da comunidade.");
-      }
-
-      setEditAvatar(data.secure_url);
-    } catch (error) {
-      setCommunityError(
-        error.message || "Nao foi possivel enviar a imagem da comunidade.",
-      );
-    } finally {
-      setEditSaving(false);
-    }
-  };
-
   const handleSaveCommunity = async () => {
     if (!community?._id || !editName.trim() || editSaving) return;
 
@@ -395,30 +350,14 @@ export default function CommunityPage() {
         {editOpen ? (
           <section className="glass-panel mt-6 rounded-[28px] p-5 sm:p-6">
             <div className="flex flex-col gap-6 lg:grid lg:grid-cols-[220px,1fr]">
-              <div>
-                <p className="text-sm font-medium text-white">
-                  Imagem da comunidade
-                </p>
-                <Image
-                  unoptimized
-                  width={128}
-                  height={128}
-                  src={editAvatar || "/sacred/favicon.svg"}
-                  alt="Preview da comunidade"
-                  className="mt-4 h-28 w-28 rounded-[24px] object-cover ring-1 ring-cyan-300/20"
+              <div className="space-y-3">
+                <CommunityImageUploader
+                  value={editAvatar}
+                  onChange={setEditAvatar}
+                  disabled={editSaving}
+                  label="Imagem da comunidade"
+                  id="edit-community-image"
                 />
-                <label className="mt-4 block text-sm text-slate-300">
-                  <span className="mb-2 block">Trocar imagem</span>
-                  <input
-                    type="file"
-                    disabled={!uploadsEnabled}
-                    accept="image/*"
-                    onChange={(event) =>
-                      handleCommunityImage(event.target.files?.[0])
-                    }
-                    className="field-input cursor-pointer file:mr-4 file:rounded-xl file:border-0 file:bg-cyan-300 file:px-4 file:py-2 file:font-semibold file:text-slate-950 hover:file:bg-cyan-200"
-                  />
-                </label>
               </div>
 
               <div className="space-y-4">

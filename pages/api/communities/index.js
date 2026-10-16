@@ -100,14 +100,20 @@ export default async function handler(req, res) {
       const trimmedDescription =
         typeof description === "string" ? description.trim() : "";
 
-      if (
-        !validText(trimmedName, 60) ||
-        trimmedDescription.length > 220 ||
-        (avatar && !validImageUrl(avatar))
-      ) {
+      if (!validText(trimmedName, 60)) {
         return res
           .status(400)
           .json({ error: "Digite um nome para a comunidade" });
+      }
+
+      if (trimmedDescription.length > 220) {
+        return res
+          .status(400)
+          .json({ error: "Descrição deve ter no máximo 220 caracteres" });
+      }
+
+      if (avatar && !validImageUrl(avatar)) {
+        return res.status(400).json({ error: "Imagem da comunidade inválida" });
       }
 
       const existingCommunity = await Community.findOne({
