@@ -95,14 +95,22 @@ export default async function handler(req, res) {
         return res.status(403).json({ error: "Sem permissao" });
       }
 
-      const { name, description, privacy, avatar } = req.body;
+      const {
+        name = community.name,
+        description = community.description,
+        privacy = community.privacy,
+        avatar = community.avatar,
+      } = req.body || {};
       const trimmedName = typeof name === "string" ? name.trim() : "";
       const trimmedDescription =
         typeof description === "string" ? description.trim() : "";
 
       if (
         !validText(trimmedName, 60) ||
+        typeof description !== "string" ||
         trimmedDescription.length > 220 ||
+        !["public", "private"].includes(privacy) ||
+        typeof avatar !== "string" ||
         (avatar && !validImageUrl(avatar))
       ) {
         return res
