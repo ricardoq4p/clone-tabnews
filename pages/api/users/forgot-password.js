@@ -3,7 +3,8 @@ import {
   EMAIL_UNAVAILABLE,
 } from "@/lib/integration-policy";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
-import { escapeHtml, validEmail } from "@/lib/validation";
+import { validEmail } from "@/lib/validation";
+import { buildPasswordResetEmailContent } from "@/lib/transactional-email";
 import connectToDatabase from "../../../lib/db";
 import User from "../../../lib/models/User";
 import { createSecureToken, hashToken, normalizeEmail } from "@/lib/auth";
@@ -67,20 +68,19 @@ export default async function handler(req, res) {
     await user.save();
 
     const transporter = createBrevoTransport();
-    const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${rawToken}`;
+    const resetUrl = new URL("/reset-password", process.env.NEXTAUTH_URL);
+    resetUrl.searchParams.set("token", rawToken);
+    const { subject, html, text } = buildPasswordResetEmailContent({
+      user,
+      url: resetUrl.href,
+    });
 
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
       to: normalizedEmail,
-      subject: "Redefina sua senha no PanteraLab",
-      html: `
-        <h2>Oi ${escapeHtml(user.name || "por ai")}!</h2>
-        <p>Recebemos um pedido para redefinir sua senha.</p>
-        <p>Clique no link abaixo para criar uma nova senha:</p>
-        <a href="${resetUrl}">Redefinir minha senha</a>
-        <p>Esse link expira em 30 minutos.</p>
-        <p>Se voce nao pediu essa alteracao, pode ignorar este email.</p>
-      `,
+      subject,
+      html,
+      text,
     });
 
     return res.status(200).json({ message: GENERIC_SUCCESS_MESSAGE });
