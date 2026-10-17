@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Head from "next/head";
 import { useRouter } from "next/router";
-import { useSession } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import Icon from "./Icon";
 import localFont from "next/font/local";
 
@@ -132,11 +132,20 @@ export default function PrayerLayout({
               : "Entrar"}
           </span>
         </Link>
-        {!session ? (
+        {session ? (
+          <button
+            type="button"
+            onClick={() => signOut({ callbackUrl: "/" })}
+            className="p-account p-logout"
+          >
+            <Icon name="logout" size={17} />
+            <span>Sair</span>
+          </button>
+        ) : (
           <Link href="/register" className="p-account p-register">
             Criar conta
           </Link>
-        ) : null}
+        )}
       </header>
       <main id="conteudo" tabIndex={-1}>
         {children}

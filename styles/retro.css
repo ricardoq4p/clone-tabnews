@@ -77,6 +77,8 @@
 .prayer-app .p-account {
   font-size: 12px;
   border-radius: 2px;
+  background: transparent;
+  color: var(--p-ink);
 }
 .prayer-app .p-register {
   color: var(--p-paper);
@@ -660,8 +662,11 @@
   .prayer-app .p-header {
     min-height: 68px;
   }
-  .prayer-app .p-header .p-account:not(.p-register):not(.p-admin-shortcut) {
+  .prayer-app .p-header .p-nav + .p-account {
     margin-left: auto;
+  }
+  .prayer-app .p-header .p-account + .p-account {
+    margin-left: 0;
   }
   .prayer-app .r-home .p-hero h1 {
     font-size: clamp(2.3rem, 5vw, 3rem);
@@ -678,18 +683,46 @@
 }
 @media (max-width: 720px) {
   .prayer-app .p-brand {
-    font-size: 25px;
+    font-size: 21px;
+    gap: 7px;
+  }
+  .prayer-app .p-brand-mark {
+    width: 28px;
+    height: 30px;
+  }
+  .prayer-app .p-brand small {
+    font-size: 8px;
+    letter-spacing: 0.1em;
   }
   .prayer-app .p-header {
-    gap: 8px;
+    gap: 5px;
   }
-  .prayer-app .p-account {
-    padding-inline: 10px;
+  .prayer-app .p-account,
+  .prayer-app .p-admin-shortcut + .p-account {
+    padding: 8px 7px;
+    gap: 4px;
+    font-size: 11px;
+    max-width: none;
+  }
+  .prayer-app .p-account span {
+    max-width: 68px;
+  }
+  .prayer-app .p-admin-shortcut + .p-account span {
+    display: inline;
+    max-width: 56px;
+  }
+  .prayer-app .p-logout {
+    flex-shrink: 0;
+  }
+  .prayer-app .p-logout span {
+    max-width: none;
   }
   .prayer-app .p-register {
     font-size: 11px;
   }
-  .prayer-app .p-account:not(.p-register) > svg {
+  .prayer-app
+    .p-account:not(.p-register):not(.p-admin-shortcut):not(.p-logout)
+    > svg {
     display: none;
   }
   .prayer-app .r-home {
@@ -761,16 +794,32 @@
   }
 }
 @media (max-width: 360px) {
+  .prayer-app .p-header {
+    gap: 4px;
+  }
   .prayer-app .p-brand {
-    font-size: 23px;
+    font-size: 19px;
     gap: 0;
+  }
+  .prayer-app .p-brand small {
+    font-size: 7px;
+    letter-spacing: 0.08em;
   }
   .prayer-app .p-brand-mark {
     display: none;
   }
-  .prayer-app .p-account {
+  .prayer-app .p-account,
+  .prayer-app .p-admin-shortcut + .p-account {
     font-size: 11px;
-    padding-inline: 8px;
+    padding: 8px 6px;
+    gap: 4px;
+  }
+  .prayer-app .p-account span,
+  .prayer-app .p-admin-shortcut + .p-account span {
+    max-width: 48px;
+  }
+  .prayer-app .p-logout span {
+    max-width: none;
   }
   .prayer-app .p-mobile-nav a {
     font-size: 10px;
