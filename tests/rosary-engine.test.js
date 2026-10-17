@@ -75,18 +75,17 @@ test("progress may complete the route but cannot exceed it or silently change co
 });
 test("all mysteries have scripture, original meditations and local credited images that exist on disk", () => {
   expect(DEFAULT_CONTENT.sets).toHaveLength(4);
-  expect(Object.keys(MYSTERY_PAINTINGS)).toHaveLength(19);
+  expect(Object.keys(MYSTERY_PAINTINGS)).toHaveLength(20);
+  const seenImages = new Set();
   for (const set of DEFAULT_CONTENT.sets)
     for (const mystery of set.mysteries) {
       expect(mystery.scripture.length).toBeGreaterThan(3);
       expect(mystery.meditation.length).toBeGreaterThan(50);
-      if (mystery.id === "batismo") {
-        expect(mystery.image).toBe("/sacred/batismo.svg");
-      } else {
-        expect(mystery.image).toBe(
-          `/images/rosario/${set.id}/${mystery.id}.webp`,
-        );
-      }
+      expect(mystery.image).toBe(
+        `/images/rosario/${set.id}/${mystery.id}.webp`,
+      );
+      expect(seenImages.has(mystery.image)).toBe(false);
+      seenImages.add(mystery.image);
       const diskPath = path.join(
         process.cwd(),
         "public",
@@ -102,4 +101,5 @@ test("all mysteries have scripture, original meditations and local credited imag
       });
       expect(resolved.image).toBe(mystery.image);
     }
+  expect(seenImages.size).toBe(20);
 });
