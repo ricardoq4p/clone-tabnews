@@ -1,4 +1,11 @@
-import { DEFAULT_CONTENT, MYSTERY_SETS } from "../lib/rosary/content";
+import fs from "fs";
+import path from "path";
+import {
+  DEFAULT_CONTENT,
+  MYSTERY_SETS,
+  MYSTERY_PAINTINGS,
+  resolveMysteryArtwork,
+} from "../lib/rosary/content";
 import {
   brasiliaDay,
   mysteriesForDay,
@@ -66,14 +73,33 @@ test("progress may complete the route but cannot exceed it or silently change co
   expect(validProgress({ ...progress, position: "1" })).toBe(false);
   expect(validProgress({ ...progress, full: "false" })).toBe(false);
 });
-test("all mysteries have scripture, original meditations and local credited images", () => {
+test("all mysteries have scripture, original meditations and local credited images that exist on disk", () => {
   expect(DEFAULT_CONTENT.sets).toHaveLength(4);
+  expect(Object.keys(MYSTERY_PAINTINGS)).toHaveLength(19);
   for (const set of DEFAULT_CONTENT.sets)
     for (const mystery of set.mysteries) {
       expect(mystery.scripture.length).toBeGreaterThan(3);
       expect(mystery.meditation.length).toBeGreaterThan(50);
-      expect(mystery.image).toMatch(/^\/sacred\/[a-z-]+\.svg$/);
+      if (mystery.id === "batismo") {
+        expect(mystery.image).toBe("/sacred/batismo.svg");
+      } else {
+        expect(mystery.image).toBe(
+          `/images/rosario/${set.id}/${mystery.id}.webp`,
+        );
+      }
+      const diskPath = path.join(
+        process.cwd(),
+        "public",
+        mystery.image.replace(/^\//, ""),
+      );
+      expect(fs.existsSync(diskPath)).toBe(true);
       expect(mystery.credit).toBeTruthy();
       expect(mystery.imageAlt).toBeTruthy();
+
+      const resolved = resolveMysteryArtwork({
+        ...mystery,
+        image: `/sacred/${mystery.id}.svg`,
+      });
+      expect(resolved.image).toBe(mystery.image);
     }
 });

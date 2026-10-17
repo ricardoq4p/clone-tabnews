@@ -45,12 +45,12 @@ export default function Fontes() {
         </p>
         <h2>As imagens e a tipografia</h2>
         <p>
-          As vinte ilustrações dos mistérios são composições vetoriais
-          simbólicas originais criadas para o PanteraLab. Estão incluídas no
-          repositório sob sua licença MIT. Não reproduzem obras de terceiros.
-          Cada imagem tem descrição acessível e crédito. A tipografia utiliza
-          fontes disponíveis no dispositivo, sem carregar fontes de outros
-          serviços.
+          As imagens dos mistérios do Santo Rosário reúnem pinturas sacras em
+          estilo clássico (restauradas e originais do acervo PanteraLab) e
+          composições originais criadas para a plataforma, organizadas para
+          auxiliar a contemplação sem distrações. Cada imagem possui descrição
+          acessível e crédito. A tipografia utiliza fontes disponíveis no
+          dispositivo, sem carregar fontes de outros serviços.
         </p>
         <h2>Conteúdo com cuidado</h2>
         <p>

@@ -5,6 +5,7 @@ import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
 import Beads from "@/components/rosary/Beads";
 import { useRosary } from "@/lib/rosary/useRosary";
+import { resolveMysteryArtwork } from "@/lib/rosary/content";
 import { buildRosary, mysteriesForDay } from "@/lib/rosary/engine";
 const WEEKDAYS = [
   "domingo",
@@ -25,7 +26,8 @@ export default function Rosario() {
     [restart, setRestart] = useState(false),
     [focusMode, setFocusMode] = useState(false),
     [fontSize, setFontSize] = useState(1),
-    [previewIndex, setPreviewIndex] = useState(0);
+    [previewIndex, setPreviewIndex] = useState(0),
+    [expandedMystery, setExpandedMystery] = useState(null);
   const heading = useRef(null);
   const [daySet, setDaySet] = useState(() => mysteriesForDay().id),
     [manualSelection, setManualSelection] = useState(false);
@@ -37,6 +39,14 @@ export default function Rosario() {
     }, 60000);
     return () => clearInterval(timer);
   }, [manualSelection]);
+  useEffect(() => {
+    if (!expandedMystery) return;
+    function onKeyDown(event) {
+      if (event.key === "Escape") setExpandedMystery(null);
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [expandedMystery]);
   const steps = progress ? buildRosary(progress.setId, progress, content) : [];
   const completed = Boolean(progress && progress.position === steps.length);
   const step = steps[progress?.position];
@@ -52,12 +62,14 @@ export default function Rosario() {
     content.sets.find((set) => set.id === selected) || content.sets[0];
   const previewMystery =
     selectedSet.mysteries[previewIndex] || selectedSet.mysteries[0];
+  const previewArt = resolveMysteryArtwork(previewMystery);
   const mystery =
     step?.mystery ||
     [...steps.slice(0, progress?.position || 0)]
       .reverse()
       .find((item) => item.mystery)?.mystery ||
     activeSet.mysteries[0];
+  const activeArt = resolveMysteryArtwork(mystery);
   const mysteryPosition =
     step?.mysteryIndex !== undefined
       ? step.mysteryIndex + 1
@@ -294,14 +306,32 @@ export default function Rosario() {
                         <span>{previewMystery.scripture}</span>
                       </div>
                       <div className="p-mystery-frame-art">
-                        <Image
-                          key={previewMystery.id}
-                          src={previewMystery.image}
-                          alt={previewMystery.imageAlt}
-                          width={600}
-                          height={720}
-                          priority
-                        />
+                        <button
+                          type="button"
+                          className="p-mystery-zoom-trigger"
+                          onClick={() =>
+                            setExpandedMystery({
+                              ...previewMystery,
+                              ...previewArt,
+                              setTitle: selectedSet.title,
+                              number: previewIndex + 1,
+                            })
+                          }
+                          aria-label={`Ampliar pintura: ${previewMystery.title}`}
+                        >
+                          <Image
+                            key={previewMystery.id}
+                            src={previewArt.image}
+                            alt={previewArt.imageAlt}
+                            width={640}
+                            height={640}
+                            sizes="(max-width: 720px) 240px, 310px"
+                            priority
+                          />
+                          <span className="p-mystery-zoom-caption">
+                            Ampliar pintura
+                          </span>
+                        </button>
                       </div>
                     </figure>
                     <div className="p-preview-mysteries-body">
@@ -428,14 +458,32 @@ export default function Rosario() {
                         <span>{activeSet.title.toUpperCase()}</span>
                       </div>
                       <div className="p-mystery-frame-art">
-                        <Image
-                          key={mystery.id}
-                          src={mystery.image}
-                          alt={mystery.imageAlt}
-                          width={600}
-                          height={720}
-                          priority
-                        />
+                        <button
+                          type="button"
+                          className="p-mystery-zoom-trigger"
+                          onClick={() =>
+                            setExpandedMystery({
+                              ...mystery,
+                              ...activeArt,
+                              setTitle: activeSet.title,
+                              number: mysteryPosition,
+                            })
+                          }
+                          aria-label={`Ampliar pintura: ${mystery.title}`}
+                        >
+                          <Image
+                            key={mystery.id}
+                            src={activeArt.image}
+                            alt={activeArt.imageAlt}
+                            width={640}
+                            height={640}
+                            sizes="(max-width: 720px) 240px, 310px"
+                            priority
+                          />
+                          <span className="p-mystery-zoom-caption">
+                            Ampliar pintura
+                          </span>
+                        </button>
                       </div>
                     </figure>
                     <div className="p-contemplation-body">
@@ -455,7 +503,7 @@ export default function Rosario() {
                       >
                         <summary>Uma meditação para este mistério</summary>
                         <p>{mystery.meditation}</p>
-                        <small>{mystery.credit}</small>
+                        <small>{activeArt.credit}</small>
                       </details>
                     </div>
                   </aside>
@@ -584,6 +632,56 @@ export default function Rosario() {
                 <Link href="/fontes">Conheça as fontes e os créditos.</Link>
               </p>
             </div>
+            {expandedMystery ? (
+              <div
+                className="p-art-lightbox"
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="p-art-lightbox-title"
+                onClick={() => setExpandedMystery(null)}
+              >
+                <div
+                  className="p-art-lightbox-card"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <div className="p-art-lightbox-head">
+                    <span>
+                      {expandedMystery.number}º MISTÉRIO{" "}
+                      {expandedMystery.setTitle?.toUpperCase()} ·{" "}
+                      {expandedMystery.scripture}
+                    </span>
+                    <button
+                      type="button"
+                      className="p-inline-button"
+                      onClick={() => setExpandedMystery(null)}
+                    >
+                      <Icon name="close" size={15} />
+                      Fechar
+                    </button>
+                  </div>
+                  <div className="p-art-lightbox-body">
+                    <div className="p-art-lightbox-image">
+                      <Image
+                        src={expandedMystery.image}
+                        alt={expandedMystery.imageAlt}
+                        width={1024}
+                        height={1024}
+                        sizes="(max-width: 720px) 92vw, 540px"
+                      />
+                    </div>
+                    <div className="p-art-lightbox-copy">
+                      <h2 id="p-art-lightbox-title">{expandedMystery.title}</h2>
+                      <p className="p-contemplation-scripture">
+                        <Icon name="book" size={14} />
+                        <span>{expandedMystery.scripture}</span>
+                      </p>
+                      <p>{expandedMystery.meditation}</p>
+                      <small>{expandedMystery.credit}</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </>
         )}
       </div>
