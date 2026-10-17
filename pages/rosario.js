@@ -24,7 +24,8 @@ export default function Rosario() {
     [praying, setPraying] = useState(false),
     [restart, setRestart] = useState(false),
     [focusMode, setFocusMode] = useState(false),
-    [fontSize, setFontSize] = useState(1);
+    [fontSize, setFontSize] = useState(1),
+    [previewIndex, setPreviewIndex] = useState(0);
   const heading = useRef(null);
   const [daySet, setDaySet] = useState(() => mysteriesForDay().id),
     [manualSelection, setManualSelection] = useState(false);
@@ -47,12 +48,30 @@ export default function Rosario() {
     (progress?.full ? content.sets[0].id : progress?.setId || selected);
   const activeSet =
     content.sets.find((set) => set.id === contextSet) || content.sets[0];
+  const selectedSet =
+    content.sets.find((set) => set.id === selected) || content.sets[0];
+  const previewMystery =
+    selectedSet.mysteries[previewIndex] || selectedSet.mysteries[0];
   const mystery =
     step?.mystery ||
     [...steps.slice(0, progress?.position || 0)]
       .reverse()
       .find((item) => item.mystery)?.mystery ||
     activeSet.mysteries[0];
+  const mysteryPosition =
+    step?.mysteryIndex !== undefined
+      ? step.mysteryIndex + 1
+      : Math.max(
+          1,
+          activeSet.mysteries.findIndex((item) => item.id === mystery.id) + 1,
+        );
+  const beadTotal = step?.bead ? (step.mysteryIndex !== undefined ? 10 : 3) : 0;
+  const stageSummary =
+    step?.mysteryIndex !== undefined
+      ? `${step.mysteryIndex + 1}º Mistério ${activeSet.title}`
+      : (progress?.position || 0) < 8
+        ? "Orações iniciais"
+        : "Orações finais";
   function go(position) {
     rosary.go(Math.max(0, Math.min(steps.length, position)));
     requestAnimationFrame(() => {
@@ -173,6 +192,7 @@ export default function Rosario() {
                           className={`p-mystery-option ${selected === set.id ? "is-selected" : ""}`}
                           onClick={() => {
                             setSelected(set.id);
+                            setPreviewIndex(0);
                             setManualSelection(true);
                             setRestart(false);
                           }}
@@ -265,32 +285,46 @@ export default function Rosario() {
                     </p>
                   </div>
                   <div className="p-preview-mysteries">
-                    <Image
-                      src={
-                        content.sets.find((set) => set.id === selected)
-                          .mysteries[0].image
-                      }
-                      alt={
-                        content.sets.find((set) => set.id === selected)
-                          .mysteries[0].imageAlt
-                      }
-                      width={600}
-                      height={720}
-                      priority
-                    />
-                    <div>
+                    <figure className="p-mystery-frame">
+                      <div className="p-mystery-frame-meta">
+                        <span>
+                          {previewIndex + 1}º MISTÉRIO ·{" "}
+                          {selectedSet.title.toUpperCase()}
+                        </span>
+                        <span>{previewMystery.scripture}</span>
+                      </div>
+                      <div className="p-mystery-frame-art">
+                        <Image
+                          key={previewMystery.id}
+                          src={previewMystery.image}
+                          alt={previewMystery.imageAlt}
+                          width={600}
+                          height={720}
+                          priority
+                        />
+                      </div>
+                    </figure>
+                    <div className="p-preview-mysteries-body">
                       <p className="p-eyebrow">
                         CINCO ENCONTROS PARA CONTEMPLAR
                       </p>
                       <ol>
-                        {content.sets
-                          .find((set) => set.id === selected)
-                          .mysteries.map((item, i) => (
-                            <li key={item.id}>
+                        {selectedSet.mysteries.map((item, i) => (
+                          <li key={item.id}>
+                            <button
+                              type="button"
+                              className={`p-preview-item ${previewIndex === i ? "is-active" : ""}`}
+                              onClick={() => setPreviewIndex(i)}
+                              aria-pressed={previewIndex === i}
+                            >
                               <span>{String(i + 1).padStart(2, "0")}</span>
-                              {item.title}
-                            </li>
-                          ))}
+                              <span className="p-preview-item-copy">
+                                <strong>{item.title}</strong>
+                                <small>{item.scripture}</small>
+                              </span>
+                            </button>
+                          </li>
+                        ))}
                       </ol>
                     </div>
                   </div>
@@ -367,7 +401,8 @@ export default function Rosario() {
                 <div className="p-rosary-progress">
                   <div>
                     <span>
-                      ETAPA {progress.position + 1} DE {steps.length}
+                      ETAPA {progress.position + 1} DE {steps.length} ·{" "}
+                      {stageSummary.toUpperCase()}
                     </span>
                     <span>
                       {Math.round((progress.position / steps.length) * 100)}%
@@ -380,20 +415,44 @@ export default function Rosario() {
                   />
                 </div>
                 <div className="p-prayer-workspace">
-                  <aside className="p-contemplation">
-                    <Image
-                      key={mystery.id}
-                      src={mystery.image}
-                      alt={mystery.imageAlt}
-                      width={600}
-                      height={720}
-                      priority
-                    />
-                    <div>
-                      <p className="p-eyebrow">PARA CONTEMPLAR</p>
+                  <aside
+                    className="p-contemplation"
+                    aria-label="Mistério contemplado"
+                  >
+                    <figure className="p-mystery-frame">
+                      <div className="p-mystery-frame-meta">
+                        <span>
+                          {mysteryPosition}º DE {activeSet.mysteries.length}{" "}
+                          MISTÉRIOS
+                        </span>
+                        <span>{activeSet.title.toUpperCase()}</span>
+                      </div>
+                      <div className="p-mystery-frame-art">
+                        <Image
+                          key={mystery.id}
+                          src={mystery.image}
+                          alt={mystery.imageAlt}
+                          width={600}
+                          height={720}
+                          priority
+                        />
+                      </div>
+                    </figure>
+                    <div className="p-contemplation-body">
+                      <p className="p-eyebrow">
+                        {step.mysteryIndex !== undefined
+                          ? `${mysteryPosition}º MISTÉRIO · PARA CONTEMPLAR`
+                          : "PARA CONTEMPLAR · 1º MISTÉRIO"}
+                      </p>
                       <h2>{mystery.title}</h2>
-                      <p>{mystery.scripture}</p>
-                      <details>
+                      <p className="p-contemplation-scripture">
+                        <Icon name="book" size={14} />
+                        <span>{mystery.scripture}</span>
+                      </p>
+                      <details
+                        key={`${mystery.id}-${step.prayer === "contemplacao" ? "open" : "closed"}`}
+                        open={step.prayer === "contemplacao"}
+                      >
                         <summary>Uma meditação para este mistério</summary>
                         <p>{mystery.meditation}</p>
                         <small>{mystery.credit}</small>
@@ -402,19 +461,42 @@ export default function Rosario() {
                   </aside>
                   <section className="p-prayer-card">
                     <div className="p-prayer-card-top">
-                      <span className="p-section-label">
-                        {step.mysteryIndex !== undefined
-                          ? `${step.mysteryIndex + 1}º MISTÉRIO ${activeSet.title.toUpperCase()}`
-                          : "NA PRESENÇA DE DEUS"}
-                      </span>
+                      <div className="p-prayer-card-heading">
+                        <span className="p-section-label">
+                          {step.mysteryIndex !== undefined
+                            ? `${step.mysteryIndex + 1}º MISTÉRIO ${activeSet.title.toUpperCase()}`
+                            : "NA PRESENÇA DE DEUS"}
+                        </span>
+                        {step.mysteryIndex !== undefined &&
+                        step.prayer !== "contemplacao" ? (
+                          <span className="p-prayer-mystery-name">
+                            {mystery.title}
+                          </span>
+                        ) : null}
+                      </div>
                       <Icon name="cross" size={19} />
                     </div>
-                    <p className="p-prayer-label">
-                      {step.label ||
-                        (step.prayer === "contemplacao"
-                          ? "Faça uma pausa e contemple"
-                          : "Reze com serenidade")}
-                    </p>
+                    <div className="p-prayer-meta">
+                      <p className="p-prayer-label">
+                        {step.label ||
+                          (step.prayer === "contemplacao"
+                            ? "Faça uma pausa e contemple"
+                            : "Reze com serenidade")}
+                      </p>
+                      {beadTotal > 0 ? (
+                        <div className="p-decade-beads" aria-hidden="true">
+                          {Array.from({ length: beadTotal }, (_, i) => {
+                            const index = i + 1;
+                            return (
+                              <span
+                                key={index}
+                                className={`p-decade-dot ${index < step.bead ? "is-done" : ""} ${index === step.bead ? "is-current" : ""}`}
+                              />
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
                     <h2 ref={heading} tabIndex={-1} className="p-prayer-title">
                       {step.title}
                     </h2>
@@ -477,7 +559,7 @@ export default function Rosario() {
                       ) : null}
                     </div>
                   </section>
-                  <aside className="p-beads-panel">
+                  <aside className="p-beads-panel" aria-label="Contas do terço">
                     <p className="p-section-label">ACOMPANHE NAS CONTAS</p>
                     <Beads
                       steps={steps}

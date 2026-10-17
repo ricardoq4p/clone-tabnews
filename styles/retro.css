@@ -231,7 +231,7 @@
   background: var(--p-white);
   color: var(--p-ink);
   border-radius: 2px;
-  border-color: var(--p-line);
+  border: 1px solid var(--p-line);
   box-shadow: none;
 }
 .prayer-app .p-mystery-option.is-selected {
@@ -249,8 +249,194 @@
   border: 1px solid var(--p-line);
   border-radius: 0;
 }
+.prayer-app .p-mystery-frame {
+  margin: 0;
+  border-bottom: 1px solid var(--p-line);
+  background: var(--p-paper);
+}
+.prayer-app .p-mystery-frame-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--p-line);
+  background: var(--p-surface-soft);
+  font: 11px/1.4 var(--p-font-mono);
+  color: var(--p-gold);
+  letter-spacing: 0.08em;
+}
+.prayer-app .p-mystery-frame-meta > span:last-child {
+  color: var(--p-muted);
+  text-align: right;
+}
+.prayer-app .p-mystery-frame-art {
+  padding: 16px;
+  background: radial-gradient(circle at 50% 35%, #19281f 0%, #0b100e 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.prayer-app .p-mystery-frame-art > img {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  max-height: 336px;
+  object-fit: contain;
+  border: 1px solid var(--p-border-strong);
+  border-radius: 2px;
+  box-shadow: 0 10px 28px #00000059;
+}
+.prayer-app .p-preview-mysteries > .p-preview-mysteries-body {
+  padding: 20px 24px 22px;
+}
+.prayer-app .p-preview-mysteries ol {
+  margin-top: 12px;
+}
 .prayer-app .p-preview-mysteries li {
   border-color: var(--p-line);
+  padding: 0;
+}
+.prayer-app .p-preview-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 11px 10px;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: transparent;
+  color: var(--p-ink);
+  text-align: left;
+  transition:
+    background-color 0.16s,
+    border-color 0.16s;
+}
+.prayer-app .p-preview-item:hover {
+  background: var(--p-surface-soft);
+}
+.prayer-app .p-preview-item.is-active {
+  background: var(--p-surface-soft);
+  border-left-color: var(--p-terminal);
+}
+.prayer-app .p-preview-item > span:first-child {
+  font: 12px/1.6 var(--p-font-mono);
+  color: var(--p-gold);
+  flex-shrink: 0;
+}
+.prayer-app .p-preview-item-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-family: var(--p-font-body);
+}
+.prayer-app .p-preview-item-copy strong {
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--p-ink);
+}
+.prayer-app .p-preview-item-copy small {
+  font: 12px/1.4 var(--p-font-mono);
+  color: var(--p-muted);
+}
+.prayer-app .p-prayer-workspace {
+  grid-template-columns: minmax(280px, 320px) minmax(0, 1fr) 216px;
+  gap: 24px;
+}
+.prayer-app .p-contemplation > .p-contemplation-body {
+  padding: 20px 22px 22px;
+}
+.prayer-app .p-contemplation h2 {
+  font-size: clamp(1.35rem, 1.9vw, 1.65rem);
+  line-height: 1.2;
+  margin: 10px 0 12px;
+}
+.prayer-app .p-contemplation-scripture {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  border: 1px solid var(--p-line);
+  background: var(--p-surface-soft);
+  color: var(--p-gold) !important;
+  font: 12px/1.4 var(--p-font-mono);
+  border-radius: 2px;
+}
+.prayer-app .p-contemplation details {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--p-line);
+  font-size: 14px;
+  line-height: 1.75;
+  color: var(--p-muted);
+}
+.prayer-app .p-contemplation summary {
+  font: 12px/1.5 var(--p-font-mono);
+  color: var(--p-terminal);
+  letter-spacing: 0.04em;
+  min-height: 32px;
+  display: flex;
+  align-items: center;
+}
+.prayer-app .p-contemplation details p {
+  margin-top: 10px;
+  color: var(--p-ink);
+}
+.prayer-app .p-contemplation small {
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--p-muted);
+  margin-top: 10px;
+}
+.prayer-app .p-prayer-card-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.prayer-app .p-prayer-mystery-name {
+  font-size: 13px;
+  color: var(--p-muted);
+  line-height: 1.4;
+}
+.prayer-app .p-prayer-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+.prayer-app .p-prayer-meta .p-prayer-label {
+  margin-top: 0 !important;
+}
+.prayer-app .p-decade-beads {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border: 1px solid var(--p-line);
+  background: var(--p-surface-soft);
+  border-radius: 2px;
+}
+.prayer-app .p-decade-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--p-border-strong);
+  background: var(--p-paper);
+}
+.prayer-app .p-decade-dot.is-done {
+  background: var(--p-terminal-secondary);
+  border-color: var(--p-terminal-secondary);
+}
+.prayer-app .p-decade-dot.is-current {
+  background: var(--p-gold);
+  border-color: var(--p-gold);
+  box-shadow: 0 0 0 2px #ffb84d40;
 }
 .prayer-app .p-prayer-text {
   font-family: var(--p-font-body);
@@ -260,6 +446,12 @@
 }
 .prayer-app .p-prayer-label {
   color: var(--p-muted);
+}
+.prayer-app .p-rosary-progress > div {
+  font: 11px/1.5 var(--p-font-mono);
+  letter-spacing: 0.08em;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 .prayer-app .p-rosary-progress progress {
   accent-color: var(--p-terminal);
@@ -272,6 +464,9 @@
 }
 .prayer-app .p-rosary-progress progress::-moz-progress-bar {
   background: var(--p-terminal);
+}
+.prayer-app .p-beads-panel {
+  padding: 18px 14px 20px;
 }
 .prayer-app .p-bead > span {
   background: var(--p-line);
@@ -657,6 +852,13 @@
   .prayer-app .p-admin-shortcut span {
     display: none;
   }
+  .prayer-app .p-prayer-workspace {
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 20px;
+  }
+  .prayer-app .p-beads-panel {
+    margin-top: 0;
+  }
 }
 @media (max-width: 960px) {
   .prayer-app .p-header {
@@ -788,6 +990,47 @@
   }
   .r-home-note a {
     margin-left: 28px;
+  }
+  .prayer-app .p-preview-mysteries > .p-preview-mysteries-body {
+    padding: 18px;
+  }
+  .prayer-app .p-contemplation {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .prayer-app .p-mystery-frame-art {
+    padding: 14px;
+  }
+  .prayer-app .p-mystery-frame-art > img {
+    max-width: 220px;
+    max-height: 256px;
+  }
+  .prayer-app .p-contemplation > .p-contemplation-body {
+    padding: 16px 18px 18px;
+  }
+  .prayer-app .p-contemplation h2 {
+    font-size: 24px;
+    margin: 8px 0 10px;
+  }
+  .prayer-app .p-beads-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 18px 16px;
+    gap: 8px;
+  }
+  .prayer-app .p-beads-panel > .p-section-label {
+    margin-bottom: 0;
+    align-self: center;
+  }
+  .prayer-app .p-beads-panel .p-beads {
+    width: min(180px, 100%);
+    margin: 4px auto;
+  }
+  .prayer-app .p-beads-panel > p:last-child {
+    text-align: center;
+    align-self: center;
   }
   .prayer-app .p-footer {
     margin-top: 24px;
