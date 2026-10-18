@@ -102,11 +102,11 @@ export default function Home() {
             <Link href="/rosario" className="p-path-card">
               <div className="p-path-art p-path-rosary">
                 <Image
-                  src="/sacred/anunciacao.svg"
+                  src="/images/home/caminho-rosario.webp"
                   alt=""
-                  width={480}
-                  height={180}
-                  sizes="(max-width: 720px) 92vw, 30vw"
+                  width={1536}
+                  height={204}
+                  sizes="(max-width: 720px) 92vw, 33vw"
                 />
                 <span>CONTEMPLAR</span>
               </div>
@@ -126,11 +126,11 @@ export default function Home() {
             <Link href="/capelinha" className="p-path-card">
               <div className="p-path-art p-path-chapel">
                 <Image
-                  src="/sacred/capelinha-076db5e69b37.png"
+                  src="/images/home/caminho-capelinha.webp"
                   alt=""
                   width={1536}
-                  height={1024}
-                  sizes="(max-width: 720px) 92vw, 30vw"
+                  height={201}
+                  sizes="(max-width: 720px) 92vw, 33vw"
                 />
                 <span>CONFIAR</span>
               </div>
@@ -150,11 +150,11 @@ export default function Home() {
             <Link href="/comunidade" className="p-path-card">
               <div className="p-path-art p-path-community">
                 <Image
-                  src="/sacred/pentecostes.svg"
+                  src="/images/home/caminho-comunidades.webp"
                   alt=""
-                  width={480}
-                  height={180}
-                  sizes="(max-width: 720px) 92vw, 30vw"
+                  width={1536}
+                  height={210}
+                  sizes="(max-width: 720px) 92vw, 33vw"
                 />
                 <span>CAMINHAR JUNTOS</span>
               </div>
