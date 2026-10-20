@@ -582,6 +582,110 @@
   background: var(--p-surface-soft);
   color: var(--p-terminal) !important;
 }
+.prayer-app .p-candle-card {
+  min-width: 0;
+}
+.prayer-app .p-candle-card-art {
+  height: 128px;
+  min-height: 128px;
+  flex: 0 0 128px;
+}
+.prayer-app .p-candle-card-art .p-candle-art {
+  top: -18px;
+}
+.prayer-app .p-candle-card-copy {
+  min-width: 0;
+  padding: 1rem 1.125rem;
+  gap: 0.25rem;
+}
+.prayer-app .p-candle-author {
+  margin: 0 0 0.1rem !important;
+  line-height: 1.45 !important;
+}
+.prayer-app .p-intention {
+  margin: 0 0 0.25rem !important;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.prayer-app .p-candle-time {
+  margin: auto 0 0 !important;
+  line-height: 1.5 !important;
+}
+.prayer-app .p-candle-date {
+  margin: 0 0 0.25rem !important;
+  line-height: 1.5 !important;
+}
+.prayer-app .p-candle-grid .p-intercession {
+  gap: 0.25rem;
+}
+.prayer-app .p-candle-grid .p-pray-button {
+  min-height: 44px;
+  padding: 0.55rem 0.75rem;
+  font-size: 13px !important;
+  line-height: 1.35;
+}
+.prayer-app .p-candle-grid .p-intercession > span {
+  font-size: 12px;
+  line-height: 1.5 !important;
+}
+.prayer-app .p-candle-card-copy > .p-report {
+  margin-top: 0.2rem;
+}
+.prayer-legacy .p-feed-community {
+  min-width: 0;
+}
+.prayer-legacy .p-feed-community-heading,
+.prayer-legacy .p-feed-community-identity {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+.prayer-legacy .p-feed-community-avatar {
+  flex: 0 0 3rem;
+  width: 3rem;
+  height: 3rem;
+}
+.prayer-legacy .p-feed-community-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+.prayer-legacy .p-feed-community-name {
+  margin: 0;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.prayer-legacy .p-feed-community-privacy {
+  width: max-content;
+  max-width: 100%;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.prayer-legacy .p-feed-community-members {
+  margin: 0.25rem 0 0;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+.prayer-legacy .p-feed-community-description,
+.prayer-legacy .p-feed-community-owner {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.prayer-legacy .p-feed-community-footer {
+  flex-wrap: wrap;
+}
+.prayer-legacy .p-feed-community-footer > :is(p, span, button) {
+  max-width: 100%;
+}
+@media (max-width: 480px) {
+  .prayer-app .p-candle-card-copy {
+    padding: 0.875rem;
+  }
+  .prayer-legacy .p-feed-community-footer {
+    align-items: flex-start;
+  }
+}
 .prayer-app :is(.p-candle-card-art, .p-community-prayer) {
   background: var(--p-surface-soft);
 }

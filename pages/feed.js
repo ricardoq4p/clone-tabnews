@@ -347,43 +347,43 @@ export default function Feed() {
                       <article
                         key={community._id}
                         onClick={() => openCommunity(community._id)}
-                        className="cursor-pointer rounded-3xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-cyan-300/30 hover:bg-white/[0.05]"
+                        className="p-feed-community cursor-pointer rounded-3xl border border-white/10 bg-white/[0.03] p-4 transition hover:border-cyan-300/30 hover:bg-white/[0.05]"
                       >
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-start gap-3">
+                        <div className="p-feed-community-heading">
+                          <div className="p-feed-community-identity">
                             <Image
                               unoptimized
                               width={128}
                               height={128}
                               src={community.avatar || "/sacred/favicon.svg"}
                               alt={community.name}
-                              className="h-12 w-12 rounded-2xl object-cover"
+                              className="p-feed-community-avatar h-12 w-12 rounded-2xl object-cover"
                             />
-                            <div>
-                              <p className="font-medium text-slate-100">
+                            <div className="p-feed-community-copy">
+                              <p className="p-feed-community-name font-medium text-slate-100">
                                 {community.name}
                               </p>
-                              <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                              <p className="p-feed-community-privacy mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
                                 {community.privacy === "private"
                                   ? "Privada"
-                                  : "Publica"}
+                                  : "Pública"}
+                              </p>
+                              <p className="p-feed-community-members">
+                                {community.membersCount} membro
+                                {community.membersCount === 1 ? "" : "s"}
                               </p>
                             </div>
                           </div>
-                          <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-slate-400">
-                            {community.membersCount} membro
-                            {community.membersCount === 1 ? "" : "s"}
-                          </span>
                         </div>
 
                         {community.description ? (
-                          <p className="mt-3 text-sm leading-6 text-slate-400">
+                          <p className="p-feed-community-description mt-3 text-sm leading-6 text-slate-400">
                             {community.description}
                           </p>
                         ) : null}
 
-                        <div className="mt-4 flex items-center justify-between gap-3">
-                          <p className="text-xs text-slate-500">
+                        <div className="p-feed-community-footer mt-4 flex items-center justify-between gap-3">
+                          <p className="p-feed-community-owner text-xs text-slate-500">
                             Criada por {community.ownerName}
                           </p>
 
