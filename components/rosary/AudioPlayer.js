@@ -8,7 +8,7 @@ const messages = {
   loading: "Preparando o áudio…",
   finished: "Oração ouvida. Avance quando estiver pronto ou ouça novamente.",
   unavailable:
-    "Esta etapa ainda não tem áudio na demonstração. Continue pelo texto.",
+    "Esta etapa ainda não tem gravação correspondente ao texto atual. Continue pelo texto.",
   error: "Não foi possível reproduzir. Tente novamente ou continue pelo texto.",
   blocked: "Toque em reproduzir para continuar o áudio.",
   complete: "Você chegou ao fim do roteiro de oração.",
@@ -29,7 +29,9 @@ export default function AudioPlayer({
     <section className={styles.player} aria-label="Rosário com áudio">
       <div className={styles.heading}>
         <div>
-          <span className={styles.eyebrow}>REZAR COM ÁUDIO · DEMONSTRAÇÃO</span>
+          <span className={styles.eyebrow}>
+            REZAR COM ÁUDIO · ORAÇÃO GUIADA
+          </span>
           <h2>{title}</h2>
         </div>
         <button type="button" className="p-inline-button" onClick={onDisable}>
@@ -37,8 +39,8 @@ export default function AudioPlayer({
         </button>
       </div>
       <p className={styles.note}>
-        Voz brasileira de demonstração. Orações e Anunciação disponíveis para
-        escuta.
+        Narração serena em português brasileiro para todas as orações e os vinte
+        mistérios do Santo Rosário.
       </p>
       <div className={styles.options}>
         <label>

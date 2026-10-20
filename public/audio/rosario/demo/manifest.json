@@ -89,6 +89,158 @@
       "narrationEnd": 15.033,
       "duration": 23.033,
       "sha256": "c9c204152c6908f3d3a27ee6cdc3bd3052e3911aee91c23a0b0f2667ed73e25b"
+    },
+    "visitacao": {
+      "text": "A visitação de Maria a Isabel. A presença de Jesus leva Maria ao encontro de quem precisa. Peçamos a graça de transformar nossa fé em serviço, reconhecendo a dignidade de cada pessoa que encontramos.",
+      "pauseSeconds": 8,
+      "file": "visitacao.mp3",
+      "narrationEnd": 15.804,
+      "duration": 23.804,
+      "sha256": "353fb0089d82de29a6d5205d4796dbc70a5b4a6eb7c17189b9de702f49cfe3d7"
+    },
+    "nascimento": {
+      "text": "O nascimento de Jesus em Belém. O Filho de Deus vem ao mundo na simplicidade de uma manjedoura. Contemplemos sua humildade e abramos espaço para acolher Cristo nos pequenos e esquecidos.",
+      "pauseSeconds": 8,
+      "file": "nascimento.mp3",
+      "narrationEnd": 14.401,
+      "duration": 22.401,
+      "sha256": "cf71f37da9c67a0be54a4b0fe32190bd58b7cc7b98f2ce755133b9154ffe5b5b"
+    },
+    "apresentacao": {
+      "text": "A apresentação de Jesus no Templo. Maria e José apresentam Jesus ao Pai. Com Simeão e Ana, aprendamos a esperar com perseverança e a reconhecer a luz de Deus em nossa vida cotidiana.",
+      "pauseSeconds": 8,
+      "file": "apresentacao.mp3",
+      "narrationEnd": 14.855,
+      "duration": 22.855,
+      "sha256": "6fe3aaed0d19921776098619bbca48ddd183b5e2f2e4f3f6cdc5a61714845f24"
+    },
+    "encontro": {
+      "text": "O encontro de Jesus no Templo. Maria e José procuram Jesus com amor perseverante. Quando nos sentimos distantes, peçamos a graça de procurá-lo na Palavra, na oração e na vida da Igreja.",
+      "pauseSeconds": 8,
+      "file": "encontro.mp3",
+      "narrationEnd": 14.283,
+      "duration": 22.283,
+      "sha256": "e72331d427550e2202ac94b66f53bd21e35aca0c27eb5c49d168e9dc95353c73"
+    },
+    "batismo": {
+      "text": "O batismo de Jesus no Jordão. Jesus entra nas águas do Jordão e o Pai manifesta seu amor pelo Filho. Recordemos nosso Batismo e peçamos a graça de viver como filhos de Deus, conduzidos pelo Espírito Santo.",
+      "pauseSeconds": 8,
+      "file": "batismo.mp3",
+      "narrationEnd": 15.913,
+      "duration": 23.913,
+      "sha256": "4960924fbda142a9d6dd2bffc7b0423fb3300c0923de2f9f433aed6f434f7cbd"
+    },
+    "cana": {
+      "text": "A autorrevelação de Jesus nas bodas de Caná. Maria percebe a necessidade dos noivos e nos conduz a Jesus. Aprendamos a escutar o Senhor e a fazer o que Ele nos disser, com confiança e generosidade.",
+      "pauseSeconds": 8,
+      "file": "cana.mp3",
+      "narrationEnd": 14.975,
+      "duration": 22.975,
+      "sha256": "c67765c5ace9344e9adf9854379c0e6226e0cf6b2aedeeeb59e45805ba7e3dc8"
+    },
+    "reino": {
+      "text": "O anúncio do Reino de Deus. Jesus anuncia a proximidade do Reino e convida à conversão. Apresentemos a Ele o que precisa ser transformado em nós e acolhamos sua misericórdia com sinceridade.",
+      "pauseSeconds": 8,
+      "file": "reino.mp3",
+      "narrationEnd": 14.615,
+      "duration": 22.615,
+      "sha256": "f5dacc2fe6002f987ff93463cbb2febb06a51b9b161c39f82a0d3325593f1e8f"
+    },
+    "transfiguracao": {
+      "text": "A transfiguração do Senhor. No monte, os discípulos contemplam a glória de Cristo e são chamados a escutá-lo. Peçamos que a luz de sua presença sustente nossa fidelidade também nos momentos de escuridão.",
+      "pauseSeconds": 8,
+      "file": "transfiguracao.mp3",
+      "narrationEnd": 15.424,
+      "duration": 23.424,
+      "sha256": "ea7814c6925db939fe0080a0d1e779ae901dcb55ae1ba0f300fcdb5d1a09880e"
+    },
+    "eucaristia": {
+      "text": "A instituição da Eucaristia. Jesus se oferece por nós e nos dá seu Corpo e seu Sangue. Contemplemos este dom de amor e cresçamos na participação da Santa Missa e no serviço aos irmãos.",
+      "pauseSeconds": 8,
+      "file": "eucaristia.mp3",
+      "narrationEnd": 14.003,
+      "duration": 22.003,
+      "sha256": "e1a9b98d7742166796e8ab9425bf0072e4e3c80126e594d8d8e4912a43652d45"
+    },
+    "agonia": {
+      "text": "A agonia de Jesus no Horto. No Getsêmani, Jesus apresenta ao Pai sua angústia e permanece fiel. Entreguemos nossas aflições a Deus e peçamos a força de vigiar e rezar com quem sofre.",
+      "pauseSeconds": 8,
+      "file": "agonia.mp3",
+      "narrationEnd": 14.278,
+      "duration": 22.278,
+      "sha256": "11c93de91e374b3ca902b7e68fa040cdc889e1cf45fe03dccbe29626b857703e"
+    },
+    "flagelacao": {
+      "text": "A flagelação de Jesus. Contemplemos Jesus ferido pela violência humana. Peçamos perdão por nossas faltas e um coração atento à dignidade de todas as pessoas que sofrem agressão e abandono.",
+      "pauseSeconds": 8,
+      "file": "flagelacao.mp3",
+      "narrationEnd": 14.827,
+      "duration": 22.827,
+      "sha256": "24bcb1af853fe886baa9242afe37b94070198dcbb716899b9b2571cb629a69c6"
+    },
+    "coroacao-espinhos": {
+      "text": "A coroação de espinhos. Jesus é humilhado, mas seu amor não se converte em ódio. Peçamos humildade para renunciar ao orgulho e coragem para defender quem é desprezado.",
+      "pauseSeconds": 8,
+      "file": "coroacao-espinhos.mp3",
+      "narrationEnd": 13.072,
+      "duration": 21.072,
+      "sha256": "3aa9fa3edd3ba0ea1300185821ed1c19ddf19adfe99f276e77ee442716ba9070"
+    },
+    "caminho-cruz": {
+      "text": "Jesus carrega a cruz. Jesus segue o caminho do Calvário, e Simão de Cirene o ajuda. Peçamos a graça de carregar nossas cruzes com esperança e de aliviar os fardos de nossos irmãos.",
+      "pauseSeconds": 8,
+      "file": "caminho-cruz.mp3",
+      "narrationEnd": 14.042,
+      "duration": 22.042,
+      "sha256": "3a2e7c190975295beb82c31eadca79a10c1df77a285a4afd0fe4b60fca0eac42"
+    },
+    "crucificacao": {
+      "text": "A crucifixão e morte de Jesus. Ao pé da cruz, Maria permanece junto de Jesus. Contemplemos o amor de Cristo até o fim e confiemos à sua misericórdia nossas feridas e as dores do mundo.",
+      "pauseSeconds": 8,
+      "file": "crucificacao.mp3",
+      "narrationEnd": 14.518,
+      "duration": 22.518,
+      "sha256": "36a0718055fd7a3c000387ff2ada8d84834b6009ba61f7d91f0b449f1115ce23"
+    },
+    "ressurreicao": {
+      "text": "A ressurreição de Jesus. O túmulo vazio anuncia que a morte não tem a última palavra. Peçamos ao Ressuscitado uma esperança viva e a coragem de testemunhar seu amor em nossa vida.",
+      "pauseSeconds": 8,
+      "file": "ressurreicao.mp3",
+      "narrationEnd": 13.847,
+      "duration": 21.847,
+      "sha256": "dfa15e8bb6c42b533bc890e4c22d663c23c753c219b5f6c2177f4e74cab72809"
+    },
+    "ascensao": {
+      "text": "A ascensão de Jesus ao Céu. Jesus volta ao Pai e confia aos discípulos a missão de testemunhar o Evangelho. Rezemos para que nossa esperança do Céu se traduza em fidelidade e caridade aqui na terra.",
+      "pauseSeconds": 8,
+      "file": "ascensao.mp3",
+      "narrationEnd": 15.114,
+      "duration": 23.114,
+      "sha256": "23d0f0e4c7177839a0e643edc6b04a51845f1895b89106d42aaa299b9c76b8ec"
+    },
+    "pentecostes": {
+      "text": "A vinda do Espírito Santo. Reunida em oração, a Igreja recebe o Espírito Santo. Com Maria, peçamos seus dons para viver a comunhão e anunciar Jesus com coragem e mansidão.",
+      "pauseSeconds": 8,
+      "file": "pentecostes.mp3",
+      "narrationEnd": 12.979,
+      "duration": 20.979,
+      "sha256": "f8c08b11cfb8360e6252b5a4000f40b5f6150c1967b5d9a8e42e4ac8cf65ab9b"
+    },
+    "assuncao": {
+      "text": "A assunção de Maria ao Céu. A Igreja celebra Maria elevada ao Céu em corpo e alma, por graça de Deus. Contemplemos nela a esperança da ressurreição e confiemos ao Senhor nossa vida inteira.",
+      "pauseSeconds": 8,
+      "file": "assuncao.mp3",
+      "narrationEnd": 14.49,
+      "duration": 22.49,
+      "sha256": "d6ac1d8e3b02b8271477587d2a677f4138a80830f543b84ceae4ef8e019da6d1"
+    },
+    "coroacao-maria": {
+      "text": "A coroação de Maria como Rainha. Maria participa da glória de seu Filho e intercede por nós. Seu reinado nos aponta para o serviço e para a fidelidade a Cristo: peçamos que ela nos acompanhe em nosso caminho.",
+      "pauseSeconds": 8,
+      "file": "coroacao-maria.mp3",
+      "narrationEnd": 15.494,
+      "duration": 23.494,
+      "sha256": "7972fd80763c22d1777962bb498bce99217159a96a2a12fbfe285dbf380221ab"
     }
   }
 }

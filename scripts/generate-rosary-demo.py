@@ -30,8 +30,9 @@ options.intra_op_num_threads = 2
 options.inter_op_num_threads = 1
 session = ort.InferenceSession(str(args.model_dir / "kokoro-v1.0.onnx"), sess_options=options, providers=["CPUExecutionProvider"])
 kokoro = Kokoro.from_session(session, str(args.model_dir / "voices-v1.0.bin"))
-package_id = f"kokoro-{args.voice}-demo-1"
-manifest = {"packageId": package_id, "voice": f"Kokoro · {args.voice} · português brasileiro", "clips": {}}
+package_id = existing.get("packageId") or source.get("packageId") or f"kokoro-{args.voice.replace('_', '-')}-demo-1"
+voice_label = existing.get("voice") or f"Kokoro · {args.voice} · português brasileiro"
+manifest = {"packageId": package_id, "voice": voice_label, "clips": {}}
 for clip_id, clip in source["clips"].items():
     path = output / clip["file"]
     previous = existing.get("clips", {}).get(clip_id, {})

@@ -1,47 +1,50 @@
-# Rosário guiado por voz — protótipo local
+# Rosário guiado por voz — catálogo completo
 
-Base: `b88e95e`, branch `feature/rosary-audio-prototype`. O usuário autorizou a
-publicação desta demonstração em 20/10/2026. Não há migração de dados nem
-contratação de voz. A cobertura parcial continua explícita na interface.
+Base: `1d75697`, branch `main`. O catálogo de áudio agora contempla todas as 10
+orações recorrentes e os 20 mistérios do Santo Rosário (Gozosos, Luminosos,
+Dolorosos e Gloriosos). Não há migração de dados nem contratação de serviço
+externo de voz.
 
 ## Avaliar
 
 Use Node 22 e as dependências do lockfile. Habilite explicitamente
-`NEXT_PUBLIC_ROSARY_AUDIO_DEMO=true` no processo local e execute o servidor.
-No checkout desta avaliação, o endereço é `http://127.0.0.1:3131/rosario`.
+`NEXT_PUBLIC_ROSARY_AUDIO_DEMO=true` (ou mantenha o padrão habilitado) no
+processo local e execute o servidor. No checkout desta avaliação, o endereço é
+`http://127.0.0.1:3131/rosario`.
 
 O comando `powershell -File scripts/start-rosary-audio-demo.ps1` inicia uma sessão
 local com Node 22, banco desconectado e email desabilitado. O script não copia
 credenciais, não edita arquivos de ambiente e não publica a aplicação.
 
-1. Escolha os Mistérios Gozosos e comece a oração.
+1. Escolha qualquer um dos quatro conjuntos (Gozosos, Luminosos, Dolorosos ou
+   Gloriosos) ou marque a opção dos 20 mistérios em sequência e comece a oração.
 2. Ative **Rezar com áudio** e toque em **Reproduzir áudio**.
 3. Escolha avanço manual ou contínuo e uma das velocidades: 1×, 1,25×, 1,5× e 2×.
-4. Para ouvir a meditação da Anunciação sem percorrer as orações iniciais, use
-   Próxima até a etapa 9. Essa navegação é a navegação normal do roteiro.
+4. Para ouvir a meditação de qualquer mistério sem percorrer as orações iniciais,
+   use Próxima até a etapa da contemplação ou selecione uma conta no terço.
 5. Pause, altere a velocidade e recarregue para avaliar a retomada. Depois de
    recarregar, escolha Continuar oração e reative o áudio; ele não inicia sozinho.
 
-O pacote contém as dez orações distintas do roteiro e a meditação da Anunciação.
-Os arquivos de Pai-Nosso e Ave-Maria são reutilizados nas contas correspondentes.
-Ao chegar a um mistério ainda sem gravação, a reprodução contínua para e informa
-a indisponibilidade. Não há salto silencioso ou substituição por outra meditação.
-O modo tradicional continua disponível e é o padrão.
+O pacote contém 30 gravações (as 10 orações distintas do roteiro e as 20
+meditações dos mistérios). Os arquivos de Pai-Nosso e Ave-Maria são reutilizados
+nas contas correspondentes sem recarregar o buffer de áudio entre Ave-Marias
+consecutivas. Caso algum texto seja editado administrativamente e ainda não tenha
+gravação correspondente, a reprodução contínua para e informa a indisponibilidade.
+Não há salto silencioso ou substituição por outra meditação. O modo tradicional
+continua disponível e é o padrão.
 
 ## Voz e pausas
 
-Voz da demonstração: **Kokoro pm_santa**, português brasileiro, gerada localmente
-por Kokoro ONNX. A publicação do pacote demonstrativo foi autorizada pelo usuário;
-isso não representa escolha definitiva de fornecedor ou de voz para o catálogo
-completo. Naturalidade, pronúncia e adequação espiritual permanecem sujeitas à
-avaliação editorial.
-As transcrições usam os textos já existentes, sem gerar conteúdo devocional novo.
+Voz: **Kokoro pm_santa**, português brasileiro, gerada localmente por Kokoro ONNX.
+As transcrições usam os textos já aprovados no sistema (`content-v2026-1.js`),
+sem gerar conteúdo devocional novo.
 
-Síntese a 0,88 do ritmo padrão do modelo, pausas entre frases e 2,2 segundos de
-silêncio ao final das orações. A Anunciação inclui oito segundos de silêncio ao
-final da meditação. Esses silêncios integram a mídia: pausa, retomada e velocidade
-se aplicam a eles também. A 2×, por exemplo, o silêncio de oito segundos dura
-quatro segundos. A interface identifica o intervalo contemplativo.
+Síntese a 0,88 do ritmo padrão do modelo, pausas de 0,35s entre frases e 2,2
+segundos de silêncio ao final das orações. Todos os 20 mistérios incluem oito
+segundos de silêncio contemplativo ao final da meditação. Esses silêncios
+integram a mídia: pausa, retomada e velocidade se aplicam a eles também. A 2×,
+por exemplo, o silêncio de oito segundos dura quatro segundos. A interface
+identifica o intervalo contemplativo.
 
 Modelo e vozes: https://github.com/thewh1teagle/kokoro-onnx/releases/tag/model-files-v1.1
 Modelo original e licença declarada Apache-2.0: https://huggingface.co/hexgrad/Kokoro-82M
@@ -103,15 +106,16 @@ uma gravação substituída nunca herde os segundos da anterior.
 
 ## Opções de voz e custos consultados em 20/10/2026
 
-Nenhum serviço pago foi utilizado ou contratado. O protótipo tem 2.899 caracteres
-distintos de narração, reutilizando as orações repetidas.
+Nenhum serviço pago foi utilizado ou contratado. O catálogo completo possui 6.476
+caracteres distintos de narração (10 orações e 20 mistérios), reutilizando as
+orações repetidas.
 
-| Alternativa                      | Referência por milhão de caracteres      | Uma geração de 2.899 caracteres |
-| -------------------------------- | ---------------------------------------- | ------------------------------- |
-| Kokoro local, usado no protótipo | Sem cobrança de API; usa a máquina local | US$ 0 de API                    |
-| Amazon Polly Neural              | US$ 16                                   | Aproximadamente US$ 0,046       |
-| Google Chirp 3 HD                | US$ 30                                   | Aproximadamente US$ 0,087       |
-| Locução humana brasileira        | Orçamento com narrador e edição          | A cotar                         |
+| Alternativa                     | Referência por milhão de caracteres      | Uma geração de 6.476 caracteres |
+| ------------------------------- | ---------------------------------------- | ------------------------------- |
+| Kokoro local, usado no catálogo | Sem cobrança de API; usa a máquina local | US$ 0 de API                    |
+| Amazon Polly Neural             | US$ 16                                   | Aproximadamente US$ 0,104       |
+| Google Chirp 3 HD               | US$ 30                                   | Aproximadamente US$ 0,194       |
+| Locução humana brasileira       | Orçamento com narrador e edição          | A cotar                         |
 
 Valores de geração, antes de impostos, possíveis franquias, regravações e custos
 de armazenamento/transferência. A qualidade final deve ser escolhida por amostras,

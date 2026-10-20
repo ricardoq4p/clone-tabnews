@@ -168,8 +168,32 @@ if (!["127.0.0.1", "localhost"].includes(new URL(base).hostname))
       .getByRole("button", { name: "Pausar áudio", exact: true })
       .click();
     assert.ok((await savedTime()).clipId.includes("anunciacao"));
+    for (let index = 0; index < 14; index++)
+      await player
+        .getByRole("button", { name: "Próxima oração pelo áudio", exact: true })
+        .click();
+    await player.getByRole("heading", { name: /visitação/i }).waitFor();
+    await player
+      .getByRole("button", {
+        name: /Reproduzir áudio|Continuar áudio/,
+        exact: true,
+      })
+      .click();
+    await page.waitForTimeout(600);
+    await player
+      .getByRole("button", { name: "Pausar áudio", exact: true })
+      .click();
+    assert.ok((await savedTime()).clipId.includes("visitacao"));
+    for (let index = 0; index < 14; index++)
+      await player
+        .getByRole("button", {
+          name: "Oração anterior pelo áudio",
+          exact: true,
+        })
+        .click();
+    await player.getByRole("heading", { name: /anunciação/i }).waitFor();
     report.checks.push(
-      "First mystery presentation and meditation resolve to the matching audio",
+      "First and second mystery meditations resolve and play matching audio",
     );
 
     for (const [width, height] of [
@@ -338,6 +362,65 @@ if (!["127.0.0.1", "localhost"].includes(new URL(base).hostname))
       "Delayed saves retain the latest step; account switching isolates and restores audio checkpoints without autoplay",
     );
     await syncPage.close();
+
+    // Verify all four mystery sets resolve and play real audio in the browser.
+    await page.close();
+    const setsPage = await context.newPage();
+    setsPage.on("pageerror", (error) => report.errors.push(error.message));
+    for (const [setName, firstMysteryId] of [
+      ["Gozosos", "anunciacao"],
+      ["Luminosos", "batismo"],
+      ["Dolorosos", "agonia"],
+      ["Gloriosos", "ressurreicao"],
+    ]) {
+      await setsPage.goto(`${base}/rosario`);
+      await setsPage.evaluate(() => localStorage.clear());
+      await setsPage.goto(`${base}/rosario`);
+      await setsPage
+        .getByRole("button", { name: "Começar este momento", exact: true })
+        .waitFor();
+      await setsPage
+        .getByRole("button", { name: new RegExp(setName) })
+        .first()
+        .click();
+      await setsPage
+        .getByRole("button", { name: "Começar este momento", exact: true })
+        .click();
+      await setsPage
+        .getByRole("button", { name: "Rezar com áudio", exact: true })
+        .click();
+      const setPlayer = setsPage.getByRole("region", {
+        name: "Rosário com áudio",
+      });
+      for (let i = 0; i < 8; i++)
+        await setPlayer
+          .getByRole("button", {
+            name: "Próxima oração pelo áudio",
+            exact: true,
+          })
+          .click();
+      await setPlayer
+        .getByRole("button", {
+          name: /Reproduzir áudio|Continuar áudio/,
+        })
+        .click();
+      await setsPage.waitForTimeout(500);
+      await setPlayer
+        .getByRole("button", { name: "Pausar áudio", exact: true })
+        .click();
+      const currentSrc = await setsPage.evaluate(
+        () => window.__qaRosaryAudio.currentSrc,
+      );
+      assert.ok(
+        currentSrc.endsWith(`/audio/rosario/demo/${firstMysteryId}.mp3`),
+        `Expected ${firstMysteryId}.mp3 for ${setName}, got ${currentSrc}`,
+      );
+    }
+    await setsPage.close();
+    report.checks.push(
+      "All four mystery sets (Gozosos, Luminosos, Dolorosos, Gloriosos) resolve and play matching audio in the browser",
+    );
+
     assert.deepEqual(report.errors, []);
     fs.writeFileSync(
       ".qa/audio/browser-report.json",

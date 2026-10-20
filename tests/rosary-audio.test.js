@@ -1,19 +1,34 @@
 import { RosaryAudioController } from "../lib/rosary/audio-controller";
 import {
   readCheckpoint,
+  readPreferences,
   writeCheckpoint,
 } from "../lib/rosary/audio-checkpoint";
 import { narrationForStep, resolveAudio } from "../lib/rosary/audio-catalog";
+import { MYSTERY_SETS } from "../lib/rosary/content";
 import { buildRosary } from "../lib/rosary/engine";
 
-test("demo audio matches prayers and first mystery while other meditations stay unavailable", () => {
-  const steps = buildRosary("gozosos", { full: true, fatima: true });
-  for (const step of steps) {
-    if (step.prayer !== "contemplacao" || step.mystery.id === "anunciacao")
-      expect(resolveAudio(step)?.src).toMatch(/\.mp3$/);
-    else expect(resolveAudio(step)).toBeNull();
+test("all 292 steps of the full Rosary and all four mystery sets resolve to matching MP3 clips", () => {
+  const fullSteps = buildRosary("gozosos", { full: true, fatima: true });
+  expect(fullSteps).toHaveLength(292);
+  expect(
+    fullSteps.filter((step) => step.prayer === "contemplacao"),
+  ).toHaveLength(20);
+  for (const step of fullSteps) {
+    const clip = resolveAudio(step);
+    expect(clip).not.toBeNull();
+    expect(clip.src).toMatch(/^\/audio\/rosario\/demo\/[a-z-]+\.mp3$/);
+    expect(clip.text).toBe(narrationForStep(step));
+    expect(clip.pauseSeconds).toBe(step.prayer === "contemplacao" ? 8 : 2.2);
   }
-  const aves = steps.filter((step) => step.prayer === "ave");
+  for (const set of MYSTERY_SETS) {
+    const setSteps = buildRosary(set.id, { full: false, fatima: true });
+    expect(setSteps).toHaveLength(82);
+    for (const step of setSteps) {
+      expect(resolveAudio(step)?.src).toMatch(/\.mp3$/);
+    }
+  }
+  const aves = fullSteps.filter((step) => step.prayer === "ave");
   expect(aves[0].id).not.toBe(aves[1].id);
   expect(resolveAudio(aves[0]).src).toBe(resolveAudio(aves[1]).src);
 });
@@ -206,4 +221,61 @@ test("pausing in the silence interval preserves time and prevents automatic adva
   media.fire("ended");
   expect(media.currentTime).toBe(28);
   expect(advance).not.toHaveBeenCalled();
+});
+
+test("rate and mode preferences persist across step navigation and reload without reloading identical decade clips", async () => {
+  const { controller, media, storage } = make();
+  media.load = jest.fn();
+  controller.setRate(1.5);
+  controller.setMode("continuous");
+  const nextStep = {
+    scope: context.scope,
+    position: 5,
+    stepId: "5-ave",
+    clip: { id: "voice1:ave", src: "/ave.mp3" },
+  };
+  controller.load(nextStep, false);
+  expect(media.load).toHaveBeenCalledTimes(1);
+  media.src = "http://localhost/ave.mp3";
+  media.duration = 19.221;
+  media.currentTime = 19.221;
+  // Transitioning to the next Ave-Maria in the same decade reuses the already loaded audio buffer.
+  controller.load(
+    {
+      scope: context.scope,
+      position: 6,
+      stepId: "6-ave",
+      clip: { id: "voice1:ave", src: "/ave.mp3" },
+    },
+    true,
+  );
+  expect(media.load).toHaveBeenCalledTimes(1);
+  expect(media.currentTime).toBe(0);
+  expect(media.playbackRate).toBe(1.5);
+  expect(media.preservesPitch).toBe(true);
+  expect(media.mozPreservesPitch).toBe(true);
+  expect(media.webkitPreservesPitch).toBe(true);
+  expect(readPreferences(storage, context.scope)).toEqual({
+    rate: 1.5,
+    mode: "continuous",
+  });
+  // Simulating a page reload on step 6-ave restores rate and mode from storage.
+  const reloadedMedia = new Media();
+  const reloadedController = new RosaryAudioController(
+    reloadedMedia,
+    storage,
+    jest.fn(),
+    jest.fn(),
+  );
+  reloadedController.load(
+    {
+      scope: context.scope,
+      position: 6,
+      stepId: "6-ave",
+      clip: { id: "voice1:ave", src: "/ave.mp3" },
+    },
+    false,
+  );
+  expect(reloadedController.rate).toBe(1.5);
+  expect(reloadedController.mode).toBe("continuous");
 });
