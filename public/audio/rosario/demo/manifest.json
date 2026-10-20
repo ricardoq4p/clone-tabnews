@@ -1,0 +1,94 @@
+{
+  "packageId": "kokoro-pm-santa-demo-1",
+  "voice": "Kokoro · Santa · português brasileiro",
+  "clips": {
+    "sinal": {
+      "text": "Em nome do Pai, e do Filho, e do Espírito Santo. Amém.",
+      "pauseSeconds": 2.2,
+      "file": "sinal.mp3",
+      "narrationEnd": 4.951,
+      "duration": 7.151,
+      "sha256": "4e2caf263cb48decc71b602e2654f8497990de11aa27ae073162b9fef5614a10"
+    },
+    "oferecimento": {
+      "text": "Divino Jesus, nós vos oferecemos este terço que vamos rezar, contemplando os mistérios da nossa Redenção. Concedei-nos, por intercessão da Virgem Maria, Mãe de Deus e nossa Mãe, as virtudes necessárias para bem rezá-lo e a graça de ganhar as indulgências desta santa devoção.",
+      "pauseSeconds": 2.2,
+      "file": "oferecimento.mp3",
+      "narrationEnd": 19.93,
+      "duration": 22.13,
+      "sha256": "fb93d3e7ce6b4ed5af26921452a0cf30ff1e30db73a94ffa4fd9fc894f80a667"
+    },
+    "credo": {
+      "text": "Creio em Deus Pai todo-poderoso, criador do céu e da terra; e em Jesus Cristo, seu único Filho, nosso Senhor; que foi concebido pelo poder do Espírito Santo; nasceu da Virgem Maria; padeceu sob Pôncio Pilatos, foi crucificado, morto e sepultado; desceu à mansão dos mortos; ressuscitou ao terceiro dia; subiu aos céus; está sentado à direita de Deus Pai todo-poderoso, donde há de vir a julgar os vivos e os mortos. Creio no Espírito Santo; na santa Igreja Católica; na comunhão dos santos; na remissão dos pecados; na ressurreição da carne; na vida eterna. Amém.",
+      "pauseSeconds": 2.2,
+      "file": "credo.mp3",
+      "narrationEnd": 46.817,
+      "duration": 49.017,
+      "sha256": "6cf4e26e9afa8438c0d3f30bff069567ecb154adf416f96210c8f996ad46dadb"
+    },
+    "pai": {
+      "text": "Pai nosso que estais nos céus, santificado seja o vosso nome; venha a nós o vosso Reino; seja feita a vossa vontade, assim na terra como no céu. O pão nosso de cada dia nos dai hoje; perdoai-nos as nossas ofensas, assim como nós perdoamos a quem nos tem ofendido; e não nos deixeis cair em tentação, mas livrai-nos do mal. Amém.",
+      "pauseSeconds": 2.2,
+      "file": "pai.mp3",
+      "narrationEnd": 25.845,
+      "duration": 28.045,
+      "sha256": "53f851dbcde87c7e24931103dbf4667212e24b19e2b1e4c7853ba66355ff92d6"
+    },
+    "ave": {
+      "text": "Ave, Maria, cheia de graça, o Senhor é convosco; bendita sois vós entre as mulheres, e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós, pecadores, agora e na hora de nossa morte. Amém.",
+      "pauseSeconds": 2.2,
+      "file": "ave.mp3",
+      "narrationEnd": 17.021,
+      "duration": 19.221,
+      "sha256": "deecc4193b92b7fe92a2d0896120888aa5e62767315380f94de6862a497f7804"
+    },
+    "gloria": {
+      "text": "Glória ao Pai, e ao Filho, e ao Espírito Santo. Como era no princípio, agora e sempre. Amém.",
+      "pauseSeconds": 2.2,
+      "file": "gloria.mp3",
+      "narrationEnd": 8.066,
+      "duration": 10.266,
+      "sha256": "ada905946f4627aac3175287e501ad58edb1a6fb69e8b310636013359743d021"
+    },
+    "fatima": {
+      "text": "Ó meu Jesus, perdoai-nos, livrai-nos do fogo do inferno, levai as almas todas para o céu e socorrei principalmente as que mais precisarem.",
+      "pauseSeconds": 2.2,
+      "file": "fatima.mp3",
+      "narrationEnd": 9.513,
+      "duration": 11.713,
+      "sha256": "23a30289816e2be616664ec1fdfa0ad141d6370e4afd499250a9f4513a1b67d6"
+    },
+    "agradecimento": {
+      "text": "Infinitas graças vos damos, soberana Rainha, pelos benefícios que todos os dias recebemos de vossas mãos liberais. Dignai-vos, agora e para sempre, tomar-nos debaixo de vosso poderoso amparo. E, para mais vos obrigar, vos saudamos com uma Salve-Rainha.",
+      "pauseSeconds": 2.2,
+      "file": "agradecimento.mp3",
+      "narrationEnd": 18.509,
+      "duration": 20.709,
+      "sha256": "3fcc37c8d6df3ac82c85811a67433276e9ed73a7447561e195eceedbdeca9fe1"
+    },
+    "salve": {
+      "text": "Salve, Rainha, Mãe de misericórdia, vida, doçura e esperança nossa, salve! A vós bradamos, os degredados filhos de Eva. A vós suspiramos, gemendo e chorando neste vale de lágrimas. Eia, pois, advogada nossa, esses vossos olhos misericordiosos a nós volvei; e depois deste desterro, mostrai-nos Jesus, bendito fruto do vosso ventre. Ó clemente, ó piedosa, ó doce sempre Virgem Maria! Rogai por nós, santa Mãe de Deus, para que sejamos dignos das promessas de Cristo. Amém.",
+      "pauseSeconds": 2.2,
+      "file": "salve.mp3",
+      "narrationEnd": 36.999,
+      "duration": 39.199,
+      "sha256": "5f8d66125ee43e023b17d0922d1e14e76c00b7453132be259ba1a945c8ac255f"
+    },
+    "final": {
+      "text": "Ó Deus, cujo Filho unigênito, por sua vida, morte e ressurreição, nos mereceu os prêmios da salvação eterna, concedei-nos, nós vos pedimos, que, meditando os mistérios do Santíssimo Rosário da bem-aventurada Virgem Maria, imitemos o que contêm e alcancemos o que prometem. Por Cristo, nosso Senhor. Amém.",
+      "pauseSeconds": 2.2,
+      "file": "final.mp3",
+      "narrationEnd": 21.582,
+      "duration": 23.782,
+      "sha256": "ad93a5f6cc94f7596d7aa527643399ef6c0882869f44ce71fd834e33ed219025"
+    },
+    "anunciacao": {
+      "text": "A anunciação do Anjo a Maria. Maria acolhe a Palavra com liberdade e confiança. Contemplemos seu sim e peçamos um coração disponível para a vontade de Deus, mesmo quando ainda não compreendemos o caminho.",
+      "pauseSeconds": 8,
+      "file": "anunciacao.mp3",
+      "narrationEnd": 15.033,
+      "duration": 23.033,
+      "sha256": "c9c204152c6908f3d3a27ee6cdc3bd3052e3911aee91c23a0b0f2667ed73e25b"
+    }
+  }
+}

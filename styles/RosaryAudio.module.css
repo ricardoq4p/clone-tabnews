@@ -1,0 +1,101 @@
+.player {
+  border: 1px solid #63785e;
+  background: #101a14;
+  color: #f2efdc;
+  padding: clamp(14px, 3vw, 24px);
+  margin: 18px 0;
+  border-radius: 8px;
+  min-width: 0;
+}
+.heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+}
+.heading h2 {
+  font: inherit;
+  font-size: 1.1rem;
+  margin: 8px 0;
+}
+.eyebrow {
+  color: #cad8ad;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+}
+.note,
+.status {
+  font-size: 0.8rem;
+  line-height: 1.7;
+}
+.note {
+  color: #c6cebf;
+}
+.options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 18px 0;
+}
+.options label {
+  display: flex;
+  flex: 1 1 150px;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.8rem;
+}
+.options select {
+  background: #19241b;
+  color: #f2efdc;
+  border: 1px solid #8c9b79;
+  border-radius: 4px;
+  padding: 10px;
+  min-height: 44px;
+  font: inherit;
+  width: 100%;
+}
+.controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.controls button {
+  min-height: 44px;
+  flex: 1 1 auto;
+}
+.player button:focus-visible,
+.options select:focus-visible {
+  outline: 3px solid #ecdc9b;
+  outline-offset: 4px;
+}
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 18px;
+  font-size: 0.75rem;
+}
+.timeline progress {
+  width: 100%;
+  min-width: 0;
+  height: 5px;
+  accent-color: #cad8ad;
+}
+.timeline span {
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 420px) {
+  .heading {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .controls button {
+    padding: 10px;
+    font-size: 0.75rem;
+  }
+  .controls button:nth-child(2) {
+    flex-basis: 100%;
+    order: -1;
+  }
+}
