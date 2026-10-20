@@ -4,6 +4,9 @@ import Image from "next/image";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
 import Beads from "@/components/rosary/Beads";
+import AudioPlayer from "@/components/rosary/AudioPlayer";
+import { useRosaryAudio } from "@/lib/rosary/useRosaryAudio";
+import { audioDemoEnabled } from "@/lib/rosary/audio-catalog";
 import { useRosary } from "@/lib/rosary/useRosary";
 import { resolveMysteryArtwork } from "@/lib/rosary/content";
 import { buildRosary, mysteriesForDay } from "@/lib/rosary/engine";
@@ -19,6 +22,7 @@ const WEEKDAYS = [
 export default function Rosario() {
   const rosary = useRosary();
   const { content, progress, ready } = rosary;
+  const [audioEnabled, setAudioEnabled] = useState(false);
   const [selected, setSelected] = useState(() => mysteriesForDay().id),
     [full, setFull] = useState(false),
     [fatima, setFatima] = useState(true),
@@ -50,6 +54,13 @@ export default function Rosario() {
   const steps = progress ? buildRosary(progress.setId, progress, content) : [];
   const completed = Boolean(progress && progress.position === steps.length);
   const step = steps[progress?.position];
+  const audio = useRosaryAudio({
+    rosary,
+    step,
+    enabled: audioDemoEnabled && audioEnabled,
+    active: ready && praying && !rosary.conflict,
+    completed,
+  });
   const contextSet =
     step?.setId ||
     [...steps.slice(0, progress?.position || 0)]
@@ -85,7 +96,9 @@ export default function Rosario() {
         ? "Orações iniciais"
         : "Orações finais";
   function go(position) {
-    rosary.go(Math.max(0, Math.min(steps.length, position)));
+    const next = Math.max(0, Math.min(steps.length, position));
+    if (next === progress?.position) return;
+    audio.navigate(() => rosary.go(next));
     requestAnimationFrame(() => {
       heading.current?.focus({ preventScroll: true });
       if (window.matchMedia("(max-width:720px)").matches)
@@ -395,6 +408,7 @@ export default function Rosario() {
                   <button
                     className="p-inline-button"
                     onClick={() => {
+                      audio.pause();
                       setPraying(false);
                       setFocusMode(false);
                     }}
@@ -444,6 +458,31 @@ export default function Rosario() {
                     aria-label="Progresso do roteiro de oração"
                   />
                 </div>
+                {audioDemoEnabled ? (
+                  audioEnabled ? (
+                    <AudioPlayer
+                      audio={audio}
+                      title={step.title}
+                      first={progress.position === 0}
+                      onPrevious={() => go(progress.position - 1)}
+                      onNext={() => go(progress.position + 1)}
+                      onDisable={() => {
+                        audio.pause();
+                        setAudioEnabled(false);
+                      }}
+                    />
+                  ) : (
+                    <div className="p-actions">
+                      <button
+                        type="button"
+                        className="p-button p-button-outline"
+                        onClick={() => setAudioEnabled(true)}
+                      >
+                        Rezar com áudio
+                      </button>
+                    </div>
+                  )
+                ) : null}
                 <div className="p-prayer-workspace">
                   <aside
                     className="p-contemplation"
