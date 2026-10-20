@@ -24,6 +24,7 @@ test("concurrent repeated requests have one record for the same user and target"
     ),
   );
   expect(records.size).toBe(1);
+  expect(results.filter((item) => item.created)).toHaveLength(1);
   expect(results.every((item) => item.prayed && item.supportCount === 1)).toBe(
     true,
   );

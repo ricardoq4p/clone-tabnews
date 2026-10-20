@@ -7,7 +7,7 @@ jest.mock("../lib/models/Community", () => ({
 }));
 jest.mock("../lib/models/User", () => ({
   __esModule: true,
-  default: { findOne: jest.fn() },
+  default: { findOne: jest.fn(), findById: jest.fn() },
 }));
 jest.mock("../lib/rate-limit", () => ({
   checkRateLimit: jest.fn(async () => ({ success: true })),
@@ -17,8 +17,14 @@ jest.mock("../lib/pusher", () => ({
     authorizeChannel: jest.fn(() => ({ auth: "signature" })),
   })),
 }));
+jest.mock("../lib/notifications", () => ({ tryCreateNotification: jest.fn() }));
+jest.mock("../lib/notification-realtime", () => ({
+  notifyNotificationChange: jest.fn(),
+}));
 import { getServerSession } from "next-auth";
 import Community from "../lib/models/Community";
+import User from "../lib/models/User";
+import { tryCreateNotification } from "../lib/notifications";
 import join from "../pages/api/communities/[id]/join";
 import pusherAuth from "../pages/api/pusher/auth";
 const id = "123456789012345678901234";
@@ -97,4 +103,65 @@ test("archived community cannot authorize a subscription", async () => {
     res,
   );
   expect(res.status).toHaveBeenCalledWith(403);
+});
+
+test("private community owner addition notifies the newly added member", async () => {
+  const member = {
+    _id: id,
+    privacy: "private",
+    ownerId: id,
+    members: [id],
+    populate: async () => member,
+  };
+  Community.findById.mockResolvedValue(member);
+  User.findOne.mockReturnValue({ select: async () => ({ _id: outsider }) });
+  getServerSession.mockResolvedValue({ user: { id } });
+  const res = response();
+  await join(
+    {
+      method: "POST",
+      query: { id },
+      body: { action: "approve", userId: outsider },
+    },
+    res,
+  );
+  expect(Community.updateOne).toHaveBeenCalled();
+  expect(tryCreateNotification).toHaveBeenCalledWith({
+    recipientId: outsider,
+    actorId: id,
+    type: "community_invite",
+    targetId: id,
+    dedupeKey: `community-invite:${id}:${outsider}`,
+  });
+});
+
+test("a private user notification channel is restricted to its owner", async () => {
+  getServerSession.mockResolvedValue({ user: { id: outsider } });
+  const res = response();
+  await pusherAuth(
+    {
+      method: "POST",
+      body: { channel_name: `private-user-${id}`, socket_id: "123.456" },
+    },
+    res,
+  );
+  expect(res.status).toHaveBeenCalledWith(403);
+  expect(User.findById).not.toHaveBeenCalled();
+});
+
+test("a user can authorize only their own private notification channel", async () => {
+  getServerSession.mockResolvedValue({ user: { id } });
+  User.findById.mockReturnValue({
+    select: () => ({ lean: async () => ({ _id: id }) }),
+  });
+  const res = response();
+  await pusherAuth(
+    {
+      method: "POST",
+      body: { channel_name: `private-user-${id}`, socket_id: "123.456" },
+    },
+    res,
+  );
+  expect(res.status).toHaveBeenCalledWith(200);
+  expect(res.json).toHaveBeenCalledWith({ auth: "signature" });
 });

@@ -11,6 +11,35 @@ export default withApi(
       400,
       "Página inválida.",
     );
+    requireCondition(
+      !req.query.id || isObjectId(req.query.id),
+      400,
+      "Intenção inválida.",
+    );
+    if (req.query.id) {
+      const candle = await Candle.findOne({
+        _id: req.query.id,
+        ownerId: session.user.id,
+      }).lean();
+      requireCondition(candle, 404, "Intenção indisponível.");
+      const now = new Date();
+      const supports = await supportSummary(
+        "candle",
+        [candle._id],
+        session.user.id,
+      );
+      return res.status(200).json({
+        items: [
+          candleView(candle, {
+            owner: true,
+            now,
+            ...supports.get(candle._id.toString()),
+          }),
+        ],
+        next: null,
+        serverNow: now.toISOString(),
+      });
+    }
     const filter = {
       ownerId: session.user.id,
       ...(req.query.before ? { _id: { $lt: req.query.before } } : {}),

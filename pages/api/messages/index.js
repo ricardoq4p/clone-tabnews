@@ -37,6 +37,31 @@ export default async function handler(req, res) {
     await connectToDatabase();
     if (req.method === "GET") {
       const { communityId, before } = req.query;
+      if (req.query.id) {
+        if (!isObjectId(req.query.id))
+          return res.status(400).json({ error: "Identificador invalido" });
+        const readable = await readableMessage(req.query.id, session);
+        if (!readable)
+          return res.status(404).json({ error: "Publicacao indisponivel" });
+        await readable.message.populate([
+          { path: "userId", select: "name username avatar" },
+          { path: "communityId", select: "name" },
+        ]);
+        const support = await supportSummary(
+          "message",
+          [readable.message._id],
+          session?.user?.id,
+        );
+        return res.status(200).json([
+          {
+            ...normalizeMessage(readable.message),
+            supportCount:
+              support.get(readable.message._id.toString())?.count || 0,
+            prayed:
+              support.get(readable.message._id.toString())?.prayed || false,
+          },
+        ]);
+      }
       if (
         (communityId && !isObjectId(communityId)) ||
         (before && !isObjectId(before))

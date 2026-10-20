@@ -9,6 +9,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]";
 import { createRateLimitErrorMessage, checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
+import { tryCreateNotification } from "@/lib/notifications";
+import { notifyNotificationChange } from "@/lib/notification-realtime";
 
 function normalizeCommunity(community, sessionUserId) {
   const plainCommunity =
@@ -151,6 +153,21 @@ export default async function handler(req, res) {
         ? { $pull: { members: userId } }
         : { $addToSet: { members: userId } },
     );
+    if (
+      action === "approve" &&
+      !alreadyMember &&
+      userId !== session.user.id &&
+      community.privacy === "private"
+    ) {
+      await tryCreateNotification({
+        recipientId: userId,
+        actorId: session.user.id,
+        type: "community_invite",
+        targetId: community._id,
+        dedupeKey: `community-invite:${community._id}:${userId}`,
+      });
+      await notifyNotificationChange(userId);
+    }
     const updatedCommunity = await Community.findById(id);
     community.members = updatedCommunity.members;
     const populatedCommunity = await community.populate("ownerId", "name");

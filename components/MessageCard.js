@@ -5,7 +5,7 @@ import Link from "next/link";
 import PrayerButton from "./prayer/PrayerButton";
 import ReportButton from "./prayer/ReportButton";
 import LoadMoreButton from "./LoadMoreButton";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import Pusher from "pusher-js";
 
@@ -17,6 +17,7 @@ export default function MessageCard({ msg, onDeleted }) {
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentError, setCommentError] = useState("");
+  const commentRequestId = useRef(null);
   const [deleting, setDeleting] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState("");
   const messageId = msg?._id || null;
@@ -107,11 +108,13 @@ export default function MessageCard({ msg, onDeleted }) {
     try {
       setCommentSubmitting(true);
       setCommentError("");
+      commentRequestId.current ||= crypto.randomUUID();
 
       const response = await fetch("/api/comments", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          "Idempotency-Key": commentRequestId.current,
         },
         body: JSON.stringify({
           content: comment,
@@ -131,6 +134,7 @@ export default function MessageCard({ msg, onDeleted }) {
           : [created, ...current],
       );
       setComment("");
+      commentRequestId.current = null;
       setCommentsOpen(true);
     } catch (err) {
       setCommentError(err.message || "Nao foi possivel enviar o comentario.");
@@ -195,7 +199,10 @@ export default function MessageCard({ msg, onDeleted }) {
   };
 
   return (
-    <article className="glass-panel rounded-[28px] p-5 sm:p-6">
+    <article
+      id={`message-${messageId}`}
+      className="glass-panel rounded-[28px] p-5 sm:p-6"
+    >
       <div className="p-post-kind">
         {
           {

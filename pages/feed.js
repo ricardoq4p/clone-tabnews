@@ -28,6 +28,8 @@ export default function Feed() {
 
   const { data: session, status } = useSession();
   const router = useRouter();
+  const requestedMessage =
+    typeof router.query.message === "string" ? router.query.message : "";
 
   useEffect(() => {
     if (status === "loading") return;
@@ -59,7 +61,11 @@ export default function Feed() {
   }, [session]);
 
   useEffect(() => {
-    fetch("/api/messages")
+    fetch(
+      requestedMessage
+        ? `/api/messages?id=${encodeURIComponent(requestedMessage)}`
+        : "/api/messages",
+    )
       .then((res) => res.json())
       .then((data) => {
         setMessages(Array.isArray(data) ? data : []);
@@ -105,7 +111,20 @@ export default function Feed() {
       pusher.unsubscribe("feed");
       pusher.disconnect();
     };
-  }, [communities]);
+  }, [communities, requestedMessage]);
+
+  useEffect(() => {
+    if (
+      !requestedMessage ||
+      !messages.some((item) => item._id === requestedMessage)
+    )
+      return;
+    window.requestAnimationFrame(() =>
+      document
+        .getElementById(`message-${requestedMessage}`)
+        ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+    );
+  }, [messages, requestedMessage]);
 
   const handleSubmit = async () => {
     if (!newMessage.trim() || publishing) return;

@@ -29,7 +29,10 @@ export default function CandleCard({ candle, now, history, onUpdate }) {
     }
   }
   return (
-    <article className={`p-candle-card ${!active ? "is-archived" : ""}`}>
+    <article
+      id={`candle-${candle._id}`}
+      className={`p-candle-card ${!active ? "is-archived" : ""}`}
+    >
       <div className="p-candle-card-art">
         <CandleArt lit={active} small />
         <span className="p-candle-privacy">

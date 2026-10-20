@@ -1,5 +1,5 @@
 import { deleteCommunityContent } from "@/lib/community-deletion";
-import { ApiError } from "@/lib/api";
+import { ApiError, requireCondition } from "@/lib/api";
 import { rejectCrossOriginMutation } from "@/lib/api-security";
 import connectToDatabase from "@/lib/db";
 import Comment from "@/lib/models/Comment";
@@ -13,6 +13,8 @@ import { maybeReplyAsPantera } from "@/lib/pantera-comments";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
 import { isObjectId, validText } from "@/lib/validation";
+import { tryCreateNotification } from "@/lib/notifications";
+import { notifyNotificationChange } from "@/lib/notification-realtime";
 function normalizeComment(comment) {
   const value = comment.toObject();
   return {
@@ -20,6 +22,18 @@ function normalizeComment(comment) {
     author: value.userId?.name || value.author || "Usuario",
     avatar: value.userId?.avatar || value.avatar || "",
   };
+}
+async function notifyCommentOwner(comment, parent, actorId) {
+  const recipient = parent.message.userId?.toString();
+  if (!recipient || recipient === actorId.toString()) return;
+  await tryCreateNotification({
+    recipientId: recipient,
+    actorId,
+    type: "message_comment",
+    targetId: parent.message._id,
+    dedupeKey: `message-comment:${comment._id}`,
+  });
+  await notifyNotificationChange(recipient);
 }
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "private, no-store");
@@ -55,6 +69,36 @@ export default async function handler(req, res) {
       const parent = await readableMessage(messageId, session);
       if (!parent)
         return res.status(404).json({ error: "Publicacao indisponivel" });
+      const rawKey = req.headers?.["idempotency-key"];
+      const idempotencyKey = Array.isArray(rawKey) ? "" : rawKey;
+      if (idempotencyKey !== undefined)
+        requireCondition(
+          typeof idempotencyKey === "string" &&
+            /^[a-zA-Z0-9._:-]{1,80}$/.test(idempotencyKey),
+          400,
+          "Identificador de envio inválido.",
+        );
+      const user = await User.findById(session.user.id).select("name avatar");
+      if (!user) return res.status(401).json({ error: "Conta indisponivel" });
+      if (idempotencyKey) {
+        await Comment.init();
+        const existing = await Comment.findOne({
+          userId: user._id,
+          messageId,
+          idempotencyKey,
+        }).populate("userId", "name avatar");
+        if (existing) {
+          if (existing.status !== "hidden")
+            await notifyCommentOwner(existing, parent, user._id);
+          return res
+            .status(existing.status === "hidden" ? 409 : 200)
+            .json(
+              existing.status === "hidden"
+                ? { error: "Comentário indisponível." }
+                : normalizeComment(existing),
+            );
+        }
+      }
       const rate = await checkRateLimit({
         key: `comments:${session.user.id}:${getClientIp(req)}`,
         ip: getClientIp(req),
@@ -66,17 +110,30 @@ export default async function handler(req, res) {
         return res
           .status(429)
           .json({ error: "Muitos comentarios em pouco tempo." });
-      const user = await User.findById(session.user.id).select("name avatar");
-      if (!user) return res.status(401).json({ error: "Conta indisponivel" });
-      const comment = await Comment.create({
-        content: content.trim(),
-        messageId,
-        userId: user._id,
-        author: user.name,
-        avatar: user.avatar || "",
-      });
+      let comment;
+      try {
+        comment = await Comment.create({
+          content: content.trim(),
+          messageId,
+          userId: user._id,
+          author: user.name,
+          avatar: user.avatar || "",
+          ...(idempotencyKey ? { idempotencyKey } : {}),
+        });
+      } catch (error) {
+        if (error.code !== 11000 || !idempotencyKey) throw error;
+        comment = await Comment.findOne({
+          userId: user._id,
+          messageId,
+          idempotencyKey,
+        }).populate("userId", "name avatar");
+        if (!comment) throw error;
+        await notifyCommentOwner(comment, parent, user._id);
+        return res.status(200).json(normalizeComment(comment));
+      }
       await comment.populate("userId", "name avatar");
       const result = normalizeComment(comment);
+      await notifyCommentOwner(comment, parent, user._id);
       const communityId = parent.message.communityId?.toString();
       await notifyChange("comments", "new-comment", communityId);
       await maybeReplyAsPantera({

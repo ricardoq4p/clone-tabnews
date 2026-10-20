@@ -23,6 +23,8 @@ export default function CommunityPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { id } = router.query;
+  const requestedMessage =
+    typeof router.query.message === "string" ? router.query.message : "";
 
   const [invitationEmail, setInvitationEmail] = useState("");
   const [inviting, setInviting] = useState(false);
@@ -85,7 +87,11 @@ export default function CommunityPage() {
   useEffect(() => {
     if (!session || !id) return;
 
-    fetch(`/api/messages?communityId=${id}`)
+    fetch(
+      requestedMessage
+        ? `/api/messages?id=${encodeURIComponent(requestedMessage)}`
+        : `/api/messages?communityId=${id}`,
+    )
       .then(async (res) => {
         const data = await res.json().catch(() => []);
 
@@ -98,7 +104,20 @@ export default function CommunityPage() {
       .then((data) => setMessages(data))
       .catch(() => setMessages([]))
       .finally(() => setMessagesLoading(false));
-  }, [id, session]);
+  }, [id, session, requestedMessage]);
+
+  useEffect(() => {
+    if (
+      !requestedMessage ||
+      !messages.some((item) => item._id === requestedMessage)
+    )
+      return;
+    window.requestAnimationFrame(() =>
+      document
+        .getElementById(`message-${requestedMessage}`)
+        ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+    );
+  }, [messages, requestedMessage]);
 
   useEffect(() => {
     if (!id) return;
@@ -117,7 +136,11 @@ export default function CommunityPage() {
     const channel = pusher.subscribe(`private-community-${id}`);
 
     const reload = () => {
-      fetch(`/api/messages?communityId=${id}`)
+      fetch(
+        requestedMessage
+          ? `/api/messages?id=${encodeURIComponent(requestedMessage)}`
+          : `/api/messages?communityId=${id}`,
+      )
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => setMessages(Array.isArray(data) ? data : []))
         .catch(() => {});
@@ -134,7 +157,7 @@ export default function CommunityPage() {
       pusher.unsubscribe(`private-community-${id}`);
       pusher.disconnect();
     };
-  }, [id]);
+  }, [id, requestedMessage]);
 
   const avatarUrl = userData?.avatar || "/sacred/favicon.svg";
 

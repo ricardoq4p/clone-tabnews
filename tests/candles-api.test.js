@@ -10,6 +10,7 @@ jest.mock("../lib/models/Candle", () => ({
     create: jest.fn(),
     find: jest.fn(),
     findById: jest.fn(),
+    findOne: jest.fn(),
     findOneAndUpdate: jest.fn(),
   },
 }));
@@ -21,13 +22,19 @@ jest.mock("../lib/prayer-support", () => ({
   supportSummary: jest.fn(async () => new Map()),
   recordPrayer: jest.fn(async () => ({ prayed: true, supportCount: 1 })),
 }));
+jest.mock("../lib/notifications", () => ({ tryCreateNotification: jest.fn() }));
+jest.mock("../lib/notification-realtime", () => ({
+  notifyNotificationChange: jest.fn(),
+}));
 import { getServerSession } from "next-auth";
 import Candle from "../lib/models/Candle";
 import User from "../lib/models/User";
 import { recordPrayer, supportSummary } from "../lib/prayer-support";
+import { tryCreateNotification } from "../lib/notifications";
 import candles from "../pages/api/velas";
 import detail from "../pages/api/velas/[id]";
 import pray from "../pages/api/velas/[id]/oracao";
+import mine from "../pages/api/velas/minhas";
 const id = "123456789012345678901234",
   owner = "123456789012345678901235",
   outsider = "123456789012345678901236";
@@ -38,6 +45,7 @@ const res = () => ({
 });
 const now = new Date("2026-10-15T18:00:00Z");
 beforeEach(() => {
+  jest.clearAllMocks();
   process.env.MONGODB_URI = "mongodb://127.0.0.1/isolated-test-never-connected";
   jest.useFakeTimers().setSystemTime(now);
   getServerSession.mockResolvedValue({ user: { id: owner } });
@@ -144,6 +152,53 @@ test("an expired intention cannot collect more prayer registrations", async () =
   expect(response.status).toHaveBeenCalledWith(404);
   expect(recordPrayer).not.toHaveBeenCalled();
 });
+test("a new prayer on another user's public candle notifies its owner once", async () => {
+  getServerSession.mockResolvedValue({ user: { id: outsider } });
+  Candle.findById.mockReturnValue({
+    lean: async () => ({
+      _id: id,
+      ownerId: owner,
+      visibility: "public",
+      status: "active",
+      expiresAt: new Date("2026-10-22T18:00:00Z"),
+    }),
+  });
+  recordPrayer.mockResolvedValueOnce({
+    prayed: true,
+    created: true,
+    supportCount: 1,
+  });
+  const response = res();
+  await pray({ method: "PUT", query: { id }, body: {} }, response);
+  expect(tryCreateNotification).toHaveBeenCalledWith({
+    recipientId: owner,
+    actorId: outsider,
+    type: "candle_prayer",
+    targetId: id,
+    dedupeKey: `candle-prayer:${id}:${outsider}`,
+  });
+});
+
+test("a duplicate prayer does not create another notification", async () => {
+  getServerSession.mockResolvedValue({ user: { id: outsider } });
+  Candle.findById.mockReturnValue({
+    lean: async () => ({
+      _id: id,
+      ownerId: owner,
+      visibility: "public",
+      status: "active",
+      expiresAt: new Date("2026-10-22T18:00:00Z"),
+    }),
+  });
+  recordPrayer.mockResolvedValueOnce({
+    prayed: true,
+    created: false,
+    supportCount: 1,
+  });
+  const response = res();
+  await pray({ method: "PUT", query: { id }, body: {} }, response);
+  expect(tryCreateNotification).not.toHaveBeenCalled();
+});
 test("public list always filters expiry and privacy in MongoDB", async () => {
   Candle.find.mockReturnValue({
     sort: () => ({ limit: () => ({ lean: async () => [] }) }),
@@ -161,6 +216,26 @@ test("public list always filters expiry and privacy in MongoDB", async () => {
     "Cache-Control",
     "private, no-store",
   );
+});
+
+test("a candle notification deep link only loads the authenticated owner's candle", async () => {
+  Candle.findOne.mockReturnValue({
+    lean: async () => ({
+      _id: id,
+      ownerId: owner,
+      visibility: "public",
+      status: "active",
+      authorName: "Maria",
+      intention: "Pela paz",
+      createdAt: now,
+      expiresAt: new Date("2026-10-22T18:00:00Z"),
+    }),
+  });
+  const response = res();
+  await mine({ method: "GET", query: { id } }, response);
+  expect(Candle.findOne).toHaveBeenCalledWith({ _id: id, ownerId: owner });
+  expect(response.status).toHaveBeenCalledWith(200);
+  expect(response.json.mock.calls[0][0].items).toHaveLength(1);
 });
 
 test("a queued creation cannot move an intention to a different signed-in account", async () => {

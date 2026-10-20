@@ -4,6 +4,7 @@ import { useRouter } from "next/router";
 import { signOut, useSession } from "next-auth/react";
 import Icon from "./Icon";
 import localFont from "next/font/local";
+import NotificationBell from "./NotificationBell";
 
 const pixel = localFont({
   src: "../../public/fonts/pixelify-latin.woff2",
@@ -132,6 +133,7 @@ export default function PrayerLayout({
               : "Entrar"}
           </span>
         </Link>
+        <NotificationBell />
         {session ? (
           <button
             type="button"

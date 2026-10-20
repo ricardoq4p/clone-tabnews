@@ -5,6 +5,7 @@ import connectToDatabase from "@/lib/db";
 import Community from "@/lib/models/Community";
 import { canReadCommunity } from "@/lib/permissions";
 import { getPusher } from "@/lib/pusher";
+import User from "@/lib/models/User";
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "private, no-store");
   if (rejectCrossOriginMutation(req, res)) return;
@@ -16,12 +17,21 @@ export default async function handler(req, res) {
     const { channel_name: channel, socket_id: socket } = req.body || {};
     if (
       typeof channel !== "string" ||
-      !/^private-community-[a-f0-9]{24}$/i.test(channel) ||
+      !/^private-(community|user)-[a-f0-9]{24}$/i.test(channel) ||
       typeof socket !== "string" ||
       !/^\d+\.\d+$/.test(socket)
     )
       return res.status(400).json({ error: "Canal invalido" });
     await connectToDatabase();
+    if (channel.startsWith("private-user-")) {
+      if (channel.slice("private-user-".length) !== session.user.id)
+        return res.status(403).json({ error: "Sem permissao" });
+      const user = await User.findById(session.user.id).select("_id").lean();
+      if (!user) return res.status(403).json({ error: "Sem permissao" });
+      return res
+        .status(200)
+        .json(getPusher().authorizeChannel(socket, channel));
+    }
     const community = await Community.findById(
       channel.slice("private-community-".length),
     );

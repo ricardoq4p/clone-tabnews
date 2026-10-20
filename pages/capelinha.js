@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
 import CandleArt from "@/components/prayer/CandleArt";
@@ -10,6 +11,9 @@ import styles from "@/styles/Chapel.module.css";
 import { requestJson, jsonRequest, formatPrayerDate } from "@/lib/client";
 export default function Capelinha({ initialView = "public" }) {
   const { data: session, status } = useSession();
+  const router = useRouter();
+  const requestedCandle =
+    typeof router.query.candle === "string" ? router.query.candle : "";
   const [view, setView] = useState(initialView),
     [items, setItems] = useState([]),
     [next, setNext] = useState(null),
@@ -32,8 +36,13 @@ export default function Capelinha({ initialView = "public" }) {
       if (view === "history" && !session) {
         return;
       }
+      const query = cursor
+        ? `?before=${cursor}`
+        : view === "history" && requestedCandle
+          ? `?id=${encodeURIComponent(requestedCandle)}`
+          : "";
       return requestJson(
-        `/api/velas${view === "history" ? "/minhas" : ""}${cursor ? `?before=${cursor}` : ""}`,
+        `/api/velas${view === "history" ? "/minhas" : ""}${query}`,
       )
         .then((result) => {
           if (gen !== generation.current) return;
@@ -64,13 +73,26 @@ export default function Capelinha({ initialView = "public" }) {
           if (gen === generation.current) setBusy(false);
         });
     },
-    [view, session, scope],
+    [view, session, scope, requestedCandle],
   );
   useEffect(() => {
     if (status !== "loading") {
       load();
     }
   }, [load, status]);
+  useEffect(() => {
+    if (
+      view !== "history" ||
+      !requestedCandle ||
+      !items.some((item) => item._id === requestedCandle)
+    )
+      return;
+    window.requestAnimationFrame(() =>
+      document
+        .getElementById(`candle-${requestedCandle}`)
+        ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+    );
+  }, [items, requestedCandle, view]);
   useEffect(() => {
     const timer = setInterval(() => setClock(Date.now()), 30000);
     return () => clearInterval(timer);

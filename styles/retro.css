@@ -80,6 +80,114 @@
   background: transparent;
   color: var(--p-ink);
 }
+.prayer-app .p-notification {
+  position: relative;
+  flex: 0 0 auto;
+}
+.prayer-app .p-notification-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+.prayer-app .p-notification-badge {
+  position: absolute;
+  top: -0.4rem;
+  right: -0.45rem;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding-inline: 0.22rem;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: #b7463e;
+  color: #fff;
+  font:
+    700 0.62rem/1 Arial,
+    sans-serif;
+}
+.prayer-app .p-notification-panel {
+  position: absolute;
+  z-index: 50;
+  top: calc(100% + 0.65rem);
+  right: 0;
+  width: 24rem;
+  max-width: calc(100vw - 1.5rem);
+  max-height: min(34rem, 80vh);
+  overflow: auto;
+  padding: 1rem;
+  border: 1px solid var(--p-line);
+  background: var(--p-paper);
+  color: var(--p-ink);
+  box-shadow: 0 16px 48px #0003;
+}
+.prayer-app .p-notification-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--p-line);
+}
+.prayer-app .p-notification-panel-head h2 {
+  font-size: 1.1rem;
+  white-space: nowrap;
+}
+.prayer-app .p-notification-panel-head button,
+.prayer-app .p-notification-state button {
+  color: var(--p-terminal-secondary);
+  font-size: 0.75rem;
+}
+.prayer-app .p-notification-list {
+  display: grid;
+  gap: 0.25rem;
+  margin: 0.5rem 0;
+  padding: 0;
+  list-style: none;
+}
+.prayer-app .p-notification-list li a {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr) auto;
+  gap: 0.65rem;
+  align-items: start;
+  padding: 0.75rem 0.5rem;
+  overflow-wrap: anywhere;
+}
+.prayer-app .p-notification-list li.is-unread a {
+  background: color-mix(in srgb, var(--p-terminal) 8%, transparent);
+}
+.prayer-app .p-notification-message {
+  display: block;
+  font-size: 0.87rem;
+  line-height: 1.45;
+}
+.prayer-app .p-notification-list time {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--p-muted);
+  font-size: 0.72rem;
+}
+.prayer-app .p-notification-dot {
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-top: 0.35rem;
+  border-radius: 50%;
+  background: var(--p-terminal-secondary);
+}
+.prayer-app .p-notification-state {
+  padding: 1.25rem 0.5rem;
+  color: var(--p-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+.prayer-app .p-notification-all {
+  display: block;
+  padding: 0.75rem 0.5rem 0.25rem;
+  border-top: 1px solid var(--p-line);
+  color: var(--p-terminal-secondary);
+  font-size: 0.8rem;
+  text-align: center;
+}
 .prayer-app .p-register {
   color: var(--p-paper);
   background: var(--p-terminal);
@@ -1088,6 +1196,17 @@
   }
 }
 @media (max-width: 720px) {
+  .prayer-app .p-notification-label {
+    display: none;
+  }
+  .prayer-app .p-notification-trigger > svg {
+    display: block !important;
+  }
+  .prayer-app .p-notification-panel {
+    position: fixed;
+    top: 4.5rem;
+    right: 0.75rem;
+  }
   .prayer-app .p-brand {
     font-size: 21px;
     gap: 7px;
