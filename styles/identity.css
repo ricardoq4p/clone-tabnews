@@ -1,0 +1,375 @@
+/* PanteraLab · Casa de Oração — shared editorial identity */
+:root {
+  color-scheme: light;
+  --pl-paper: #f7f1e8;
+  --pl-surface: #fcf8f1;
+  --pl-ink: #302016;
+  --pl-muted: #76685a;
+  --pl-gold: #9b7540;
+  --pl-gold-soft: #d8c19a;
+  --pl-line: #e4d7c5;
+  --pl-coffee: #4a2b18;
+}
+
+body {
+  color: var(--pl-ink);
+  background: var(--pl-paper);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.prayer-app {
+  --p-terminal: #4a2b18;
+  --p-terminal-secondary: #75532e;
+  --p-retro-red: #9d423b;
+  --p-font-body: Arial, Helvetica, sans-serif;
+  --p-font-heading: Georgia, "Times New Roman", serif;
+  --p-font-mono: Arial, Helvetica, sans-serif;
+  --p-ink: var(--pl-ink);
+  --p-muted: var(--pl-muted);
+  --p-gold: var(--pl-gold);
+  --p-line: var(--pl-line);
+  --p-border-strong: #cbb99e;
+  --p-paper: var(--pl-paper);
+  --p-white: var(--pl-surface);
+  --p-surface-soft: #f1e8da;
+  --p-success: #52734b;
+  --p-danger: #9d423b;
+  --p-focus: #8c652f;
+  --p-container: 1280px;
+  --p-gutter: clamp(1rem, 5vw, 4rem);
+  --p-radius: 18px;
+  --p-radius-control: 12px;
+  --p-shadow: 0 10px 28px rgba(70, 46, 24, 0.07);
+  background-color: var(--pl-paper);
+  color: var(--pl-ink);
+  color-scheme: light;
+  min-height: 100vh;
+  position: relative;
+  isolation: isolate;
+}
+
+.prayer-app::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  top: 0;
+  right: 0;
+  width: min(38vw, 540px);
+  height: min(780px, 90vh);
+  opacity: 0.11;
+  background: url("/sacred/maria-fundo.webp") right top / contain no-repeat;
+  mask-image: linear-gradient(to left, #000 28%, transparent 100%);
+}
+
+.prayer-app :is(h1, h2, h3, .p-brand, .p-footer-brand) {
+  font-family: Georgia, "Times New Roman", serif;
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  color: var(--pl-ink);
+}
+
+.prayer-app :is(h1, h2, h3) {
+  text-wrap: balance;
+}
+.prayer-app em {
+  color: var(--pl-gold);
+  font-style: italic;
+}
+.prayer-app :is(.p-eyebrow, .p-section-label, .p-number) {
+  color: var(--pl-gold);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 0.68rem;
+  letter-spacing: 0.2em;
+}
+
+.prayer-app :is(.p-header, .p-footer) {
+  color: var(--pl-ink);
+  font-family: Arial, Helvetica, sans-serif;
+}
+.prayer-app .p-header {
+  min-height: 82px;
+  height: auto;
+  border-bottom: 1px solid rgba(228, 215, 197, 0.72);
+  gap: clamp(0.4rem, 1.4vw, 1.2rem);
+  padding-block: 0.6rem;
+}
+.prayer-app .p-brand {
+  color: var(--pl-ink);
+  font-size: clamp(1.35rem, 2vw, 1.8rem);
+  line-height: 1;
+}
+.prayer-app .p-brand small {
+  color: var(--pl-gold);
+  font-family: Arial, sans-serif;
+  font-size: 0.56rem;
+  letter-spacing: 0.24em;
+}
+.prayer-app .p-brand-mark {
+  color: var(--pl-gold);
+  border: 0;
+}
+.prayer-app .p-nav {
+  margin-inline: auto;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+.prayer-app .p-nav a {
+  color: var(--pl-ink);
+  border-radius: 999px;
+  padding-inline: 1rem;
+}
+.prayer-app .p-nav a:hover,
+.prayer-app .p-nav a[aria-current] {
+  background: #efe4d3;
+  color: var(--pl-coffee);
+}
+.prayer-app .p-nav a[aria-current]::after {
+  display: none;
+}
+.prayer-app .p-account {
+  min-height: 42px;
+  border: 1px solid var(--pl-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--pl-ink);
+}
+.prayer-app .p-account:hover {
+  background: #f1e8da;
+}
+.prayer-app .p-account[aria-current] {
+  border-color: var(--pl-gold);
+  background: #efe4d3;
+  color: var(--pl-coffee);
+}
+.prayer-app .p-logout {
+  background: var(--pl-coffee);
+  border-color: var(--pl-coffee);
+  color: #fff8ee;
+}
+.prayer-app .p-logout:hover {
+  background: #603b22;
+}
+.prayer-app .p-register {
+  background: var(--pl-coffee);
+  color: #fff8ee;
+}
+.prayer-app .p-admin-shortcut {
+  color: var(--pl-gold);
+}
+
+.prayer-app :is(.p-button, .primary-button) {
+  border: 1px solid var(--pl-coffee);
+  border-radius: 999px;
+  background: var(--pl-coffee);
+  color: #fff8ee;
+}
+.prayer-app :is(.p-button, .primary-button):hover {
+  background: #603b22;
+}
+.prayer-app :is(.p-button-outline, .secondary-button) {
+  background: transparent;
+  border: 1px solid var(--pl-line);
+  color: var(--pl-ink);
+}
+.prayer-app :is(.p-button-outline, .secondary-button):hover {
+  background: #f1e8da;
+}
+.prayer-app
+  :is(
+    .p-panel,
+    .p-candle-card,
+    .p-path-card,
+    .p-composer,
+    .p-notice,
+    .p-resume
+  ) {
+  background-color: var(--pl-surface);
+  border-color: var(--pl-line);
+  border-radius: var(--p-radius);
+  box-shadow: var(--p-shadow);
+}
+.prayer-app :is(input, textarea, select, .field-input) {
+  border: 1px solid var(--pl-line);
+  border-radius: 12px;
+  background: #fffdf9;
+  color: var(--pl-ink);
+}
+.prayer-app :is(input, textarea, select)::placeholder {
+  color: #988a79;
+}
+.prayer-app :is(input, textarea, select):focus {
+  border-color: var(--pl-gold);
+}
+.prayer-app .p-footer {
+  border-top: 1px solid var(--pl-line);
+  color: var(--pl-muted);
+}
+.prayer-app .p-footer-brand {
+  color: var(--pl-ink);
+}
+.prayer-app .p-footer a:hover {
+  color: var(--pl-gold);
+}
+.prayer-app .p-mobile-nav {
+  background: #fcf8f1f2;
+  border-color: var(--pl-line);
+  backdrop-filter: blur(14px);
+}
+.prayer-app .p-mobile-nav a {
+  color: var(--pl-muted);
+}
+.prayer-app .p-mobile-nav a[aria-current] {
+  color: var(--pl-coffee);
+}
+.prayer-app :is(button, a, input, select, textarea, summary):focus-visible {
+  outline-color: var(--pl-gold);
+}
+
+/* Home editorial composition */
+.prayer-app .p-hero {
+  gap: clamp(2rem, 5vw, 5rem);
+  padding-block: clamp(3rem, 7vw, 6rem);
+}
+.prayer-app .p-hero h1 {
+  font-size: clamp(3rem, 6vw, 5.8rem);
+  line-height: 0.99;
+}
+.prayer-app .p-lead {
+  color: var(--pl-muted);
+  max-width: 42rem;
+}
+.prayer-app .r-hero-window {
+  border-radius: 28px;
+  box-shadow: 0 18px 45px #57361c24;
+}
+.prayer-app .r-window-bar {
+  display: none;
+}
+.prayer-app .r-window-footer {
+  padding: 1rem 1.4rem;
+}
+.prayer-app .p-path-card {
+  overflow: hidden;
+}
+.prayer-app .p-path-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 32px #57361c17;
+}
+.prayer-app .p-daily {
+  border-radius: 20px;
+}
+.prayer-app .r-account-panel {
+  background: #f1e5d3;
+}
+
+/* Legacy utility driven pages use the same light palette. */
+.min-h-screen {
+  background-color: var(--pl-paper, #f7f1e8) !important;
+  color: var(--pl-ink, #302016) !important;
+}
+.glass-panel {
+  background: #fcf8f1 !important;
+  border-color: #e4d7c5 !important;
+  color: #302016 !important;
+  box-shadow: 0 10px 28px #462e1812 !important;
+}
+.field-input {
+  background: #fffdf9 !important;
+  border-color: #e4d7c5 !important;
+  color: #302016 !important;
+}
+.primary-button {
+  background: #4a2b18 !important;
+  color: #fff8ee !important;
+}
+.secondary-button {
+  border-color: #e4d7c5 !important;
+  background: #fcf8f1 !important;
+  color: #302016 !important;
+}
+.bg-slate-950,
+.bg-slate-900,
+.bg-slate-900\/60,
+.bg-\[\#050816\] {
+  background-color: #f7f1e8 !important;
+}
+.text-white,
+.text-slate-100,
+.text-slate-200,
+.text-slate-300 {
+  color: #302016 !important;
+}
+.text-slate-400,
+.text-slate-500 {
+  color: #76685a !important;
+}
+.text-cyan-100,
+.text-cyan-200,
+.text-cyan-300 {
+  color: #79572d !important;
+}
+.border-white\/10,
+.border-white\/5 {
+  border-color: #e4d7c5 !important;
+}
+
+@media (max-width: 900px) {
+  .prayer-app .p-header {
+    justify-content: space-between;
+  }
+  .prayer-app .p-nav {
+    order: 5;
+    width: 100%;
+    justify-content: center;
+    margin: 0;
+  }
+  .prayer-app .p-hero {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .prayer-app::before {
+    width: 78vw;
+    height: 55vh;
+    opacity: 0.035;
+  }
+  .prayer-app .p-header {
+    padding-block: 0.75rem;
+  }
+  .prayer-app .p-nav {
+    display: none;
+  }
+  .prayer-app .p-hero {
+    padding-block: 2.5rem;
+  }
+  .prayer-app .p-hero h1 {
+    font-size: clamp(2.75rem, 12vw, 4.2rem);
+  }
+  .prayer-app .p-actions {
+    flex-wrap: wrap;
+  }
+  .prayer-app .p-auth {
+    gap: 18px;
+    padding-block: 20px;
+  }
+  .prayer-app .p-auth h1 {
+    margin-top: 10px;
+    font-size: 31px;
+  }
+  .prayer-app .p-auth > section > p:not(.p-eyebrow) {
+    margin-top: 12px;
+  }
+  .prayer-app .p-footer {
+    padding-bottom: 6rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -4,32 +4,22 @@
 
 @layer base {
   html {
-    color-scheme: dark;
+    color-scheme: light;
   }
 
   body {
-    @apply bg-[#050816] text-slate-100 antialiased;
-    background-image: radial-gradient(
-        circle at top,
-        rgba(34, 211, 238, 0.1),
-        transparent 28%
-      ),
-      radial-gradient(
-        circle at 80% 20%,
-        rgba(249, 115, 22, 0.12),
-        transparent 24%
-      ),
-      linear-gradient(180deg, #050816 0%, #02040d 100%);
+    @apply bg-[#f7f1e8] text-[#302016] antialiased;
+    background: #f7f1e8;
   }
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.45) transparent;
+    scrollbar-color: #c9b99f transparent;
   }
 
   ::selection {
-    background: rgba(34, 211, 238, 0.3);
-    color: white;
+    background: #d8c19a;
+    color: #302016;
   }
 }
 

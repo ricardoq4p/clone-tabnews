@@ -64,7 +64,7 @@ export default function PrayerLayout({
       <Head>
         <title>{`${title} · PanteraLab`}</title>
         <meta name="description" content={description} />
-        <meta name="theme-color" content="#080B0A" />
+        <meta name="theme-color" content="#F7F1E8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/sacred/favicon.svg" />
         {["homologacao-local", "homologacao-vercel"].includes(
