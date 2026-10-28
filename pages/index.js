@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
+import { CHAPEL_SLOTS, homeChapelSummary } from "@/lib/chapel-scene";
+import { requestJson } from "@/lib/client";
 import { mysteriesForDay } from "@/lib/rosary/engine";
 
 const EXPERIENCES = [
@@ -62,6 +64,32 @@ const EXPERIENCES = [
 
 export default function Home() {
   const [today, setToday] = useState(null);
+  const [candles, setCandles] = useState([]);
+  const [chapelOffset, setChapelOffset] = useState(0);
+  const [chapelClock, setChapelClock] = useState(() => Date.now());
+  const [chapelLoaded, setChapelLoaded] = useState(false);
+  const [chapelError, setChapelError] = useState(false);
+  const generationRef = useRef(0);
+
+  const loadChapel = useCallback(async () => {
+    const gen = ++generationRef.current;
+    try {
+      const result = await requestJson("/api/velas");
+      if (gen !== generationRef.current) return;
+      if (result?.serverNow) {
+        setChapelOffset(new Date(result.serverNow).getTime() - Date.now());
+      }
+      setChapelClock(Date.now());
+      setCandles(Array.isArray(result?.items) ? result.items : []);
+      setChapelError(false);
+      setChapelLoaded(true);
+    } catch {
+      if (gen !== generationRef.current) return;
+      setChapelError(true);
+      setChapelLoaded(true);
+    }
+  }, []);
+
   useEffect(() => {
     const update = () =>
       setToday({
@@ -77,6 +105,55 @@ export default function Home() {
     const id = setInterval(update, 60000);
     return () => clearInterval(id);
   }, []);
+
+  useEffect(() => {
+    Promise.resolve().then(() => loadChapel());
+    const pollId = setInterval(() => {
+      if (document.visibilityState === "visible") {
+        loadChapel();
+      }
+    }, 60000);
+    return () => {
+      generationRef.current += 1;
+      clearInterval(pollId);
+    };
+  }, [loadChapel]);
+
+  useEffect(() => {
+    const timer = setInterval(() => setChapelClock(Date.now()), 30000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const chapelNow = chapelClock + chapelOffset;
+
+  useEffect(() => {
+    const expiry = Math.min(
+      ...candles
+        .filter((item) => new Date(item.expiresAt).getTime() > chapelNow)
+        .map((item) => new Date(item.expiresAt).getTime()),
+    );
+    if (!Number.isFinite(expiry)) return undefined;
+    const timer = setTimeout(
+      () => setChapelClock(Date.now()),
+      Math.min(2147483647, Math.max(1, expiry - chapelNow)),
+    );
+    return () => clearTimeout(timer);
+  }, [candles, chapelNow]);
+
+  useEffect(() => {
+    function refresh() {
+      setChapelClock(Date.now());
+      if (document.visibilityState === "visible") loadChapel();
+    }
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("online", refresh);
+    return () => {
+      document.removeEventListener("visibilitychange", refresh);
+      window.removeEventListener("online", refresh);
+    };
+  }, [loadChapel]);
+
+  const chapelSummary = homeChapelSummary(candles, chapelNow);
 
   return (
     <PrayerLayout
@@ -125,21 +202,61 @@ export default function Home() {
               className="pl-hero-chapel-media"
               aria-label="Abrir a Capelinha Virtual"
             >
-              <Image
-                src="/sacred/capelinha-076db5e69b37.png"
-                alt="Nossa Senhora no altar da Capelinha, entre vitrais azuis e degraus de mármore"
-                width={1536}
-                height={1024}
-                sizes="(max-width: 900px) 92vw, 48vw"
-                priority
-              />
+              <div className="pl-hero-chapel-scene">
+                <Image
+                  src="/sacred/capelinha-076db5e69b37.png"
+                  alt="Nossa Senhora no altar da Capelinha, entre vitrais azuis e degraus de mármore"
+                  width={1536}
+                  height={1024}
+                  sizes="(max-width: 900px) 92vw, 48vw"
+                  priority
+                  unoptimized
+                />
+                {chapelSummary.displayed.map((candle, index) => {
+                  const slot = CHAPEL_SLOTS[index];
+                  if (!slot) return null;
+                  return (
+                    <span
+                      key={candle._id || index}
+                      className="pl-hero-chapel-candle"
+                      data-testid="home-chapel-candle"
+                      style={{
+                        left: `${slot.x}%`,
+                        top: `${slot.y}%`,
+                        height: `${slot.height}%`,
+                      }}
+                      aria-hidden="true"
+                    >
+                      <span className="pl-hero-chapel-flame" />
+                      <span className="pl-hero-chapel-wick" />
+                      <span className="pl-hero-chapel-wax" />
+                      <span className="pl-hero-chapel-shadow" />
+                    </span>
+                  );
+                })}
+              </div>
             </Link>
             <figcaption className="pl-hero-chapel-footer">
-              <div>
+              <div className="pl-hero-chapel-status" aria-live="polite">
                 <span className="pl-hero-chapel-tag">
                   <Icon name="candle" size={14} /> CAPELINHA VIRTUAL
+                  {chapelSummary.activeCount > 0
+                    ? ` · ${chapelSummary.activeCount === 1 ? "1 VELA ACESA" : `${chapelSummary.activeCount} VELAS ACESAS`}`
+                    : ""}
                 </span>
-                <p>Um instante de silêncio. Uma presença de fé.</p>
+                {chapelSummary.featured ? (
+                  <p className="pl-hero-chapel-intention">
+                    <strong>{chapelSummary.authorLabel}:</strong>{" "}
+                    <span>“{chapelSummary.intentionSnippet}”</span>
+                  </p>
+                ) : chapelLoaded && !chapelError ? (
+                  <p>
+                    A Capelinha está em silêncio. Nenhuma vela ativa neste
+                    momento.
+                  </p>
+                ) : (
+                  <p>Um instante de silêncio. Uma presença de fé.</p>
+                )}
               </div>
               <Link href="/capelinha" className="pl-hero-chapel-link">
                 Entrar <Icon name="arrow" size={15} />

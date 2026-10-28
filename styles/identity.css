@@ -307,17 +307,112 @@ body {
   background: #221710;
 }
 
+.prayer-app .pl-hero-chapel-scene {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 2;
+  isolation: isolate;
+  transition: transform 0.35s ease;
+}
+
+.prayer-app .pl-hero-chapel-media:hover .pl-hero-chapel-scene {
+  transform: scale(1.015);
+}
+
 .prayer-app .pl-hero-chapel-media img {
   display: block;
   width: 100%;
   height: auto;
   aspect-ratio: 3 / 2;
   object-fit: contain;
-  transition: transform 0.35s ease;
 }
 
-.prayer-app .pl-hero-chapel-media:hover img {
-  transform: scale(1.015);
+.prayer-app .pl-hero-chapel-candle {
+  position: absolute;
+  width: 1.55%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  transform: translate(-50%, -100%);
+  pointer-events: none;
+  z-index: 1;
+  border-radius: 35%;
+}
+
+.prayer-app .pl-hero-chapel-wax {
+  position: absolute;
+  width: 72%;
+  height: 67%;
+  bottom: 0;
+  left: 14%;
+  border-radius: 45% 45% 19% 19% / 8% 8% 4% 4%;
+  background: linear-gradient(
+    90deg,
+    #b89b71,
+    #fff3d1 35%,
+    #e5c99b 70%,
+    #a2825a
+  );
+  box-shadow:
+    inset 0 2px 2px #fff4d9,
+    1px 1px 3px #34251d70;
+}
+
+.prayer-app .pl-hero-chapel-wick {
+  position: absolute;
+  width: 8%;
+  height: 8%;
+  background: #34251d;
+  bottom: 65%;
+  left: 46%;
+}
+
+.prayer-app .pl-hero-chapel-flame {
+  position: absolute;
+  bottom: 73%;
+  left: 28%;
+  width: 44%;
+  height: 28%;
+  border-radius: 65% 35% 50% 50%;
+  background: radial-gradient(
+    ellipse at 50% 80%,
+    #fffde3 12%,
+    #ffe7a1 40%,
+    #e9a752 75%
+  );
+  box-shadow: 0 0 9px #ffd08c65;
+  transform-origin: center bottom;
+  animation: pl-hero-chapel-flicker 3.8s ease-in-out infinite alternate;
+}
+
+.prayer-app .pl-hero-chapel-shadow {
+  position: absolute;
+  bottom: -3%;
+  left: -25%;
+  width: 150%;
+  height: 6%;
+  border-radius: 50%;
+  background: #34251d65;
+  filter: blur(1px);
+  z-index: -1;
+}
+
+@keyframes pl-hero-chapel-flicker {
+  0%,
+  100% {
+    transform: rotate(-3deg) scale(0.98);
+    opacity: 0.9;
+  }
+  45% {
+    transform: rotate(3deg) scale(1.03);
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .prayer-app .pl-hero-chapel-flame {
+    animation: none;
+  }
 }
 
 .prayer-app .pl-hero-chapel-footer {
@@ -328,6 +423,11 @@ body {
   padding: 1rem 1.25rem;
   background: var(--pl-surface);
   border-top: 1px solid var(--pl-line);
+}
+
+.prayer-app .pl-hero-chapel-status {
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
 .prayer-app .pl-hero-chapel-tag {
@@ -344,6 +444,12 @@ body {
   color: var(--pl-muted);
   font-size: 0.85rem;
   margin-top: 0.15rem;
+  overflow-wrap: anywhere;
+}
+
+.prayer-app .pl-hero-chapel-intention strong {
+  color: var(--pl-ink);
+  font-weight: 600;
 }
 
 .prayer-app .pl-hero-chapel-link {
