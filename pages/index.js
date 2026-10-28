@@ -3,8 +3,63 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
-
 import { mysteriesForDay } from "@/lib/rosary/engine";
+
+const EXPERIENCES = [
+  {
+    href: "/rosario",
+    number: "01",
+    badge: "CONTEMPLAR",
+    title: "Santo Rosário",
+    description:
+      "Medite cada mistério da vida de Jesus com Maria, acompanhado por pinturas sacras e orações tradicionais.",
+    cta: "Rezar o Rosário",
+    image: "/images/home/caminho-rosario.webp",
+    imageWidth: 1536,
+    imageHeight: 204,
+    artClass: "p-path-rosary",
+  },
+  {
+    href: "/terco-da-misericordia",
+    number: "02",
+    badge: "CONFIAR",
+    title: "Terço da Misericórdia",
+    description:
+      "Entregue suas intenções à Divina Misericórdia, rezando conta a conta com texto e condução em áudio.",
+    cta: "Terço da Misericórdia",
+    image: "/images/rosario/dolorosos/crucificacao.webp",
+    imageWidth: 640,
+    imageHeight: 640,
+    artClass: "p-path-mercy",
+  },
+  {
+    href: "/capelinha",
+    number: "03",
+    badge: "ENTREGAR",
+    title: "Capelinha",
+    description:
+      "Acenda uma vela simbólica por sete dias, escolha a privacidade da sua intenção e una-se à oração de outros irmãos.",
+    cta: "Visitar a Capelinha",
+    image: "/images/home/caminho-capelinha.webp",
+    imageWidth: 1536,
+    imageHeight: 201,
+    artClass: "p-path-chapel",
+  },
+  {
+    href: "/comunidade",
+    number: "04",
+    badge: "CAMINHAR JUNTOS",
+    title: "Comunidades",
+    description:
+      "Partilhe pedidos de oração, testemunhos e reflexões em comunhão, com respeito, acolhimento e caridade.",
+    cta: "Encontrar a comunidade",
+    image: "/images/home/caminho-comunidades.webp",
+    imageWidth: 1536,
+    imageHeight: 210,
+    artClass: "p-path-community",
+  },
+];
+
 export default function Home() {
   const [today, setToday] = useState(null);
   useEffect(() => {
@@ -22,30 +77,27 @@ export default function Home() {
     const id = setInterval(update, 60000);
     return () => clearInterval(id);
   }, []);
+
   return (
-    <PrayerLayout>
-      <div className="p-container r-home">
-        <div className="r-status">
-          <span>
-            <span className="r-status-dot" aria-hidden="true" /> BEM-VINDO À
-            NOSSA CASA
-          </span>
-          <span>FÉ · ORAÇÃO · COMUNIDADE</span>
-        </div>
-        <section className="p-hero">
-          <div className="p-hero-copy">
+    <PrayerLayout
+      title="Uma casa de oração"
+      description="Reze o Santo Rosário e o Terço da Misericórdia, apresente suas intenções na Capelinha e caminhe em comunidade."
+    >
+      <div className="p-container pl-home">
+        <section className="p-hero pl-home-hero">
+          <div className="p-hero-copy pl-hero-copy">
             <p className="p-eyebrow">
-              <span />
-              UM REFÚGIO NO MUNDO DIGITAL
+              <span aria-hidden="true" />
+              CASA CATÓLICA DE ORAÇÃO
             </p>
             <h1>
               Um lugar para
               <br /> aquietar a <em>alma.</em>
             </h1>
             <p className="p-lead">
-              Entre o ruído dos dias, um lugar de silêncio.
-              <br className="p-desktop" /> Reze com Maria, confie suas intenções
-              e encontre uma comunidade que caminha com você.
+              Entre o ruído dos dias, um espaço de silêncio e fé. Reze com a
+              Igreja, confie suas intenções diante do altar e encontre uma
+              comunidade que caminha com você.
             </p>
             <div className="p-actions">
               <Link className="p-button" href="/rosario">
@@ -53,160 +105,154 @@ export default function Home() {
                 Começar a rezar
                 <Icon name="arrow" size={17} />
               </Link>
-              <Link className="p-button p-button-outline" href="/comunidade">
-                <Icon name="people" />
-                Conhecer a comunidade
+              <Link
+                className="p-button p-button-outline"
+                href="/terco-da-misericordia"
+              >
+                <Icon name="heart" />
+                Terço da Misericórdia
               </Link>
             </div>
             <p className="p-quiet">
               <Icon name="leaf" size={15} />A oração começa onde você está. Sem
-              pressa, sem cadastro.
+              pressa, sem cadastro obrigatório.
             </p>
           </div>
-          <figure className="r-hero-window">
-            <figcaption className="r-window-bar">
-              <span>
-                <Icon name="cross" size={14} /> CAPELINHA VIRTUAL
-              </span>
-              <span aria-hidden="true">— □ ×</span>
-            </figcaption>
-            <Image
-              src="/sacred/capelinha-076db5e69b37.png"
-              alt="Nossa Senhora no altar da Capelinha, entre vitrais azuis e velas acesas"
-              width={1536}
-              height={1024}
-              sizes="(max-width: 720px) 92vw, 48vw"
-              priority
-            />
-            <div className="r-window-footer">
-              <span>Um instante de silêncio. Uma presença de fé.</span>
-              <Link href="/capelinha">
+
+          <figure className="pl-hero-chapel">
+            <Link
+              href="/capelinha"
+              className="pl-hero-chapel-media"
+              aria-label="Abrir a Capelinha Virtual"
+            >
+              <Image
+                src="/sacred/capelinha-076db5e69b37.png"
+                alt="Nossa Senhora no altar da Capelinha, entre vitrais azuis e degraus de mármore"
+                width={1536}
+                height={1024}
+                sizes="(max-width: 900px) 92vw, 48vw"
+                priority
+              />
+            </Link>
+            <figcaption className="pl-hero-chapel-footer">
+              <div>
+                <span className="pl-hero-chapel-tag">
+                  <Icon name="candle" size={14} /> CAPELINHA VIRTUAL
+                </span>
+                <p>Um instante de silêncio. Uma presença de fé.</p>
+              </div>
+              <Link href="/capelinha" className="pl-hero-chapel-link">
                 Entrar <Icon name="arrow" size={15} />
               </Link>
-            </div>
+            </figcaption>
           </figure>
         </section>
-        <section className="p-section r-paths">
+
+        <section
+          className="p-section pl-home-paths"
+          aria-labelledby="pl-paths-heading"
+        >
           <div className="p-section-heading">
             <div>
-              <p className="p-eyebrow">TRÊS CAMINHOS, UM ENCONTRO</p>
-              <h2>Encontre seu caminho de oração.</h2>
+              <p className="p-eyebrow">QUATRO CAMINHOS, UM ENCONTRO</p>
+              <h2 id="pl-paths-heading">Encontre seu caminho de oração.</h2>
             </div>
             <p>
               Pequenos gestos de fé.
               <br />
-              Uma presença que transforma o dia.
+              Uma presença que santifica o dia.
             </p>
           </div>
-          <div className="p-path-grid">
-            <Link href="/rosario" className="p-path-card">
-              <div className="p-path-art p-path-rosary">
-                <Image
-                  src="/images/home/caminho-rosario.webp"
-                  alt=""
-                  width={1536}
-                  height={204}
-                  sizes="(max-width: 720px) 92vw, 33vw"
-                />
-                <span>CONTEMPLAR</span>
-              </div>
-              <div className="p-path-copy">
-                <span className="p-number">01</span>
-                <h3>Santo Rosário</h3>
-                <p>
-                  Contemple cada mistério com imagens, meditações e as orações
-                  que atravessam gerações.
-                </p>
-                <span className="p-text-link">
-                  Começar a rezar
-                  <Icon name="arrow" size={16} />
-                </span>
-              </div>
-            </Link>
-            <Link href="/capelinha" className="p-path-card">
-              <div className="p-path-art p-path-chapel">
-                <Image
-                  src="/images/home/caminho-capelinha.webp"
-                  alt=""
-                  width={1536}
-                  height={201}
-                  sizes="(max-width: 720px) 92vw, 33vw"
-                />
-                <span>CONFIAR</span>
-              </div>
-              <div className="p-path-copy">
-                <span className="p-number">02</span>
-                <h3>Capelinha</h3>
-                <p>
-                  Acenda uma vela simbólica. Entregue a Deus o que pesa no
-                  coração e una-se à oração de outros.
-                </p>
-                <span className="p-text-link">
-                  Visitar a Capelinha
-                  <Icon name="arrow" size={16} />
-                </span>
-              </div>
-            </Link>
-            <Link href="/comunidade" className="p-path-card">
-              <div className="p-path-art p-path-community">
-                <Image
-                  src="/images/home/caminho-comunidades.webp"
-                  alt=""
-                  width={1536}
-                  height={210}
-                  sizes="(max-width: 720px) 92vw, 33vw"
-                />
-                <span>CAMINHAR JUNTOS</span>
-              </div>
-              <div className="p-path-copy">
-                <span className="p-number">03</span>
-                <h3>Comunidades</h3>
-                <p>
-                  Partilhe intenções, testemunhos e reflexões. Há sempre um
-                  lugar para você nesta caminhada.
-                </p>
-                <span className="p-text-link">
-                  Encontrar a comunidade
-                  <Icon name="arrow" size={16} />
-                </span>
-              </div>
-            </Link>
+
+          <div className="p-path-grid pl-path-grid">
+            {EXPERIENCES.map((item) => (
+              <Link key={item.href} href={item.href} className="p-path-card">
+                <div className={`p-path-art ${item.artClass}`}>
+                  <Image
+                    src={item.image}
+                    alt=""
+                    width={item.imageWidth}
+                    height={item.imageHeight}
+                    sizes="(max-width: 640px) 92vw, (max-width: 1120px) 46vw, 24vw"
+                  />
+                  <span>{item.badge}</span>
+                </div>
+                <div className="p-path-copy">
+                  <span className="p-number">{item.number}</span>
+                  <h3>{item.title}</h3>
+                  <p>{item.description}</p>
+                  <span className="p-text-link">
+                    {item.cta}
+                    <Icon name="arrow" size={16} />
+                  </span>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
-        <div className="r-lower-panels">
-          <section className="p-daily">
-            <span className="p-daily-icon">
-              <Icon name="sun" size={24} />
-            </span>
-            <div>
-              <p className="p-eyebrow">ORAÇÃO DO DIA</p>
-              <h2>Mistérios {today?.set.title || "do Santo Rosário"}</h2>
+
+        <div className="pl-lower-panels">
+          <section
+            className="p-daily pl-daily-panel"
+            aria-labelledby="pl-daily-title"
+          >
+            <div className="pl-daily-top">
+              <span className="p-daily-icon" aria-hidden="true">
+                <Icon name="sun" size={22} />
+              </span>
+              <div>
+                <p className="p-eyebrow">ORAÇÃO DO DIA</p>
+                <h2 id="pl-daily-title">
+                  Mistérios {today?.set.title || "do Santo Rosário"}
+                </h2>
+              </div>
             </div>
-            <p className="p-daily-date">
-              {today?.day || "Um novo dia para rezar"}
-              <small>Horário de Brasília</small>
+            <p className="pl-daily-subtitle">
+              {today?.set.subtitle ||
+                "Contemple a vida de Cristo em comunhão com a Igreja."}
             </p>
-            <Link href="/rosario" className="p-text-link">
-              Rezar os mistérios
-              <Icon name="arrow" size={17} />
-            </Link>
+            <div className="pl-daily-footer">
+              <p className="p-daily-date">
+                {today?.day || "Um novo dia para rezar"}
+                <small>Horário de Brasília</small>
+              </p>
+              <Link href="/rosario" className="p-text-link">
+                Rezar os mistérios
+                <Icon name="arrow" size={17} />
+              </Link>
+            </div>
           </section>
 
           <section
-            className="r-account-panel p-panel"
+            className="p-panel pl-intentions-panel"
             aria-labelledby="r-intentions-title"
           >
-            <p className="p-eyebrow">
-              <Icon name="candle" size={16} /> SEU ESPAÇO DE ORAÇÃO
+            <div className="pl-daily-top">
+              <span className="p-daily-icon" aria-hidden="true">
+                <Icon name="candle" size={22} />
+              </span>
+              <div>
+                <p className="p-eyebrow">INTENÇÕES E VELAS</p>
+                <h2 id="r-intentions-title">Suas intenções, com cuidado.</h2>
+              </div>
+            </div>
+            <p className="pl-intentions-copy">
+              Cada vela permanece simbolicamente acesa por sete dias na
+              Capelinha. Você escolhe se a sua intenção será privada, anônima ou
+              pública.
             </p>
-            <h2 id="r-intentions-title">Suas intenções, com cuidado.</h2>
-            <p>Acompanhe suas velas e escolha como partilhar cada intenção.</p>
-            <Link href="/minhas-velas" className="p-text-link">
-              Ver minhas velas <Icon name="arrow" size={16} />
-            </Link>
+            <div className="pl-intentions-actions">
+              <Link href="/capelinha" className="p-text-link">
+                Acender uma vela <Icon name="arrow" size={16} />
+              </Link>
+              <Link href="/minhas-velas" className="p-text-link">
+                Ver minhas velas <Icon name="arrow" size={16} />
+              </Link>
+            </div>
           </section>
         </div>
-        <div className="r-home-note">
+
+        <div className="pl-home-note">
           <Icon name="cross" size={16} />
           <p>A oração nos aproxima. Mesmo quando estamos longe.</p>
           <Link href="/sobre">

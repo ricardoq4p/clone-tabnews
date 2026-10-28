@@ -1,0 +1,98 @@
+{
+  "packageId": "panteralab-misericordia-v1",
+  "title": "Terço da Divina Misericórdia",
+  "voice": "Kokoro · Santa · português brasileiro",
+  "status": "ready",
+  "directory": "/audio/misericordia",
+  "clips": {
+    "sinal": {
+      "order": 1,
+      "file": "01-sinal-da-cruz.mp3",
+      "title": "Sinal da Cruz",
+      "text": "Em nome do Pai, e do Filho, e do Espírito Santo. Amém.",
+      "pauseSeconds": 2.2,
+      "narrationEnd": 4.951,
+      "duration": 7.151,
+      "sha256": "001f4e667e1f38280ba985f5c8b8092f04452cd2cb0f1811deb4d471d89de9f5",
+      "recorded": true
+    },
+    "pai": {
+      "order": 2,
+      "file": "02-pai-nosso.mp3",
+      "title": "Pai-Nosso",
+      "text": "Pai nosso que estais nos céus, santificado seja o vosso nome; venha a nós o vosso Reino; seja feita a vossa vontade, assim na terra como no céu. O pão nosso de cada dia nos dai hoje; perdoai-nos as nossas ofensas, assim como nós perdoamos a quem nos tem ofendido; e não nos deixeis cair em tentação, mas livrai-nos do mal. Amém.",
+      "pauseSeconds": 2.2,
+      "narrationEnd": 25.936,
+      "duration": 28.136,
+      "sha256": "31a07a1cc971dff4562515b9e9d2829fd687c69711ef9c1487ae347d9d818c0c",
+      "recorded": true
+    },
+    "ave": {
+      "order": 3,
+      "file": "03-ave-maria.mp3",
+      "title": "Ave-Maria",
+      "text": "Ave, Maria, cheia de graça, o Senhor é convosco; bendita sois vós entre as mulheres, e bendito é o fruto do vosso ventre, Jesus. Santa Maria, Mãe de Deus, rogai por nós, pecadores, agora e na hora de nossa morte. Amém.",
+      "pauseSeconds": 2.2,
+      "narrationEnd": 17.001,
+      "duration": 19.201,
+      "sha256": "d0d1fa006977762b07d7d318ca53bdaaf2e2d717eea2ba9b37191136d88bd4f9",
+      "recorded": true
+    },
+    "credo": {
+      "order": 4,
+      "file": "04-credo.mp3",
+      "title": "Creio em Deus Pai",
+      "text": "Creio em Deus Pai todo-poderoso, criador do céu e da terra; e em Jesus Cristo, seu único Filho, nosso Senhor; que foi concebido pelo poder do Espírito Santo; nasceu da Virgem Maria; padeceu sob Pôncio Pilatos, foi crucificado, morto e sepultado; desceu à mansão dos mortos; ressuscitou ao terceiro dia; subiu aos céus; está sentado à direita de Deus Pai todo-poderoso, donde há de vir a julgar os vivos e os mortos. Creio no Espírito Santo; na santa Igreja Católica; na comunhão dos santos; na remissão dos pecados; na ressurreição da carne; na vida eterna. Amém.",
+      "pauseSeconds": 2.2,
+      "narrationEnd": 46.827,
+      "duration": 49.027,
+      "sha256": "0d0329dd40d9954eb921173524e17c892f2404afc48c44d32b64c53197caddc0",
+      "recorded": true
+    },
+    "eterno-pai": {
+      "order": 5,
+      "file": "05-eterno-pai.mp3",
+      "title": "Eterno Pai",
+      "text": "Eterno Pai, eu Vos ofereço o Corpo e o Sangue, a Alma e a Divindade de Vosso diletíssimo Filho, Nosso Senhor Jesus Cristo, em expiação dos nossos pecados e dos do mundo inteiro.",
+      "pauseSeconds": 2.2,
+      "narrationEnd": 12.284,
+      "duration": 14.484,
+      "sha256": "a116168ea8764051af5812af72d0d213e3671684b3b3231786a55d555e747133",
+      "recorded": true
+    },
+    "dolorosa-paixao": {
+      "order": 6,
+      "file": "06-pela-sua-dolorosa-paixao.mp3",
+      "title": "Pela sua dolorosa Paixão",
+      "text": "Pela sua dolorosa Paixão, tende misericórdia de nós e do mundo inteiro.",
+      "pauseSeconds": 2.0,
+      "narrationEnd": 5.286,
+      "duration": 7.286,
+      "sha256": "de862d24db1603564a009a5f008f7d460eff4d74124398bd1efe79b8c86e9932",
+      "recorded": true
+    },
+    "deus-santo": {
+      "order": 7,
+      "file": "07-deus-santo.mp3",
+      "title": "Deus Santo, Deus Forte, Deus Imortal",
+      "text": "Deus Santo, Deus Forte, Deus Imortal, tende piedade de nós e do mundo inteiro.",
+      "pauseSeconds": 2.0,
+      "narrationEnd": 5.774,
+      "duration": 7.774,
+      "sha256": "3291270105f0853444997ae6bdc723d5a5f3030c276dfb38336fca34a16b7f88",
+      "recorded": true
+    },
+    "oracao-conclusiva": {
+      "order": 8,
+      "file": "08-oracao-conclusiva.mp3",
+      "title": "Oração conclusiva (opcional)",
+      "text": "Deus eterno, em quem a misericórdia é insondável e o tesouro da compaixão é inesgotável, olhai propício para nós e multiplicai em nós a Vossa misericórdia, para que não desesperemos nos momentos difíceis, nem desanimemos, mas nos submetamos com grande confiança à Vossa santa vontade, que é o próprio Amor e a própria Misericórdia. Amém.",
+      "pauseSeconds": 2.2,
+      "optional": true,
+      "narrationEnd": 22.052,
+      "duration": 24.252,
+      "sha256": "b15f3b1648741bbb86f1feef8a387e872c2b82f02f47cf9bd96332516f23026d",
+      "recorded": true
+    }
+  }
+}

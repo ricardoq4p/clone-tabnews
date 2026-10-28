@@ -36,9 +36,9 @@ export default function NotificationBell() {
     if (!session?.user?.id) return;
     try {
       const response = await fetch("/api/notifications/unread-count");
+      const data = await response.json().catch(() => ({}));
       if (!response.ok)
         throw new Error("Não foi possível atualizar as notificações.");
-      const data = await response.json();
       setCount(Number(data.count) || 0);
     } catch {
       // The current value stays visible; a later poll or user action retries.
@@ -50,9 +50,9 @@ export default function NotificationBell() {
     setError("");
     try {
       const response = await fetch("/api/notifications?limit=8");
+      const data = await response.json().catch(() => ({}));
       if (!response.ok)
         throw new Error("Não foi possível carregar as notificações.");
-      const data = await response.json();
       setItems(Array.isArray(data.items) ? data.items : []);
       await refreshCount();
     } catch (loadError) {

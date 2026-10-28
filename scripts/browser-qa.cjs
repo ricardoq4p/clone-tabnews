@@ -292,7 +292,7 @@ async function photo(page, name) {
     await fixture.route("**/api/users/presence", (route) =>
       route.fulfill({ json: {} }),
     );
-    await fixture.route("**/api/velas**", async (route) => {
+    await fixture.route(/\/api\/velas(?:[/?]|$)/, async (route) => {
       const url = new URL(route.request().url()),
         method = route.request().method();
       const serverNow = new Date(

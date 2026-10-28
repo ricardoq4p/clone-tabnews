@@ -28,6 +28,12 @@ const links = [
     short: "Rosário",
     icon: "rosary",
   },
+  {
+    href: "/terco-da-misericordia",
+    label: "Terço da Misericórdia",
+    short: "Misericórdia",
+    icon: "heart",
+  },
   { href: "/capelinha", label: "Capelinha", icon: "candle" },
   {
     href: "/comunidade",
