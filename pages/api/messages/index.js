@@ -10,6 +10,7 @@ import { authOptions } from "../auth/[...nextauth]";
 import { notifyChange } from "@/lib/pusher";
 import { maybeReplyAsPantera } from "@/lib/pantera-comments";
 import { canDeleteContent, isMember } from "@/lib/permissions";
+import { readableMessage } from "@/lib/message-access";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { getClientIp } from "@/lib/request";
 import { isObjectId, validText } from "@/lib/validation";
@@ -38,10 +39,17 @@ export default async function handler(req, res) {
     if (req.method === "GET") {
       const { communityId, before } = req.query;
       if (req.query.id) {
-        if (!isObjectId(req.query.id))
+        if (
+          !isObjectId(req.query.id) ||
+          (communityId && !isObjectId(communityId))
+        )
           return res.status(400).json({ error: "Identificador invalido" });
         const readable = await readableMessage(req.query.id, session);
-        if (!readable)
+        if (
+          !readable ||
+          (communityId &&
+            readable.message.communityId?.toString() !== communityId)
+        )
           return res.status(404).json({ error: "Publicacao indisponivel" });
         await readable.message.populate([
           { path: "userId", select: "name username avatar" },

@@ -4,6 +4,7 @@ import Pusher from "pusher-js";
 import { useSession } from "next-auth/react";
 import Icon from "./Icon";
 import { realtimeEnabled } from "@/lib/integration-policy";
+import { notificationHref } from "@/lib/validation";
 
 const timeAgo = (value) => {
   const seconds = Math.max(
@@ -135,6 +136,7 @@ export default function NotificationBell() {
     try {
       const response = await fetch(`/api/notifications/${item._id}`, {
         method: "PATCH",
+        keepalive: true,
       });
       if (!response.ok) throw new Error("read failed");
     } catch {
@@ -229,17 +231,11 @@ export default function NotificationBell() {
                 className={item.readAt ? "is-read" : "is-unread"}
               >
                 <Link
-                  href={
-                    item.href ||
-                    (item.targetType === "candle"
-                      ? `/minhas-velas?candle=${item.targetId}`
-                      : item.targetType === "community"
-                        ? `/comunidades/${item.targetId}`
-                        : item.communityId
-                          ? `/comunidades/${item.communityId}#message-${item.targetId}`
-                          : `/feed#message-${item.targetId}`)
-                  }
-                  onClick={() => markRead(item)}
+                  href={item.href || notificationHref(item)}
+                  onClick={() => {
+                    setOpen(false);
+                    markRead(item);
+                  }}
                 >
                   <Icon
                     name={
@@ -269,7 +265,11 @@ export default function NotificationBell() {
               </li>
             ))}
           </ul>
-          <Link className="p-notification-all" href="/notificacoes">
+          <Link
+            className="p-notification-all"
+            href="/notificacoes"
+            onClick={() => setOpen(false)}
+          >
             Ver todas as notificações
           </Link>
         </section>

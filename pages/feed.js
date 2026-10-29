@@ -1,4 +1,5 @@
 import { realtimeEnabled } from "@/lib/integration-policy";
+import { resolveNotificationTarget } from "@/lib/validation";
 import Image from "next/image";
 import LoadMoreButton from "../components/LoadMoreButton";
 import { useEffect, useState } from "react";
@@ -13,6 +14,8 @@ export default function Feed() {
   const [newMessage, setNewMessage] = useState("");
   const [userData, setUserData] = useState(null);
   const [feedLoading, setFeedLoading] = useState(true);
+  const [requestedMessageUnavailable, setRequestedMessageUnavailable] =
+    useState(false);
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState("");
   const [communities, setCommunities] = useState([]);
@@ -28,8 +31,18 @@ export default function Feed() {
 
   const { data: session, status } = useSession();
   const router = useRouter();
-  const requestedMessage =
-    typeof router.query.message === "string" ? router.query.message : "";
+  const {
+    messageId: requestedMessage,
+    commentId: requestedComment,
+    hasInvalidMessageParam,
+    hasInvalidCommentParam,
+  } = resolveNotificationTarget(
+    router.query,
+    typeof window !== "undefined" ? window.location.search : "",
+    (typeof window !== "undefined" ? window.location.hash : "") ||
+      router.asPath?.split("#")[1] ||
+      "",
+  );
 
   useEffect(() => {
     if (status === "loading") return;
@@ -61,24 +74,59 @@ export default function Feed() {
   }, [session]);
 
   useEffect(() => {
-    fetch(
-      requestedMessage
-        ? `/api/messages?id=${encodeURIComponent(requestedMessage)}`
-        : "/api/messages",
-    )
-      .then((res) => res.json())
-      .then((data) => {
-        setMessages(Array.isArray(data) ? data : []);
+    let cancelled = false;
+
+    if (hasInvalidMessageParam) {
+      Promise.resolve().then(() => {
+        if (cancelled) return;
+        setMessages([]);
+        setRequestedMessageUnavailable(true);
+        setFeedLoading(false);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    const endpoint = requestedMessage
+      ? `/api/messages?id=${encodeURIComponent(requestedMessage)}`
+      : "/api/messages";
+
+    fetch(endpoint)
+      .then(async (res) => {
+        const data = await res.json().catch(() => []);
+        if (!res.ok) {
+          return { ok: false, items: [] };
+        }
+        return { ok: true, items: Array.isArray(data) ? data : [] };
       })
-      .catch(() => setMessages([]))
-      .finally(() => setFeedLoading(false));
+      .then(({ ok, items }) => {
+        if (cancelled) return;
+        setMessages(items);
+        setRequestedMessageUnavailable(
+          Boolean(requestedMessage && (!ok || items.length === 0)),
+        );
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setMessages([]);
+        setRequestedMessageUnavailable(Boolean(requestedMessage));
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setFeedLoading(false);
+        }
+      });
 
     if (
       !realtimeEnabled ||
       !process.env.NEXT_PUBLIC_PUSHER_KEY ||
       !process.env.NEXT_PUBLIC_PUSHER_CLUSTER
-    )
-      return;
+    ) {
+      return () => {
+        cancelled = true;
+      };
+    }
     const pusher = new Pusher(process.env.NEXT_PUBLIC_PUSHER_KEY, {
       cluster: process.env.NEXT_PUBLIC_PUSHER_CLUSTER,
       channelAuthorization: { endpoint: "/api/pusher/auth", transport: "ajax" },
@@ -87,9 +135,17 @@ export default function Feed() {
     const channel = pusher.subscribe("feed");
 
     const reload = () =>
-      fetch("/api/messages")
+      fetch(
+        requestedMessage
+          ? `/api/messages?id=${encodeURIComponent(requestedMessage)}`
+          : "/api/messages",
+      )
         .then((res) => (res.ok ? res.json() : []))
-        .then((data) => setMessages(Array.isArray(data) ? data : []))
+        .then((data) => {
+          if (!cancelled) {
+            setMessages(Array.isArray(data) ? data : []);
+          }
+        })
         .catch(() => {});
     channel.bind("new-message", reload);
     channel.bind("delete-message", reload);
@@ -103,6 +159,7 @@ export default function Feed() {
     });
 
     return () => {
+      cancelled = true;
       communityChannels.forEach((item) => {
         item.unbind_all();
         pusher.unsubscribe(item.name);
@@ -111,7 +168,7 @@ export default function Feed() {
       pusher.unsubscribe("feed");
       pusher.disconnect();
     };
-  }, [communities, requestedMessage]);
+  }, [communities, requestedMessage, hasInvalidMessageParam]);
 
   useEffect(() => {
     if (
@@ -122,7 +179,7 @@ export default function Feed() {
     window.requestAnimationFrame(() =>
       document
         .getElementById(`message-${requestedMessage}`)
-        ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+        ?.scrollIntoView?.({ block: "start", behavior: "smooth" }),
     );
   }, [messages, requestedMessage]);
 
@@ -245,7 +302,11 @@ export default function Feed() {
   };
 
   let messagesLabel = "Nenhuma publicacao ainda";
-  if (messages.length === 1) {
+  if (requestedMessage || hasInvalidMessageParam) {
+    messagesLabel = requestedMessageUnavailable
+      ? "Publicação indisponível"
+      : "Visualizando publicação selecionada";
+  } else if (messages.length === 1) {
     messagesLabel = "1 publicacao na conversa";
   } else if (messages.length > 1) {
     messagesLabel = `${messages.length} publicacoes na conversa`;
@@ -554,15 +615,46 @@ export default function Feed() {
                 <p className="text-sm font-medium text-white">Timeline</p>
                 <p className="text-sm text-slate-500">{messagesLabel}</p>
               </div>
-              {feedLoading ? (
-                <span className="text-sm text-slate-500">Atualizando...</span>
-              ) : null}
+              <div className="flex items-center gap-3">
+                {requestedMessage || hasInvalidMessageParam ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push("/feed")}
+                    className="secondary-button rounded-full px-4 py-2 text-xs"
+                  >
+                    Ver todas as publicações
+                  </button>
+                ) : null}
+                {feedLoading ? (
+                  <span className="text-sm text-slate-500">Atualizando...</span>
+                ) : null}
+              </div>
             </section>
 
             <section className="space-y-4">
               {feedLoading ? (
                 <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
                   Carregando publicacoes...
+                </div>
+              ) : requestedMessageUnavailable ? (
+                <div
+                  role="status"
+                  className="glass-panel rounded-[28px] p-8 text-center text-slate-400"
+                >
+                  <p className="text-base font-medium text-white">
+                    Esta publicação não está mais disponível ou foi removida.
+                  </p>
+                  <p className="mt-2 text-sm text-slate-400">
+                    O conteúdo original desta notificação pode ter sido excluído
+                    ou você não tem permissão para visualizá-lo.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push("/feed")}
+                    className="secondary-button mt-4 rounded-full px-4 py-2 text-sm"
+                  >
+                    Ver todas as publicações do feed
+                  </button>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
@@ -574,6 +666,13 @@ export default function Feed() {
                     <MessageCard
                       key={msg._id}
                       msg={msg}
+                      focused={msg._id === requestedMessage}
+                      highlightedCommentId={
+                        msg._id === requestedMessage ? requestedComment : ""
+                      }
+                      commentUnavailable={
+                        msg._id === requestedMessage && hasInvalidCommentParam
+                      }
                       onDeleted={(id) =>
                         setMessages((current) =>
                           current.filter((item) => item._id !== id),

@@ -111,11 +111,12 @@ test("invalid identifiers never reach MongoDB queries", async () => {
   expect(Message.findById).not.toHaveBeenCalled();
 });
 
-test("a comment notifies the publication owner after the comment is saved", async () => {
+test("a comment notifies the publication owner after the comment is saved with distinct targetId and commentId", async () => {
+  const commentId = "abcdef1234567890abcdef12";
   const comment = {
-    _id: id,
+    _id: commentId,
     toObject: () => ({
-      _id: id,
+      _id: commentId,
       content: "Amém",
       author: "Pessoa",
       userId: { name: "Pessoa", avatar: "" },
@@ -143,8 +144,80 @@ test("a comment notifies the publication owner after the comment is saved", asyn
     actorId: actor,
     type: "message_comment",
     targetId: id,
-    dedupeKey: `message-comment:${id}`,
+    commentId,
+    dedupeKey: `message-comment:${commentId}`,
   });
+  expect(tryCreateNotification.mock.calls[0][0].targetId).not.toBe(
+    tryCreateNotification.mock.calls[0][0].commentId,
+  );
+});
+
+test("GET /api/comments includes a notified commentId even when older than the first 50 comments", async () => {
+  const olderCommentId = "abcdef1234567890abcdef99";
+  getServerSession.mockResolvedValue({ user: { id: "owner" } });
+  const recentComments = Array.from({ length: 50 }, (_, idx) => {
+    const cid = `${String(idx + 1).padStart(24, "0")}`;
+    return {
+      _id: cid,
+      content: `Comentário recente ${idx + 1}`,
+      userId: { name: "Fiel", avatar: "" },
+      toObject() {
+        return { ...this };
+      },
+    };
+  });
+  const olderComment = {
+    _id: olderCommentId,
+    content: "Comentário antigo da notificação",
+    userId: { name: "Agente de IA baiano", avatar: "" },
+    toObject() {
+      return { ...this };
+    },
+  };
+  Comment.find.mockReturnValue({
+    populate: () => ({ sort: () => ({ limit: async () => recentComments }) }),
+  });
+  Comment.findOne.mockReturnValue({
+    populate: async () => olderComment,
+  });
+
+  const res = response();
+  await handler(
+    {
+      method: "GET",
+      query: { messageId: id, commentId: olderCommentId },
+    },
+    res,
+  );
+  expect(res.status).toHaveBeenCalledWith(200);
+  expect(Comment.findOne).toHaveBeenCalledWith({
+    _id: olderCommentId,
+    messageId: id,
+    status: { $ne: "hidden" },
+  });
+  const returned = res.json.mock.calls[0][0];
+  expect(returned).toHaveLength(51);
+  expect(returned.at(-1)).toEqual(
+    expect.objectContaining({
+      _id: olderCommentId,
+      content: "Comentário antigo da notificação",
+      author: "Agente de IA baiano",
+    }),
+  );
+});
+
+test("GET /api/comments rejects an invalid commentId query parameter", async () => {
+  getServerSession.mockResolvedValue({ user: { id: "owner" } });
+  const res = response();
+  await handler(
+    {
+      method: "GET",
+      query: { messageId: id, commentId: "not-an-object-id" },
+    },
+    res,
+  );
+  expect(res.status).toHaveBeenCalledWith(400);
+  expect(Comment.find).not.toHaveBeenCalled();
 });
 
 test("comment request retries reuse one persisted comment and notification key", async () => {

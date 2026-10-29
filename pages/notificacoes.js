@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/router";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
+import { notificationHref } from "@/lib/validation";
 
 export default function NotificationsPage() {
   const { data: session, status } = useSession();
@@ -51,7 +53,10 @@ export default function NotificationsPage() {
           : entry,
       ),
     );
-    await fetch(`/api/notifications/${item._id}`, { method: "PATCH" });
+    await fetch(`/api/notifications/${item._id}`, {
+      method: "PATCH",
+      keepalive: true,
+    });
   };
 
   return (
@@ -81,7 +86,10 @@ export default function NotificationsPage() {
               key={item._id}
               className={item.readAt ? "is-read" : "is-unread"}
             >
-              <a href={item.href} onClick={() => markRead(item)}>
+              <Link
+                href={item.href || notificationHref(item)}
+                onClick={() => markRead(item)}
+              >
                 <Icon
                   name={
                     item.type === "community_invite"
@@ -101,7 +109,7 @@ export default function NotificationsPage() {
                 {!item.readAt ? (
                   <span className="p-notification-dot" aria-label="Não lida" />
                 ) : null}
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

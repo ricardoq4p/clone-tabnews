@@ -31,6 +31,7 @@ async function notifyCommentOwner(comment, parent, actorId) {
     actorId,
     type: "message_comment",
     targetId: parent.message._id,
+    commentId: comment._id,
     dedupeKey: `message-comment:${comment._id}`,
   });
   await notifyNotificationChange(recipient);
@@ -44,9 +45,13 @@ export default async function handler(req, res) {
     const session = await getServerSession(req, res, authOptions);
     await connectToDatabase();
     if (req.method === "GET") {
-      const { messageId, before } = req.query;
+      const { messageId, before, commentId } = req.query;
       if (!messageId) return res.status(200).json([]);
-      if (!isObjectId(messageId) || (before && !isObjectId(before)))
+      if (
+        !isObjectId(messageId) ||
+        (before && !isObjectId(before)) ||
+        (commentId && !isObjectId(commentId))
+      )
         return res.status(400).json({ error: "Identificador invalido" });
       if (!(await readableMessage(messageId, session)))
         return res.status(404).json({ error: "Publicacao indisponivel" });
@@ -59,7 +64,22 @@ export default async function handler(req, res) {
         .populate("userId", "name avatar")
         .sort({ _id: -1 })
         .limit(50);
-      return res.status(200).json(comments.map(normalizeComment));
+      const normalized = comments.map(normalizeComment);
+      if (
+        commentId &&
+        !before &&
+        !normalized.some((item) => item._id?.toString() === commentId)
+      ) {
+        const targetComment = await Comment.findOne({
+          _id: commentId,
+          messageId,
+          status: { $ne: "hidden" },
+        }).populate("userId", "name avatar");
+        if (targetComment) {
+          normalized.push(normalizeComment(targetComment));
+        }
+      }
+      return res.status(200).json(normalized);
     }
     if (!session) return res.status(401).json({ error: "Nao autenticado" });
     if (req.method === "POST") {

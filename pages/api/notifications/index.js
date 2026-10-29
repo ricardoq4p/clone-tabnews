@@ -4,7 +4,11 @@ import User from "@/lib/models/User";
 import Candle from "@/lib/models/Candle";
 import Message from "@/lib/models/Message";
 import Community from "@/lib/models/Community";
-import { notificationHref, notificationMessage } from "@/lib/notifications";
+import {
+  notificationCommentId,
+  notificationHref,
+  notificationMessage,
+} from "@/lib/notifications";
 import { isObjectId } from "@/lib/validation";
 import { canReadCandle } from "@/lib/candles";
 import { canReadCommunity, canReadMessage } from "@/lib/permissions";
@@ -48,15 +52,10 @@ export default withApi(
         allowed = canReadMessage(target, community, session.user.id);
         communityId = target?.communityId?.toString() || null;
       } else {
-        allowed = Boolean(
-          target &&
-            !target.deletedAt &&
-            (target.privacy !== "private" ||
-              target.ownerId.toString() === session.user.id ||
-              target.members.some((id) => id.toString() === session.user.id)),
-        );
+        allowed = canReadCommunity(target, session.user.id);
       }
       if (!allowed) continue;
+      const commentId = notificationCommentId(item);
       visible.push({
         _id: item._id,
         type: item.type,
@@ -64,8 +63,9 @@ export default withApi(
         message: notificationMessage(item.type, item.actorId?.name),
         targetType: item.targetType,
         targetId: item.targetId,
+        ...(commentId ? { commentId } : {}),
         communityId,
-        href: notificationHref({ ...item, communityId }),
+        href: notificationHref({ ...item, communityId, commentId }),
         readAt: item.readAt,
         createdAt: item.createdAt,
       });

@@ -1,7 +1,9 @@
 import { canDeleteContent } from "@/lib/permissions";
 import { realtimeEnabled } from "@/lib/integration-policy";
+import { isObjectId, resolveNotificationTarget } from "@/lib/validation";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import PrayerButton from "./prayer/PrayerButton";
 import ReportButton from "./prayer/ReportButton";
 import LoadMoreButton from "./LoadMoreButton";
@@ -9,18 +11,51 @@ import { useEffect, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import Pusher from "pusher-js";
 
-export default function MessageCard({ msg, onDeleted }) {
+export default function MessageCard({
+  msg,
+  onDeleted,
+  focused = false,
+  highlightedCommentId = "",
+  commentUnavailable = false,
+}) {
   const { data: session } = useSession();
+  const router = useRouter();
+  const messageId = msg?._id ? String(msg._id) : null;
+  const resolvedTarget = resolveNotificationTarget(
+    router?.query || {},
+    typeof window !== "undefined" ? window.location.search : "",
+    (typeof window !== "undefined" ? window.location.hash : "") ||
+      router?.asPath?.split("#")[1] ||
+      "",
+  );
+  const isTargetMessage = Boolean(
+    focused || (messageId && resolvedTarget.messageId === messageId),
+  );
+  const targetCommentId = isObjectId(highlightedCommentId)
+    ? highlightedCommentId
+    : isTargetMessage
+      ? resolvedTarget.commentId
+      : "";
+  const isCommentUnavailable = Boolean(
+    commentUnavailable ||
+      (isTargetMessage && resolvedTarget.hasInvalidCommentParam),
+  );
+
+  const autoOpenComments = Boolean(
+    isTargetMessage || targetCommentId || isCommentUnavailable,
+  );
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState([]);
-  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsOpenState, setCommentsOpenState] = useState(
+    () => autoOpenComments,
+  );
   const [commentsLoading, setCommentsLoading] = useState(true);
   const [commentSubmitting, setCommentSubmitting] = useState(false);
   const [commentError, setCommentError] = useState("");
   const commentRequestId = useRef(null);
   const [deleting, setDeleting] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState("");
-  const messageId = msg?._id || null;
+  const commentsOpen = commentsOpenState || autoOpenComments;
 
   const canDeleteMessage = canDeleteContent(msg, session);
   const authorName = msg.userId?.name || msg.author || "Usuario";
@@ -51,17 +86,48 @@ export default function MessageCard({ msg, onDeleted }) {
 
   useEffect(() => {
     if (!messageId || !commentsOpen) {
-      return;
+      return undefined;
     }
 
-    fetch(`/api/comments?messageId=${messageId}`)
-      .then((res) => res.json())
+    let cancelled = false;
+    const query = targetCommentId
+      ? `messageId=${encodeURIComponent(messageId)}&commentId=${encodeURIComponent(targetCommentId)}`
+      : `messageId=${encodeURIComponent(messageId)}`;
+
+    fetch(`/api/comments?${query}`)
+      .then((res) => (res.ok ? res.json() : []))
       .then((data) => {
-        setComments(Array.isArray(data) ? data : []);
+        if (!cancelled) {
+          setComments(Array.isArray(data) ? data : []);
+        }
       })
-      .catch(() => setComments([]))
-      .finally(() => setCommentsLoading(false));
-  }, [messageId, msg.communityId, commentsOpen]);
+      .catch(() => {
+        if (!cancelled) {
+          setComments([]);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setCommentsLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [messageId, msg?.communityId, commentsOpen, targetCommentId]);
+
+  useEffect(() => {
+    if (!commentsOpen || commentsLoading || !targetCommentId) return undefined;
+    const found = comments.some((item) => String(item._id) === targetCommentId);
+    if (!found) return undefined;
+    const frame = window.requestAnimationFrame(() => {
+      document
+        .getElementById(`comment-${targetCommentId}`)
+        ?.scrollIntoView?.({ block: "center", behavior: "smooth" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [comments, commentsLoading, commentsOpen, targetCommentId]);
 
   useEffect(() => {
     if (
@@ -83,11 +149,15 @@ export default function MessageCard({ msg, onDeleted }) {
       msg.communityId ? `private-community-${msg.communityId}` : "comments",
     );
 
-    const reload = () =>
-      fetch(`/api/comments?messageId=${messageId}`)
+    const reload = () => {
+      const query = targetCommentId
+        ? `messageId=${encodeURIComponent(messageId)}&commentId=${encodeURIComponent(targetCommentId)}`
+        : `messageId=${encodeURIComponent(messageId)}`;
+      return fetch(`/api/comments?${query}`)
         .then((res) => (res.ok ? res.json() : []))
         .then((data) => setComments(Array.isArray(data) ? data : []))
         .catch(() => {});
+    };
     channel.bind("new-comment", reload);
     channel.bind("delete-comment", reload);
 
@@ -96,9 +166,16 @@ export default function MessageCard({ msg, onDeleted }) {
       pusher.unsubscribe(channel.name);
       pusher.disconnect();
     };
-  }, [messageId, msg.communityId, commentsOpen]);
+  }, [messageId, msg.communityId, commentsOpen, targetCommentId]);
 
   if (!msg || !messageId) return null;
+
+  const missingTargetComment =
+    commentsOpen &&
+    !commentsLoading &&
+    (isCommentUnavailable ||
+      (Boolean(targetCommentId) &&
+        !comments.some((item) => String(item._id) === targetCommentId)));
 
   const handleComment = async (e) => {
     e.preventDefault();
@@ -135,7 +212,7 @@ export default function MessageCard({ msg, onDeleted }) {
       );
       setComment("");
       commentRequestId.current = null;
-      setCommentsOpen(true);
+      setCommentsOpenState(true);
     } catch (err) {
       setCommentError(err.message || "Nao foi possivel enviar o comentario.");
     } finally {
@@ -267,7 +344,13 @@ export default function MessageCard({ msg, onDeleted }) {
             </p>
           </div>
           <button
-            onClick={() => setCommentsOpen((currentValue) => !currentValue)}
+            onClick={() => {
+              setCommentsOpenState((currentValue) => {
+                const next = !currentValue;
+                if (next) setCommentsLoading(true);
+                return next;
+              });
+            }}
             className="secondary-button rounded-full px-4 py-2 text-sm"
           >
             {commentsOpen ? "Ocultar" : "Mostrar"}
@@ -312,6 +395,15 @@ export default function MessageCard({ msg, onDeleted }) {
 
         {commentsOpen ? (
           <div className="mt-4 space-y-3">
+            {missingTargetComment ? (
+              <p
+                role="status"
+                className="p-comment-fallback rounded-2xl border border-amber-400/25 bg-amber-500/10 px-4 py-3 text-sm text-amber-100"
+              >
+                O comentário relacionado a esta notificação não está mais
+                disponível.
+              </p>
+            ) : null}
             {commentsLoading ? (
               <p className="text-sm text-slate-500">
                 Carregando comentarios...
@@ -322,6 +414,12 @@ export default function MessageCard({ msg, onDeleted }) {
               </p>
             ) : (
               comments.map((currentComment) => {
+                const commentIdStr = currentComment._id
+                  ? String(currentComment._id)
+                  : "";
+                const isHighlightedComment = Boolean(
+                  targetCommentId && commentIdStr === targetCommentId,
+                );
                 const currentCommentAuthor =
                   currentComment.author ||
                   currentComment.userId?.name ||
@@ -338,7 +436,13 @@ export default function MessageCard({ msg, onDeleted }) {
                 return (
                   <div
                     key={currentComment._id}
-                    className="rounded-2xl border border-white/8 bg-white/[0.03] px-4 py-3"
+                    id={commentIdStr ? `comment-${commentIdStr}` : undefined}
+                    data-highlighted={isHighlightedComment ? "true" : undefined}
+                    className={`rounded-2xl border px-4 py-3 transition-colors ${
+                      isHighlightedComment
+                        ? "p-comment-highlighted border-amber-500/40 bg-amber-500/10"
+                        : "border-white/8 bg-white/[0.03]"
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-3">
@@ -351,9 +455,16 @@ export default function MessageCard({ msg, onDeleted }) {
                           className="h-9 w-9 rounded-full object-cover"
                         />
                         <div>
-                          <p className="text-sm font-medium text-slate-200">
-                            {currentCommentAuthor}
-                          </p>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-sm font-medium text-slate-200">
+                              {currentCommentAuthor}
+                            </p>
+                            {isHighlightedComment ? (
+                              <span className="p-comment-highlight-badge rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5 text-[11px] font-medium text-amber-200">
+                                Comentário da notificação
+                              </span>
+                            ) : null}
+                          </div>
                           <p className="text-xs text-slate-500">
                             {formatDate(currentComment.createdAt)}
                           </p>

@@ -1,7 +1,9 @@
 import { realtimeEnabled } from "@/lib/integration-policy";
+import { resolveNotificationTarget } from "@/lib/validation";
 import Pusher from "pusher-js";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/router";
 import { useSession } from "next-auth/react";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
@@ -15,56 +17,112 @@ const categories = [
 ];
 export default function Comunidade() {
   const { data: session } = useSession();
+  const router = useRouter();
+  const {
+    messageId: requestedMessage,
+    commentId: requestedComment,
+    hasInvalidMessageParam,
+    hasInvalidCommentParam,
+  } = resolveNotificationTarget(
+    router?.query || {},
+    typeof window !== "undefined" ? window.location.search : "",
+    (typeof window !== "undefined" ? window.location.hash : "") ||
+      router?.asPath?.split("#")[1] ||
+      "",
+  );
   const [category, setCategory] = useState(""),
     [messages, setMessages] = useState([]),
     [communities, setCommunities] = useState([]),
     [busy, setBusy] = useState(true),
-    [error, setError] = useState("");
+    [error, setError] = useState(""),
+    [requestedMessageUnavailable, setRequestedMessageUnavailable] =
+      useState(false);
   const [content, setContent] = useState(""),
     [postType, setPostType] = useState("prayer"),
     [publishing, setPublishing] = useState(false),
     [postError, setPostError] = useState("");
-  const scope = `${category}:${session?.user?.id || "visitor"}`;
+  const scope = `${category}:${requestedMessage}:${session?.user?.id || "visitor"}`;
   const [loadedScope, setLoadedScope] = useState(null),
     [communityScope, setCommunityScope] = useState(null);
   const currentMessages = loadedScope === scope ? messages : [];
   const currentCommunities =
     communityScope === (session?.user?.id || "visitor") ? communities : [];
   const generation = useRef(0);
+  const isRequestedMessageUnavailable =
+    hasInvalidMessageParam ||
+    (loadedScope === scope && requestedMessageUnavailable);
   const load = useCallback(
     async (before) => {
       const gen = ++generation.current;
+      if (hasInvalidMessageParam) {
+        return Promise.resolve().then(() => {
+          if (gen !== generation.current) return;
+          setError("");
+          setLoadedScope(scope);
+          setMessages([]);
+          setRequestedMessageUnavailable(true);
+          setBusy(false);
+        });
+      }
       const query = new URLSearchParams();
-      if (category) query.set("category", category);
-      if (before) query.set("before", before);
+      if (requestedMessage) {
+        query.set("id", requestedMessage);
+      } else {
+        if (category) query.set("category", category);
+        if (before) query.set("before", before);
+      }
       return requestJson(`/api/messages?${query}`)
         .then((result) => {
           if (gen !== generation.current) return;
           setError("");
           setLoadedScope(scope);
+          const list = Array.isArray(result) ? result : [];
+          setRequestedMessageUnavailable(
+            Boolean(requestedMessage && list.length === 0),
+          );
           setMessages((old) =>
             before
               ? [
                   ...old,
-                  ...result.filter(
+                  ...list.filter(
                     (item) => !old.some((current) => current._id === item._id),
                   ),
                 ]
-              : result,
+              : list,
           );
         })
         .catch((err) => {
           if (gen === generation.current) {
-            setError(err.message);
-            if (!before) setMessages([]);
+            if (requestedMessage) {
+              setError("");
+              setLoadedScope(scope);
+              setMessages([]);
+              setRequestedMessageUnavailable(true);
+            } else {
+              setError(err.message);
+              if (!before) setMessages([]);
+            }
           }
         })
         .finally(() => {
           if (gen === generation.current) setBusy(false);
         });
     },
-    [category, scope],
+    [category, requestedMessage, hasInvalidMessageParam, scope],
   );
+  useEffect(() => {
+    if (
+      !requestedMessage ||
+      loadedScope !== scope ||
+      !messages.some((item) => item._id === requestedMessage)
+    )
+      return;
+    window.requestAnimationFrame(() =>
+      document
+        .getElementById(`message-${requestedMessage}`)
+        ?.scrollIntoView?.({ block: "start", behavior: "smooth" }),
+    );
+  }, [loadedScope, scope, messages, requestedMessage]);
   useEffect(() => {
     let stopped = false;
     load();
@@ -239,6 +297,22 @@ export default function Comunidade() {
               <p className="p-loading" role="status">
                 Reunindo as partilhas…
               </p>
+            ) : isRequestedMessageUnavailable ? (
+              <div className="p-empty" role="status">
+                <Icon name="leaf" size={30} />
+                <h2>Esta partilha não está mais disponível.</h2>
+                <p>
+                  O conteúdo original desta notificação pode ter sido removido
+                  ou você não tem permissão para visualizá-lo.
+                </p>
+                <button
+                  type="button"
+                  className="p-button p-button-outline"
+                  onClick={() => router.push("/comunidade")}
+                >
+                  Ver todas as partilhas
+                </button>
+              </div>
             ) : !currentMessages.length && !error ? (
               <div className="p-empty">
                 <Icon name="leaf" size={30} />
@@ -253,6 +327,13 @@ export default function Comunidade() {
                 <MessageCard
                   key={message._id}
                   msg={message}
+                  focused={message._id === requestedMessage}
+                  highlightedCommentId={
+                    message._id === requestedMessage ? requestedComment : ""
+                  }
+                  commentUnavailable={
+                    message._id === requestedMessage && hasInvalidCommentParam
+                  }
                   onDeleted={(id) =>
                     setMessages((old) => old.filter((item) => item._id !== id))
                   }

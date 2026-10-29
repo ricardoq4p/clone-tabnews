@@ -1,4 +1,5 @@
 import { realtimeEnabled } from "@/lib/integration-policy";
+import { resolveNotificationTarget } from "@/lib/validation";
 import Image from "next/image";
 import LoadMoreButton from "../../components/LoadMoreButton";
 import { useEffect, useState } from "react";
@@ -23,8 +24,18 @@ export default function CommunityPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const { id } = router.query;
-  const requestedMessage =
-    typeof router.query.message === "string" ? router.query.message : "";
+  const {
+    messageId: requestedMessage,
+    commentId: requestedComment,
+    hasInvalidMessageParam,
+    hasInvalidCommentParam,
+  } = resolveNotificationTarget(
+    router.query,
+    typeof window !== "undefined" ? window.location.search : "",
+    (typeof window !== "undefined" ? window.location.hash : "") ||
+      router.asPath?.split("#")[1] ||
+      "",
+  );
 
   const [invitationEmail, setInvitationEmail] = useState("");
   const [inviting, setInviting] = useState(false);
@@ -33,6 +44,8 @@ export default function CommunityPage() {
   const [userData, setUserData] = useState(null);
   const [communityLoading, setCommunityLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(true);
+  const [requestedMessageUnavailable, setRequestedMessageUnavailable] =
+    useState(false);
   const [newMessage, setNewMessage] = useState("");
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState("");
@@ -85,7 +98,21 @@ export default function CommunityPage() {
   }, [id, session]);
 
   useEffect(() => {
-    if (!session || !id) return;
+    if (!session || !id) return undefined;
+
+    let cancelled = false;
+
+    if (hasInvalidMessageParam) {
+      Promise.resolve().then(() => {
+        if (cancelled) return;
+        setMessages([]);
+        setRequestedMessageUnavailable(true);
+        setMessagesLoading(false);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
 
     fetch(
       requestedMessage
@@ -96,15 +123,61 @@ export default function CommunityPage() {
         const data = await res.json().catch(() => []);
 
         if (!res.ok) {
-          return [];
+          return { ok: false, items: [] };
         }
 
-        return Array.isArray(data) ? data : [];
+        return { ok: true, items: Array.isArray(data) ? data : [] };
       })
-      .then((data) => setMessages(data))
-      .catch(() => setMessages([]))
-      .finally(() => setMessagesLoading(false));
-  }, [id, session, requestedMessage]);
+      .then(({ ok, items }) => {
+        if (cancelled) return;
+        if (requestedMessage) {
+          if (!ok || items.length === 0) {
+            setMessages([]);
+            setRequestedMessageUnavailable(true);
+            return;
+          }
+          const loadedMsg = items[0];
+          const suffix = requestedComment
+            ? `&comment=${encodeURIComponent(requestedComment)}#comment-${encodeURIComponent(requestedComment)}`
+            : `#message-${encodeURIComponent(requestedMessage)}`;
+          if (!loadedMsg.communityId) {
+            router.replace(
+              `/feed?message=${encodeURIComponent(requestedMessage)}${suffix}`,
+            );
+            return;
+          }
+          if (String(loadedMsg.communityId) !== String(id)) {
+            router.replace(
+              `/comunidades/${encodeURIComponent(loadedMsg.communityId)}?message=${encodeURIComponent(requestedMessage)}${suffix}`,
+            );
+            return;
+          }
+        }
+        setRequestedMessageUnavailable(false);
+        setMessages(items);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setMessages([]);
+        setRequestedMessageUnavailable(Boolean(requestedMessage));
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setMessagesLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    id,
+    session,
+    requestedMessage,
+    requestedComment,
+    hasInvalidMessageParam,
+    router,
+  ]);
 
   useEffect(() => {
     if (
@@ -115,7 +188,7 @@ export default function CommunityPage() {
     window.requestAnimationFrame(() =>
       document
         .getElementById(`message-${requestedMessage}`)
-        ?.scrollIntoView({ block: "start", behavior: "smooth" }),
+        ?.scrollIntoView?.({ block: "start", behavior: "smooth" }),
     );
   }, [messages, requestedMessage]);
 
@@ -555,20 +628,55 @@ export default function CommunityPage() {
                   Publicacoes da comunidade
                 </p>
                 <p className="text-sm text-slate-500">
-                  {messages.length === 1
-                    ? "1 post nesta comunidade"
-                    : `${messages.length} posts nesta comunidade`}
+                  {requestedMessage || hasInvalidMessageParam
+                    ? requestedMessageUnavailable
+                      ? "Publicação indisponível"
+                      : "Visualizando publicação selecionada"
+                    : messages.length === 1
+                      ? "1 post nesta comunidade"
+                      : `${messages.length} posts nesta comunidade`}
                 </p>
               </div>
-              {messagesLoading ? (
-                <span className="text-sm text-slate-500">Atualizando...</span>
-              ) : null}
+              <div className="flex items-center gap-3">
+                {requestedMessage || hasInvalidMessageParam ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/comunidades/${id}`)}
+                    className="secondary-button rounded-full px-4 py-2 text-xs"
+                  >
+                    Ver todas da comunidade
+                  </button>
+                ) : null}
+                {messagesLoading ? (
+                  <span className="text-sm text-slate-500">Atualizando...</span>
+                ) : null}
+              </div>
             </section>
 
             <section className="space-y-4">
               {messagesLoading ? (
                 <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
                   Carregando publicacoes...
+                </div>
+              ) : requestedMessageUnavailable ? (
+                <div
+                  role="status"
+                  className="glass-panel rounded-[28px] p-8 text-center text-slate-400"
+                >
+                  <p className="text-base font-medium text-white">
+                    Esta publicação não está mais disponível ou foi removida.
+                  </p>
+                  <p className="mt-2 text-sm text-slate-400">
+                    O conteúdo original desta notificação pode ter sido excluído
+                    ou você não tem permissão para visualizá-lo.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/comunidades/${id}`)}
+                    className="secondary-button mt-4 rounded-full px-4 py-2 text-sm"
+                  >
+                    Ver publicações da comunidade
+                  </button>
                 </div>
               ) : messages.length === 0 ? (
                 <div className="glass-panel rounded-[28px] p-8 text-center text-slate-400">
@@ -581,6 +689,14 @@ export default function CommunityPage() {
                     <MessageCard
                       key={message._id}
                       msg={message}
+                      focused={message._id === requestedMessage}
+                      highlightedCommentId={
+                        message._id === requestedMessage ? requestedComment : ""
+                      }
+                      commentUnavailable={
+                        message._id === requestedMessage &&
+                        hasInvalidCommentParam
+                      }
                       onDeleted={(id) =>
                         setMessages((current) =>
                           current.filter((item) => item._id !== id),

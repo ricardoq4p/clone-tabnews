@@ -1235,6 +1235,24 @@ body {
   border-color: #e4d7c5 !important;
 }
 
+.prayer-app .p-comment-highlighted {
+  background: #f5ebdc !important;
+  border-color: #9b7540 !important;
+  box-shadow: 0 0 0 1px rgba(155, 117, 64, 0.25);
+}
+
+.prayer-app .p-comment-highlight-badge {
+  background: #efe4d3 !important;
+  border-color: #d8c19a !important;
+  color: #4a2b18 !important;
+}
+
+.prayer-app .p-comment-fallback {
+  background: #f5ebdc !important;
+  border-color: #d8c19a !important;
+  color: #4a2b18 !important;
+}
+
 /* Responsive adjustments */
 @media (max-width: 1180px) {
   .prayer-app .p-nav a {
