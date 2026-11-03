@@ -1,5 +1,7 @@
 import PrayerLayout from "./prayer/Layout";
 import Icon from "./prayer/Icon";
+import BrandLogo from "./BrandLogo";
+
 export default function AuthLayout({ children, footer }) {
   return (
     <PrayerLayout title="Bem-vindo à nossa casa">
@@ -34,6 +36,9 @@ export default function AuthLayout({ children, footer }) {
           </p>
         </section>
         <section className="p-panel p-auth-form">
+          <div className="p-auth-brand">
+            <BrandLogo variant="vertical" className="p-auth-logo" priority />
+          </div>
           {children}
           {footer ? <div className="p-auth-footer">{footer}</div> : null}
         </section>

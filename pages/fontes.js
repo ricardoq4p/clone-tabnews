@@ -46,8 +46,8 @@ export default function Fontes() {
         <h2>As imagens e a tipografia</h2>
         <p>
           As vinte imagens dos mistérios do Santo Rosário reúnem pinturas sacras
-          em estilo clássico — obras restauradas e originais do acervo
-          PanteraLab e pinturas geradas digitalmente para a plataforma —,
+          em estilo clássico — obras restauradas e originais do acervo Caminhar
+          para Cristo e pinturas geradas digitalmente para a plataforma —,
           organizadas para auxiliar a contemplação sem distrações. Cada pintura
           possui descrição acessível e crédito. A tipografia utiliza fontes
           disponíveis no dispositivo, sem carregar fontes de outros serviços.

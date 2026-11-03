@@ -102,11 +102,74 @@ body {
   padding-block: 0.5rem;
 }
 
+.prayer-app .brand-logo {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+  filter: none !important;
+  box-shadow: none !important;
+  flex-shrink: 0;
+}
+
 .prayer-app .p-brand {
   color: var(--pl-ink);
   font-size: clamp(1.3rem, 1.8vw, 1.65rem);
   line-height: 1;
   gap: 0.55rem;
+  padding-block: 0.15rem;
+  flex-shrink: 0;
+}
+
+.prayer-app .p-brand-logo {
+  width: clamp(190px, 18vw, 248px);
+  height: auto;
+}
+
+.prayer-app .p-footer-brand {
+  display: inline-flex;
+  align-items: center;
+  padding-block: 0.15rem;
+}
+
+.prayer-app .p-footer-logo {
+  width: clamp(185px, 20vw, 236px);
+  height: auto;
+}
+
+.prayer-app .pl-hero-brand {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.prayer-app .pl-hero-brand-logo {
+  width: clamp(132px, 14vw, 168px);
+  height: auto;
+}
+
+.prayer-app .p-auth-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.35rem;
+  padding-bottom: 1.15rem;
+  border-bottom: 1px solid rgba(228, 215, 197, 0.85);
+}
+
+.prayer-app .p-auth-logo {
+  width: clamp(136px, 15vw, 168px);
+  height: auto;
+}
+
+.prayer-app .p-document-brand {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.15rem;
+}
+
+.prayer-app .p-document-logo {
+  width: clamp(132px, 14vw, 164px);
+  height: auto;
 }
 
 .prayer-app .p-brand small {
@@ -1271,6 +1334,9 @@ body {
   .prayer-app .p-header {
     justify-content: space-between;
   }
+  .prayer-app .p-brand-logo {
+    width: clamp(168px, 24vw, 214px);
+  }
   .prayer-app .pl-home-hero,
   .prayer-app .pl-mercy-grid,
   .prayer-app .pl-mercy-workspace {
@@ -1312,6 +1378,14 @@ body {
     padding-block: 0.6rem;
     flex-wrap: wrap;
   }
+  .prayer-app .p-brand-logo {
+    width: clamp(144px, 42vw, 182px);
+  }
+  .prayer-app .pl-hero-brand-logo,
+  .prayer-app .p-auth-logo,
+  .prayer-app .p-document-logo {
+    width: clamp(124px, 34vw, 148px);
+  }
   .prayer-app .p-nav {
     display: none;
   }
@@ -1347,6 +1421,9 @@ body {
 }
 
 @media (max-width: 420px) {
+  .prayer-app .p-brand-logo {
+    width: clamp(120px, 38vw, 148px);
+  }
   .prayer-app .p-mobile-nav a {
     font-size: 9.5px;
     padding-inline: 1px;

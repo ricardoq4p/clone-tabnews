@@ -83,7 +83,7 @@ export default function TercoDaMisericordia() {
   return (
     <PrayerLayout
       title="Terço da Misericórdia"
-      description="Oração guiada do Terço da Divina Misericórdia no PanteraLab."
+      description="Oração guiada do Terço da Divina Misericórdia no Caminhar para Cristo."
     >
       <div
         className={`p-container pl-mercy-page ${focusMode ? "p-focus-mode" : ""} ${praying && progress ? "is-praying" : ""}`}

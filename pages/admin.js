@@ -117,7 +117,7 @@ export default function AdminPage() {
                 Superadmin
               </p>
               <h1 className="mt-2 text-3xl font-semibold text-white">
-                Painel total do PanteraLab
+                Painel total do Caminhar para Cristo
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-400">
                 Aqui voce consegue moderar usuarios, comunidades, posts e

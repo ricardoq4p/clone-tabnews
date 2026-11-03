@@ -1,10 +1,15 @@
 import Link from "next/link";
 import PrayerLayout from "@/components/prayer/Layout";
+import BrandLogo from "@/components/BrandLogo";
+
 export default function Sobre() {
   return (
     <PrayerLayout title="Nossa casa de oração">
       <article className="p-container p-document">
         <div className="p-page-head">
+          <div className="p-document-brand">
+            <BrandLogo variant="vertical" className="p-document-logo" />
+          </div>
           <p className="p-eyebrow">UMA CASA ABERTA AO ENCONTRO</p>
           <h1>
             Pequenos gestos de fé.
@@ -13,9 +18,9 @@ export default function Sobre() {
           </h1>
         </div>
         <p>
-          O PanteraLab é um espaço para apoiar a oração católica no cotidiano:
-          contemplar com Maria a vida de Jesus, apresentar intenções e
-          acompanhar outras pessoas com respeito e caridade.
+          O Caminhar para Cristo é um espaço para apoiar a oração católica no
+          cotidiano: contemplar com Maria a vida de Jesus, apresentar intenções
+          e acompanhar outras pessoas com respeito e caridade.
         </p>
         <h2>Rezar no seu ritmo</h2>
         <p>

@@ -39,8 +39,8 @@ export default function Login() {
 
   return (
     <AuthLayout
-      title="Entre, publique e chame a Pantera IA quando quiser."
-      subtitle="A comunidade agora pode acionar a inteligencia da casa com @pantera para receber respostas automaticas dentro do proprio feed."
+      title="Entre para guardar suas orações e caminhar em comunidade."
+      subtitle="Apresente suas intenções, acompanhe seus momentos de oração e partilhe com a comunidade do Caminhar para Cristo."
       footer={
         <p className="text-center text-sm text-slate-400">
           Nao tem conta?{" "}

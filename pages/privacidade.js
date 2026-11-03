@@ -15,10 +15,11 @@ export default function Privacidade() {
         </div>
         <h2>Quem cuida dos seus dados</h2>
         <p>
-          Ricardo A Santos é o responsável pelo PanteraLab. Para dúvidas,
-          solicitações sobre dados ou para retirar seu consentimento, escreva
-          para <a href="mailto:ricardo.q4p@gmail.com">ricardo.q4p@gmail.com</a>.
-          Você também pode registrar um pedido pela sua conta, abaixo.
+          Ricardo A Santos é o responsável pelo Caminhar para Cristo. Para
+          dúvidas, solicitações sobre dados ou para retirar seu consentimento,
+          escreva para{" "}
+          <a href="mailto:ricardo.q4p@gmail.com">ricardo.q4p@gmail.com</a>. Você
+          também pode registrar um pedido pela sua conta, abaixo.
         </p>
         <h2>Por que usamos essas informações</h2>
         <p>

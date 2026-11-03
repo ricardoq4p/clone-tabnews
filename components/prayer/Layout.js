@@ -5,6 +5,7 @@ import { signOut, useSession } from "next-auth/react";
 import Icon from "./Icon";
 import localFont from "next/font/local";
 import NotificationBell from "./NotificationBell";
+import BrandLogo, { BRAND_ASSETS, BRAND_NAME } from "../BrandLogo";
 
 const pixel = localFont({
   src: "../../public/fonts/pixelify-latin.woff2",
@@ -68,11 +69,44 @@ export default function PrayerLayout({
       className={`prayer-app ${pixel.variable} ${mono.variable} ${legacy ? "prayer-legacy" : ""}`}
     >
       <Head>
-        <title>{`${title} · PanteraLab`}</title>
+        <title>{`${title} · ${BRAND_NAME}`}</title>
         <meta name="description" content={description} />
         <meta name="theme-color" content="#F7F1E8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/sacred/favicon.svg" />
+        <meta property="og:site_name" content={BRAND_NAME} />
+        <meta property="og:title" content={`${title} · ${BRAND_NAME}`} />
+        <meta property="og:description" content={description} />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content={BRAND_ASSETS.avatar.src} />
+        <meta
+          property="og:image:width"
+          content={String(BRAND_ASSETS.avatar.width)}
+        />
+        <meta
+          property="og:image:height"
+          content={String(BRAND_ASSETS.avatar.height)}
+        />
+        <meta name="twitter:card" content="summary" />
+        <meta name="twitter:title" content={`${title} · ${BRAND_NAME}`} />
+        <meta name="twitter:description" content={description} />
+        <meta name="twitter:image" content={BRAND_ASSETS.avatar.src} />
+        <link
+          rel="icon"
+          type="image/png"
+          sizes="64x64"
+          href={BRAND_ASSETS.favicon.src}
+        />
+        <link
+          rel="icon"
+          type="image/svg+xml"
+          href={BRAND_ASSETS.favicon.svgSrc}
+        />
+        <link
+          rel="apple-touch-icon"
+          sizes="180x180"
+          href={BRAND_ASSETS.favicon.appleTouchSrc}
+        />
+        <link rel="manifest" href="/manifest.json" />
         {["homologacao-local", "homologacao-vercel"].includes(
           process.env.NEXT_PUBLIC_APP_ENV,
         ) ? (
@@ -92,13 +126,8 @@ export default function PrayerLayout({
         </div>
       ) : null}
       <header className="p-header">
-        <Link href="/" className="p-brand" aria-label="PanteraLab, início">
-          <span className="p-brand-mark">
-            <Icon name="cross" size={23} />
-          </span>
-          <span>
-            PanteraLab<small>CASA DE ORAÇÃO</small>
-          </span>
+        <Link href="/" className="p-brand" aria-label={`${BRAND_NAME}, início`}>
+          <BrandLogo variant="horizontal" className="p-brand-logo" priority />
         </Link>
         <nav className="p-nav" aria-label="Principal">
           {links.map((link) => (
@@ -160,9 +189,12 @@ export default function PrayerLayout({
       </main>
       <footer className="p-footer">
         <div>
-          <Link href="/" className="p-footer-brand">
-            <Icon name="cross" size={17} />
-            PanteraLab
+          <Link
+            href="/"
+            className="p-footer-brand"
+            aria-label={`${BRAND_NAME}, início`}
+          >
+            <BrandLogo variant="horizontal" className="p-footer-logo" />
           </Link>
           <p>Um encontro com Deus. Um passo de cada vez.</p>
         </div>
