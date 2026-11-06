@@ -35,6 +35,11 @@ export default withApi(
       409,
       "Uma vela retirada pelo autor não pode ser reativada pela moderação.",
     );
+    requireCondition(
+      !(type === "blog_post" && record.status === "draft"),
+      409,
+      "Um rascunho privado do autor não pode ser alterado pela moderação.",
+    );
     await ModerationLog.create({
       actorId: session.user.id,
       action: `${action}-requested`,

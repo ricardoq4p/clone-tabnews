@@ -5,6 +5,7 @@ import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
 import RosaryEditor from "@/components/prayer/RosaryEditor";
 import CommunityManager from "@/components/prayer/CommunityManager";
+import BlogManager from "@/components/prayer/BlogManager";
 import { requestJson, jsonRequest, formatPrayerDate } from "@/lib/client";
 const tabs = [
   { id: "estatisticas", title: "Visão geral" },
@@ -14,6 +15,7 @@ const tabs = [
   { id: "comment", title: "Comentários" },
   { id: "participantes", title: "Participantes" },
   { id: "comunidades", title: "Comunidades" },
+  { id: "blogs", title: "Blogs" },
   { id: "rosario", title: "Rosário" },
   { id: "auditoria", title: "Auditoria" },
   { id: "solicitacoes", title: "Privacidade" },
@@ -33,7 +35,7 @@ export default function Administracao() {
   const load = useCallback(
     async (before) => {
       const gen = ++generation.current;
-      if (!allowed || ["rosario", "comunidades"].includes(tab)) return;
+      if (!allowed || ["rosario", "comunidades", "blogs"].includes(tab)) return;
       const endpoint = ["message", "comment"].includes(tab)
         ? `/api/admin/publicacoes?type=${tab}`
         : `/api/admin/${tab}`;
@@ -201,6 +203,8 @@ export default function Administracao() {
             ) : null}
             {tab === "comunidades" ? (
               <CommunityManager />
+            ) : tab === "blogs" ? (
+              <BlogManager />
             ) : tab === "rosario" ? (
               <div className="p-panel">
                 <RosaryEditor />
