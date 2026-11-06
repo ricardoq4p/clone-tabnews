@@ -294,7 +294,7 @@ export default function Home() {
 
         <div className="pl-lower-panels">
           <section
-            className="p-daily pl-daily-panel"
+            className="p-panel pl-daily-panel"
             aria-labelledby="pl-daily-title"
           >
             <div className="pl-daily-top">
@@ -308,25 +308,24 @@ export default function Home() {
                 </h2>
               </div>
             </div>
-            <p className="pl-daily-subtitle">
-              {today?.set.subtitle ||
-                "Contemple a vida de Cristo em comunhão com a Igreja."}
-            </p>
-            <div className="pl-daily-footer">
+            <div className="pl-daily-body">
+              <p className="pl-daily-subtitle">
+                {today?.set.subtitle ||
+                  "Contemple a vida de Cristo em comunhão com a Igreja."}
+              </p>
               <p className="p-daily-date">
-                {today?.day || "Um novo dia para rezar"}
+                <span>{today?.day || "Um novo dia para rezar"}</span>
+                <span aria-hidden="true">·</span>
                 <small>Horário de Brasília</small>
               </p>
-              <div className="pl-daily-actions">
-                <Link href="/oratorio" className="p-text-link">
-                  Ir ao Oratório
-                  <Icon name="arrow" size={17} />
-                </Link>
-                <Link href="/rosario" className="p-text-link">
-                  Rezar os mistérios
-                  <Icon name="arrow" size={17} />
-                </Link>
-              </div>
+            </div>
+            <div className="pl-daily-actions">
+              <Link href="/oratorio" className="p-text-link">
+                Ir ao Oratório <Icon name="arrow" size={16} />
+              </Link>
+              <Link href="/rosario" className="p-text-link">
+                Rezar os mistérios <Icon name="arrow" size={16} />
+              </Link>
             </div>
           </section>
 

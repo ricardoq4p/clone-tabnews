@@ -104,6 +104,14 @@ describe("Página inicial — Três caminhos e integração com o Oratório", ()
     expect(html).toContain("Ir ao Oratório");
     expect(html).toContain("Rezar os mistérios");
     expect(html).toContain('href="/rosario"');
+    expect(html).toContain("Horário de Brasília");
+
+    // Padronização estrutural entre os cards Oração do Dia e Intenções e Velas
+    expect(html).toContain('class="p-panel pl-daily-panel"');
+    expect(html).toContain('class="p-panel pl-intentions-panel"');
+    expect(html).toContain('class="pl-daily-body"');
+    expect(html).toContain('class="pl-daily-actions"');
+    expect(html).toContain('class="pl-intentions-actions"');
   });
 });
 

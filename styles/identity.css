@@ -921,6 +921,7 @@ body {
 .prayer-app .pl-lower-panels {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
   gap: 1.25rem;
   margin-top: 0.5rem;
 }
@@ -930,28 +931,30 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  align-items: stretch;
+  text-align: left;
   gap: 1rem;
   padding: 1.5rem 1.65rem;
   border-radius: 20px;
   border: 1px solid var(--pl-line);
-  background: var(--pl-surface);
-  box-shadow: var(--p-shadow);
-}
-
-.prayer-app .pl-intentions-panel {
   background: var(--pl-surface-warm);
+  box-shadow: var(--p-shadow);
 }
 
 .prayer-app .pl-daily-top {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 0.95rem;
+  text-align: left;
 }
 
 .prayer-app .pl-daily-top .p-daily-icon {
   width: 46px;
   height: 46px;
   flex-shrink: 0;
+  display: grid;
+  place-items: center;
   border-radius: 14px;
   border: 1px solid var(--pl-gold-soft);
   background: #f5ebdc;
@@ -961,6 +964,15 @@ body {
 .prayer-app .pl-daily-top h2 {
   font-size: clamp(1.35rem, 2vw, 1.65rem);
   margin-top: 0.2rem;
+  text-align: left;
+}
+
+.prayer-app .pl-daily-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  text-align: left;
 }
 
 .prayer-app .pl-daily-subtitle,
@@ -968,53 +980,45 @@ body {
   color: var(--pl-muted);
   font-size: 0.94rem;
   line-height: 1.68;
+  text-align: left;
 }
 
-.prayer-app .pl-daily-footer {
-  display: flex;
+.prayer-app .pl-daily-panel .p-daily-date {
+  margin: 0 !important;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: 0.75rem 1.25rem;
-  padding-top: 0.85rem;
-  border-top: 1px solid var(--pl-line);
-}
-
-.prayer-app .pl-daily-footer .p-daily-date {
-  margin-left: 0 !important;
+  gap: 0.35rem;
   font-size: 0.85rem;
+  line-height: 1.5;
+  color: var(--pl-muted);
+  text-align: left;
+}
+
+.prayer-app .pl-daily-panel .p-daily-date small {
+  display: inline;
+  margin-top: 0;
+  font-size: 0.8rem;
   color: var(--pl-muted);
 }
 
-.prayer-app .pl-daily-footer .p-daily-date small {
-  font-size: 0.75rem;
-  color: var(--pl-muted);
-}
-
-.prayer-app .pl-daily-footer .p-text-link {
-  border-left: 0;
-  padding-left: 0;
-  margin-left: 0;
-  color: var(--pl-coffee);
-}
-
-.prayer-app .pl-daily-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.75rem 1.35rem;
-}
-
+.prayer-app .pl-daily-actions,
 .prayer-app .pl-intentions-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 0.75rem 1.5rem;
+  margin-top: auto;
   padding-top: 0.85rem;
   border-top: 1px solid rgba(203, 185, 158, 0.55);
 }
 
+.prayer-app .pl-daily-actions .p-text-link,
 .prayer-app .pl-intentions-actions .p-text-link {
+  border-left: 0;
+  padding-left: 0;
+  margin-left: 0;
   color: var(--pl-coffee);
 }
 
