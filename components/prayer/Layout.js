@@ -46,14 +46,15 @@ export default function PrayerLayout({
   const router = useRouter();
   const { data: session } = useSession();
   const fullTitle = title.includes("|") ? title : `${title} · ${BRAND_NAME}`;
-  const currentSection =
-    {
-      "/rosario": "/oratorio",
-      "/terco-da-misericordia": "/oratorio",
-      "/minhas-velas": "/capelinha",
-      "/feed": "/comunidade",
-      "/comunidades/[id]": "/comunidade",
-    }[router.pathname] || router.pathname;
+  const currentSection = router.pathname?.startsWith("/oratorio")
+    ? "/oratorio"
+    : {
+        "/rosario": "/oratorio",
+        "/terco-da-misericordia": "/oratorio",
+        "/minhas-velas": "/capelinha",
+        "/feed": "/comunidade",
+        "/comunidades/[id]": "/comunidade",
+      }[router.pathname] || router.pathname;
   const accountCurrent = [
     "/profile",
     "/user/edit",

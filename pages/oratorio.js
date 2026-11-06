@@ -2,6 +2,9 @@ import Link from "next/link";
 import Image from "next/image";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
+import { DAILY_PRAYER_CARDS } from "@/lib/oratorio/daily-prayers";
+
+export { DAILY_PRAYER_CARDS };
 
 export const ORATORIO_EXPERIENCES = [
   {
@@ -109,6 +112,56 @@ export default function Oratorio() {
                     <Icon name="arrow" size={16} />
                   </span>
                 </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section
+          id="oracoes-do-dia-a-dia"
+          className="p-section pl-oratorio-daily"
+          aria-labelledby="pl-oratorio-daily-heading"
+        >
+          <div className="p-section-heading">
+            <div>
+              <p className="p-eyebrow">ORAÇÕES DO DIA A DIA</p>
+              <h2 id="pl-oratorio-daily-heading">Orações do Dia a Dia</h2>
+              <p className="pl-oratorio-daily-subtitle">
+                Uma oração para cada momento.
+              </p>
+            </div>
+            <p>
+              Nem toda oração precisa ser longa. Às vezes, poucas palavras ditas
+              com fé aproximam nosso coração de Deus.
+            </p>
+          </div>
+
+          <div className="pl-oratorio-daily-grid">
+            {DAILY_PRAYER_CARDS.map((card) => (
+              <Link
+                key={card.href}
+                href={card.href}
+                className="p-panel pl-oratorio-daily-card"
+              >
+                <div className="pl-oratorio-daily-card-top">
+                  <span className="p-number">{card.number}</span>
+                  <div className="pl-oratorio-daily-card-badges">
+                    {card.complement ? (
+                      <span className="pl-oratorio-daily-pill">
+                        {card.complement}
+                      </span>
+                    ) : null}
+                    <span className="pl-oratorio-daily-icon" aria-hidden="true">
+                      <Icon name={card.icon} size={17} />
+                    </span>
+                  </div>
+                </div>
+                <h3>{card.title}</h3>
+                <p>{card.description}</p>
+                <span className="p-text-link">
+                  {card.cta}
+                  <Icon name="arrow" size={15} />
+                </span>
               </Link>
             ))}
           </div>
