@@ -38,6 +38,14 @@ const paths = {
   ),
   arrow: <path d="M4 12h16m-6-6 6 6-6 6" />,
   back: <path d="M20 12H4m6-6-6 6 6 6" />,
+  play: <path d="M7 5.5v13l11-6.5-11-6.5Z" />,
+  headphones: (
+    <>
+      <path d="M4 15v-3a8 8 0 0 1 16 0v3" />
+      <rect x="3" y="13" width="4" height="6" rx="1.5" />
+      <rect x="17" y="13" width="4" height="6" rx="1.5" />
+    </>
+  ),
   heart: <path d="M12 21 3.5 12.5C-2 6 7 0 12 7c5-7 14-1 8.5 5.5Z" />,
   bell: (
     <>

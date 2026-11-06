@@ -405,4 +405,23 @@ describe("Terço da Divina Misericórdia — Reprodutor e Avanço Automático", 
     ).toBeNull();
     expect(writeMercyCheckpoint(blockedStorage, scope, {})).toBe(false);
   });
+
+  test("assets visuais da página do Terço da Misericórdia existem em public/images/misericordia", () => {
+    const requiredAssets = [
+      "jesus-misericordioso.webp",
+      "santa-faustina.webp",
+      "horizonte-cruz.webp",
+    ];
+    for (const file of requiredAssets) {
+      const assetPath = path.join(
+        process.cwd(),
+        "public",
+        "images",
+        "misericordia",
+        file,
+      );
+      expect(fs.existsSync(assetPath)).toBe(true);
+      expect(fs.statSync(assetPath).size).toBeGreaterThan(1000);
+    }
+  });
 });

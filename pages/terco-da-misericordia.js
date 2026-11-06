@@ -6,7 +6,6 @@ import Icon from "@/components/prayer/Icon";
 import { MERCY_STAGE_SUMMARY } from "@/lib/misericordia/content";
 import { buildMercySections } from "@/lib/misericordia/engine";
 import {
-  MERCY_AUDIO_MANIFEST,
   MERCY_AUDIO_RATES,
   areMercyRecordingsIntegrated,
 } from "@/lib/misericordia/audio-catalog";
@@ -30,6 +29,77 @@ const AUDIO_STATUS_MESSAGES = {
   complete: "Você concluiu todas as etapas do Terço da Misericórdia.",
 };
 
+function RosaryIllustration() {
+  return (
+    <svg
+      viewBox="0 0 84 96"
+      fill="none"
+      aria-hidden="true"
+      className="pl-mercy-info-svg"
+    >
+      <ellipse
+        cx="42"
+        cy="34"
+        rx="22"
+        ry="25"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeDasharray="1 5.5"
+        strokeLinecap="round"
+      />
+      <circle cx="42" cy="9" r="2.6" fill="currentColor" />
+      <circle cx="22" cy="24" r="2.6" fill="currentColor" />
+      <circle cx="62" cy="24" r="2.6" fill="currentColor" />
+      <circle cx="25" cy="48" r="2.6" fill="currentColor" />
+      <circle cx="59" cy="48" r="2.6" fill="currentColor" />
+      <path
+        d="M42 59l-3 4 3 4 3-4-3-4Z"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        fill="rgba(166, 124, 62, 0.18)"
+      />
+      <circle cx="41" cy="71" r="1.9" fill="currentColor" />
+      <circle cx="40" cy="76" r="1.9" fill="currentColor" />
+      <path
+        d="M39 81l-2 12M33 85l11 2"
+        stroke="currentColor"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function BibleIllustration() {
+  return (
+    <svg
+      viewBox="0 0 84 72"
+      fill="none"
+      aria-hidden="true"
+      className="pl-mercy-info-svg"
+    >
+      <path
+        d="M12 16c10-3 21-2 30 3 9-5 20-6 30-3v39c-10-3-21-2-30 3-9-5-20-6-30-3V16Z"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M16 55c9-2.5 18-1.5 26 3 8-4.5 17-5.5 26-3"
+        stroke="currentColor"
+        strokeWidth="1.4"
+        strokeLinecap="round"
+      />
+      <path
+        d="M42 19v39"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 export default function TercoDaMisericordia() {
   const chaplet = useMercyChaplet();
   const { ready, progress, closingPrayer, steps, step, completed, audio } =
@@ -43,7 +113,6 @@ export default function TercoDaMisericordia() {
   const recordingsReady = areMercyRecordingsIntegrated();
   const sections = buildMercySections(steps);
   const audioPlaying = ["playing", "loading"].includes(audio.status);
-  const clipsList = Object.entries(MERCY_AUDIO_MANIFEST.clips);
 
   function go(nextPosition) {
     chaplet.go(nextPosition);
@@ -88,33 +157,74 @@ export default function TercoDaMisericordia() {
       <div
         className={`p-container pl-mercy-page ${focusMode ? "p-focus-mode" : ""} ${praying && progress ? "is-praying" : ""}`}
       >
-        <div className="p-page-head">
-          <div className="p-breadcrumb">
-            <Link href="/">Início</Link>
-            <span>/</span>
-            <Link href="/oratorio">Oratório</Link>
-            <span>/</span>Terço da Misericórdia
-          </div>
-          <p className="p-eyebrow">JESUS, EU CONFIO EM VÓS</p>
-          <h1>
-            {praying && progress ? (
-              "Terço da Divina Misericórdia"
-            ) : (
-              <>
-                Terço da
-                <br />
-                <em>Divina Misericórdia.</em>
-              </>
-            )}
-          </h1>
-          <p>
-            Um momento de abandono confiante no amor misericordioso de Cristo,
-            entregando a Deus nossas intenções e as necessidades do mundo
-            inteiro.
-          </p>
+        <div className="p-breadcrumb pl-mercy-breadcrumb">
+          <Link href="/">Início</Link>
+          <span>/</span>
+          <Link href="/oratorio">Oratório</Link>
+          <span>/</span>Terço da Misericórdia
         </div>
 
-        {!ready ? (
+        <section className="pl-mercy-hero" aria-labelledby="pl-mercy-title">
+          <div className="pl-mercy-hero-copy">
+            <p className="p-eyebrow">JESUS, EU CONFIO EM VÓS</p>
+            <h1 id="pl-mercy-title">
+              {praying && progress ? (
+                "Terço da Divina Misericórdia"
+              ) : (
+                <>
+                  Terço da <em>Divina Misericórdia</em>
+                </>
+              )}
+            </h1>
+            <p className="pl-mercy-hero-lead">
+              Uma oração de confiança na misericórdia de Deus para nós e para o
+              mundo inteiro.
+            </p>
+            {!praying || !progress ? (
+              <div className="p-actions pl-mercy-hero-actions">
+                <button
+                  type="button"
+                  className="p-button"
+                  onClick={() =>
+                    progress && !completed
+                      ? resumePrayer({ autoPlay: false })
+                      : begin({ autoPlay: false })
+                  }
+                >
+                  <Icon name="play" size={16} />
+                  Rezar agora
+                </button>
+                <button
+                  type="button"
+                  className="p-button p-button-outline"
+                  onClick={() =>
+                    progress && !completed
+                      ? resumePrayer({ autoPlay: true })
+                      : begin({ autoPlay: true })
+                  }
+                >
+                  <Icon name="headphones" size={17} />
+                  Ouvir a oração
+                </button>
+              </div>
+            ) : null}
+          </div>
+
+          {!praying || !progress ? (
+            <figure className="pl-mercy-hero-art">
+              <Image
+                src="/images/misericordia/jesus-misericordioso.webp"
+                alt="Jesus Misericordioso com vestes brancas, mão direita em bênção e raios vermelho e claro partindo do coração"
+                width={624}
+                height={448}
+                sizes="(max-width: 900px) 92vw, 440px"
+                priority
+              />
+            </figure>
+          ) : null}
+        </section>
+
+        {!ready && praying ? (
           <p className="p-loading" role="status">
             Preparando o Terço da Misericórdia…
           </p>
@@ -180,10 +290,8 @@ export default function TercoDaMisericordia() {
                   Reze conta a conta, com avanço automático ou no seu ritmo.
                 </h2>
                 <p>
-                  Acompanhe a sequência completa do Terço da Divina
-                  Misericórdia: orações iniciais, as cinco dezenas com as dez
-                  invocações da Dolorosa Paixão, a tríplice invocação a Deus
-                  Santo e a oração conclusiva opcional.
+                  Acompanhe as orações na ordem tradicional do Terço da Divina
+                  Misericórdia.
                 </p>
 
                 <div className="pl-mercy-preferences">
@@ -195,7 +303,7 @@ export default function TercoDaMisericordia() {
                     />
                     <span>
                       Incluir a <strong>Oração conclusiva</strong> ao final do
-                      terço <em>(opcional)</em>
+                      terço (opcional)
                     </span>
                   </label>
                 </div>
@@ -256,39 +364,57 @@ export default function TercoDaMisericordia() {
                 </div>
               </section>
 
-              <aside className="p-panel pl-mercy-aside">
-                <figure className="pl-mercy-art">
-                  <Image
-                    src="/images/rosario/dolorosos/crucificacao.webp"
-                    alt="Jesus crucificado envolto em luz dourada, contemplado em oração"
-                    width={640}
-                    height={640}
-                    sizes="(max-width: 900px) 92vw, 360px"
-                  />
-                </figure>
-                <p className="p-eyebrow">HORA DA MISERICÓRDIA</p>
-                <h2>Um apelo à confiança cristã.</h2>
-                <p>
-                  Inspirado na devoção transmitida por Santa Faustina Kowalska,
-                  o Terço da Misericórdia utiliza as contas do terço comum para
-                  unir a nossa oração ao sacrifício redentor de Jesus.
-                </p>
+              <aside
+                className="p-panel pl-mercy-aside"
+                aria-label="Sobre o Terço da Divina Misericórdia"
+              >
+                <div className="pl-mercy-info-list">
+                  <article className="pl-mercy-info-item">
+                    <div className="pl-mercy-info-media pl-mercy-info-media--portrait">
+                      <Image
+                        src="/images/misericordia/santa-faustina.webp"
+                        alt="Santa Faustina Kowalska"
+                        width={264}
+                        height={384}
+                        sizes="96px"
+                      />
+                    </div>
+                    <div className="pl-mercy-info-copy">
+                      <h2>
+                        <em>A História</em>
+                      </h2>
+                      <p>
+                        Revelada a Santa Faustina no século XX, a devoção
+                        convida a confiar na misericórdia de Jesus.
+                      </p>
+                    </div>
+                  </article>
 
-                <div className="pl-mercy-audio-manifest-box">
-                  <p className="p-section-label">ESTRUTURA DE ÁUDIOS</p>
-                  <p className="p-muted">
-                    {recordingsReady
-                      ? "Gravações integradas para reprodução contínua."
-                      : "O reprodutor automático já está configurado. Os arquivos definitivos gravados pelo autor serão depositados em /audio/misericordia/:"}
-                  </p>
-                  <ul className="pl-mercy-file-list">
-                    {clipsList.map(([key, item]) => (
-                      <li key={key}>
-                        <code>{item.file}</code>
-                        <span>{item.title}</span>
-                      </li>
-                    ))}
-                  </ul>
+                  <article className="pl-mercy-info-item">
+                    <div className="pl-mercy-info-media pl-mercy-info-media--icon">
+                      <RosaryIllustration />
+                    </div>
+                    <div className="pl-mercy-info-copy">
+                      <h2>
+                        <em>Como rezar</em>
+                      </h2>
+                      <p>É rezado em um terço comum, com cinco dezenas.</p>
+                    </div>
+                  </article>
+
+                  <article className="pl-mercy-info-item">
+                    <div className="pl-mercy-info-media pl-mercy-info-media--icon">
+                      <BibleIllustration />
+                    </div>
+                    <div className="pl-mercy-info-copy">
+                      <h2>
+                        <em>Intenção</em>
+                      </h2>
+                      <p>
+                        Pela conversão, pela nossa salvação e de todo o mundo.
+                      </p>
+                    </div>
+                  </article>
                 </div>
 
                 <div className="pl-mercy-aside-links">
@@ -307,6 +433,16 @@ export default function TercoDaMisericordia() {
                 </div>
               </aside>
             </div>
+
+            <figure className="pl-mercy-closing-panorama">
+              <Image
+                src="/images/misericordia/horizonte-cruz.webp"
+                alt="Horizonte iluminado entre montanhas e névoa suave com uma cruz dourada ao centro"
+                width={1536}
+                height={324}
+                sizes="100vw"
+              />
+            </figure>
           </>
         ) : completed ? (
           <section

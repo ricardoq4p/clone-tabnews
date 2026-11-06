@@ -180,7 +180,7 @@ describe("Breadcrumbs e preservação das rotas diretas (/rosario e /terco-da-mi
     expect(html).toContain('href="/oratorio" aria-current="page"');
   });
 
-  test("Terço da Misericórdia (/terco-da-misericordia) continua acessível diretamente e exibe breadcrumb com retorno ao Oratório", () => {
+  test("Terço da Misericórdia (/terco-da-misericordia) continua acessível diretamente, exibe o novo layout editorial e mantém retorno ao Oratório", () => {
     mockUseRouter.mockReturnValue({
       pathname: "/terco-da-misericordia",
       asPath: "/terco-da-misericordia",
@@ -189,11 +189,56 @@ describe("Breadcrumbs e preservação das rotas diretas (/rosario e /terco-da-mi
 
     const html = renderToStaticMarkup(React.createElement(TercoDaMisericordia));
 
-    expect(html).toContain("Terço da");
-    expect(html).toContain("Divina Misericórdia.");
+    // Breadcrumb
     expect(html).toContain(
-      '<div class="p-breadcrumb"><a href="/">Início</a><span>/</span><a href="/oratorio">Oratório</a><span>/</span>Terço da Misericórdia</div>',
+      '<div class="p-breadcrumb pl-mercy-breadcrumb"><a href="/">Início</a><span>/</span><a href="/oratorio">Oratório</a><span>/</span>Terço da Misericórdia</div>',
     );
     expect(html).toContain('href="/oratorio" aria-current="page"');
+
+    // Hero — Jesus Misericordioso
+    expect(html).toContain("JESUS, EU CONFIO EM VÓS");
+    expect(html).toContain("Terço da <em>Divina Misericórdia</em>");
+    expect(html).toContain(
+      "Uma oração de confiança na misericórdia de Deus para nós e para o mundo inteiro.",
+    );
+    expect(html).toContain("Rezar agora");
+    expect(html).toContain("Ouvir a oração");
+    expect(html).toContain(
+      'src="/images/misericordia/jesus-misericordioso.webp"',
+    );
+
+    // Card de oração (coluna esquerda) e 7 grupos tradicionais
+    expect(html).toContain("ORAÇÃO GUIADA POR VOZ E TEXTO");
+    expect(html).toContain(
+      "Reze conta a conta, com avanço automático ou no seu ritmo.",
+    );
+    expect(html).toContain(
+      "Acompanhe as orações na ordem tradicional do Terço da Divina Misericórdia.",
+    );
+    expect(html).toContain("Iniciar oração");
+    expect(html).toContain("Iniciar com áudio");
+    expect(html).toContain("Sinal da Cruz");
+    expect(html).toContain("Pai-Nosso");
+    expect(html).toContain("Ave-Maria");
+    expect(html).toContain("Credo (Símbolo dos Apóstolos)");
+    expect(html).toContain("Cinco dezenas");
+    expect(html).toContain("Invocação final (3 vezes)");
+    expect(html).toContain("Oração conclusiva");
+
+    // Coluna direita — 3 blocos informativos
+    expect(html).toContain("A História");
+    expect(html).toContain(
+      "Revelada a Santa Faustina no século XX, a devoção convida a confiar na misericórdia de Jesus.",
+    );
+    expect(html).toContain('src="/images/misericordia/santa-faustina.webp"');
+    expect(html).toContain("Como rezar");
+    expect(html).toContain("É rezado em um terço comum, com cinco dezenas.");
+    expect(html).toContain("Intenção");
+    expect(html).toContain(
+      "Pela conversão, pela nossa salvação e de todo o mundo.",
+    );
+
+    // Encerramento visual panorâmico
+    expect(html).toContain('src="/images/misericordia/horizonte-cruz.webp"');
   });
 });

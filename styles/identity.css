@@ -805,12 +805,84 @@ body {
 
 /* Terço da Misericórdia preparation page */
 .prayer-app .pl-mercy-page {
-  padding-bottom: 2.5rem;
+  padding-top: 1.5rem;
+  padding-bottom: 1.5rem;
+}
+
+.prayer-app .pl-mercy-breadcrumb {
+  margin-bottom: 1.15rem;
+}
+
+.prayer-app .pl-mercy-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.12fr) minmax(260px, 0.88fr);
+  align-items: center;
+  gap: clamp(1.5rem, 3.5vw, 3rem);
+  padding-block: 0.5rem 1.85rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--pl-line);
+}
+
+.prayer-app .pl-mercy-page.is-praying .pl-mercy-hero {
+  grid-template-columns: minmax(0, 1fr);
+  padding-block: 0.25rem 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.prayer-app .pl-mercy-page.p-focus-mode .pl-mercy-hero,
+.prayer-app .pl-mercy-page.p-focus-mode .pl-mercy-breadcrumb {
+  display: none;
+}
+
+.prayer-app .pl-mercy-hero-copy h1 {
+  font-size: clamp(2.35rem, 4.2vw, 3.65rem);
+  line-height: 1.08;
+  margin: 0.75rem 0 0.9rem;
+  color: var(--pl-ink);
+}
+
+.prayer-app .pl-mercy-hero-copy h1 em {
+  color: var(--pl-gold-accent);
+  font-style: italic;
+}
+
+.prayer-app .pl-mercy-hero-lead {
+  color: var(--pl-muted);
+  font-size: clamp(1rem, 1.15vw, 1.125rem);
+  line-height: 1.72;
+  max-width: 34rem;
+}
+
+.prayer-app .pl-mercy-hero-actions {
+  margin-top: 1.5rem !important;
+  gap: 0.85rem;
+}
+
+.prayer-app .pl-mercy-hero-art {
+  margin: 0;
+  justify-self: end;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.prayer-app .pl-mercy-hero-art img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  mask-image: radial-gradient(
+    ellipse 88% 86% at 54% 48%,
+    #000 62%,
+    rgba(0, 0, 0, 0.72) 80%,
+    transparent 100%
+  );
 }
 
 .prayer-app .pl-mercy-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.65fr);
+  grid-template-columns: minmax(0, 65fr) minmax(280px, 35fr);
   gap: 1.5rem;
   align-items: start;
 }
@@ -819,7 +891,7 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.35rem 0.8rem;
+  padding: 0.35rem 0.85rem;
   border-radius: 999px;
   background: var(--pl-surface-warm);
   border: 1px solid var(--pl-gold-soft);
@@ -830,18 +902,18 @@ body {
 }
 
 .prayer-app .pl-mercy-prepare h2 {
-  font-size: clamp(1.5rem, 2.5vw, 2rem);
-  margin: 0.9rem 0 0.75rem;
+  font-size: clamp(1.5rem, 2.3vw, 1.95rem);
+  margin: 0.9rem 0 0.55rem;
 }
 
 .prayer-app .pl-mercy-prepare > p {
   color: var(--pl-muted);
-  line-height: 1.75;
+  line-height: 1.72;
 }
 
 .prayer-app .pl-mercy-steps {
-  margin-block: 1.5rem;
-  padding-top: 1.25rem;
+  margin-top: 1.65rem;
+  padding-top: 1.35rem;
   border-top: 1px solid var(--pl-line);
 }
 
@@ -850,68 +922,123 @@ body {
   padding: 0;
   margin: 1rem 0 0;
   display: grid;
-  gap: 0.9rem;
+  gap: 0.75rem;
 }
 
 .prayer-app .pl-mercy-step-list li {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.85rem;
-  padding: 0.95rem 1.1rem;
+  align-items: center;
+  gap: 0.95rem;
+  padding: 0.9rem 1.1rem;
   border-radius: 14px;
   background: var(--pl-paper);
   border: 1px solid var(--pl-line);
 }
 
 .prayer-app .pl-mercy-step-num {
-  color: var(--pl-gold);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--pl-surface-warm);
+  border: 1px solid var(--pl-gold-soft);
+  color: var(--pl-coffee);
   font-weight: 700;
-  font-size: 0.8rem;
-  letter-spacing: 0.08em;
-  padding-top: 0.15rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
 }
 
 .prayer-app .pl-mercy-step-list h3 {
-  font-size: 1.1rem;
-  margin-bottom: 0.25rem;
+  font-size: 1.08rem;
+  margin-bottom: 0.15rem;
+  color: var(--pl-ink);
 }
 
 .prayer-app .pl-mercy-step-list p {
   color: var(--pl-muted);
-  font-size: 0.92rem;
-  line-height: 1.65;
+  font-size: 0.88rem;
+  line-height: 1.58;
 }
 
 .prayer-app .pl-mercy-aside {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  background: var(--pl-surface);
+  box-shadow: 0 6px 20px rgba(70, 46, 24, 0.04);
 }
 
-.prayer-app .pl-mercy-art {
-  margin: 0 0 0.35rem;
-  border-radius: 14px;
-  overflow: hidden;
-  border: 1px solid var(--pl-line);
+.prayer-app .pl-mercy-info-list {
+  display: flex;
+  flex-direction: column;
 }
 
-.prayer-app .pl-mercy-art img {
-  display: block;
-  width: 100%;
-  height: auto;
-  aspect-ratio: 4 / 3;
+.prayer-app .pl-mercy-info-item {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  align-items: center;
+  gap: 1.1rem;
+  padding-block: 1.35rem;
+  border-bottom: 1px solid var(--pl-line);
+}
+
+.prayer-app .pl-mercy-info-item:first-child {
+  padding-top: 0.25rem;
+}
+
+.prayer-app .pl-mercy-info-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0.35rem;
+}
+
+.prayer-app .pl-mercy-info-media {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 92px;
+}
+
+.prayer-app .pl-mercy-info-media--portrait img {
+  width: 88px;
+  height: 112px;
   object-fit: cover;
-  object-position: 50% 24%;
+  border-radius: 50% / 44%;
+  mask-image: radial-gradient(
+    ellipse 86% 86% at 50% 48%,
+    #000 68%,
+    transparent 100%
+  );
 }
 
-.prayer-app .pl-mercy-aside h2 {
-  font-size: 1.45rem;
+.prayer-app .pl-mercy-info-media--icon {
+  color: var(--pl-gold-accent);
 }
 
-.prayer-app .pl-mercy-aside p:not(.p-eyebrow) {
+.prayer-app .pl-mercy-info-svg {
+  width: 72px;
+  height: auto;
+  display: block;
+}
+
+.prayer-app .pl-mercy-info-copy h2 {
+  font-size: 1.55rem;
+  margin-bottom: 0.35rem;
+  color: var(--pl-ink);
+}
+
+.prayer-app .pl-mercy-info-copy h2 em {
+  color: var(--pl-ink);
+  font-style: italic;
+}
+
+.prayer-app .pl-mercy-info-copy p {
   color: var(--pl-muted);
   font-size: 0.92rem;
-  line-height: 1.7;
+  line-height: 1.65;
 }
 
 .prayer-app .pl-mercy-preferences {
@@ -931,7 +1058,7 @@ body {
   align-items: center;
   flex-wrap: wrap;
   gap: 0.5rem;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.2rem;
 }
 
 .prayer-app .pl-mercy-step-title-row h3 {
@@ -952,63 +1079,41 @@ body {
   text-transform: uppercase;
 }
 
-.prayer-app .pl-mercy-audio-manifest-box {
-  margin-top: 0.65rem;
-  padding-top: 1rem;
-  border-top: 1px solid var(--pl-line);
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.prayer-app .pl-mercy-file-list {
-  list-style: none;
-  padding: 0;
-  margin: 0.25rem 0 0;
-  display: grid;
-  gap: 0.4rem;
-}
-
-.prayer-app .pl-mercy-file-list li {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.5rem;
-  font-size: 0.78rem;
-  padding: 0.35rem 0.6rem;
-  border-radius: 8px;
-  background: var(--pl-paper);
-  border: 1px solid var(--pl-line);
-  min-width: 0;
-}
-
-.prayer-app .pl-mercy-file-list code {
-  font-size: 0.72rem;
-  color: var(--pl-coffee);
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.prayer-app .pl-mercy-file-list span {
-  color: var(--pl-muted);
-  font-size: 0.72rem;
-  text-align: right;
-}
-
 .prayer-app .pl-mercy-aside-links {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem 1.25rem;
-  margin-top: 0.5rem;
-  padding-top: 0.75rem;
+  margin-top: 0.25rem;
+  padding-top: 1rem;
   border-top: 1px solid var(--pl-line);
+}
+
+.prayer-app .pl-mercy-closing-panorama {
+  margin: 2.25rem 0 0;
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.prayer-app .pl-mercy-closing-panorama img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 240px;
+  object-fit: cover;
+  object-position: center 38%;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0%,
+    #000 22%,
+    #000 82%,
+    transparent 100%
+  );
 }
 
 .prayer-app .pl-mercy-resume {
   flex-wrap: wrap;
   justify-content: space-between;
+  margin-bottom: 1.5rem;
 }
 
 .prayer-app .pl-mercy-resume-actions {
@@ -1374,9 +1479,14 @@ body {
     width: clamp(168px, 24vw, 214px);
   }
   .prayer-app .pl-home-hero,
+  .prayer-app .pl-mercy-hero,
   .prayer-app .pl-mercy-grid,
   .prayer-app .pl-mercy-workspace {
     grid-template-columns: minmax(0, 1fr);
+  }
+  .prayer-app .pl-mercy-hero-art {
+    justify-self: center;
+    max-width: 380px;
   }
   .prayer-app .pl-hero-chapel {
     max-width: 560px;
@@ -1435,6 +1545,24 @@ body {
   }
   .prayer-app .p-actions {
     flex-wrap: wrap;
+  }
+  .prayer-app .pl-mercy-hero-actions .p-button,
+  .prayer-app .pl-mercy-start-actions .p-button {
+    flex: 1 1 100%;
+  }
+  .prayer-app .pl-mercy-info-item {
+    grid-template-columns: 72px minmax(0, 1fr);
+    gap: 0.85rem;
+  }
+  .prayer-app .pl-mercy-info-media {
+    width: 72px;
+  }
+  .prayer-app .pl-mercy-info-media--portrait img {
+    width: 68px;
+    height: 88px;
+  }
+  .prayer-app .pl-mercy-info-svg {
+    width: 56px;
   }
   .prayer-app .pl-path-grid {
     grid-template-columns: minmax(0, 1fr);
