@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
-import BrandLogo from "@/components/BrandLogo";
 import { CHAPEL_SLOTS, homeChapelSummary } from "@/lib/chapel-scene";
 import { requestJson } from "@/lib/client";
 import { mysteriesForDay } from "@/lib/rosary/engine";
@@ -164,13 +163,6 @@ export default function Home() {
       <div className="p-container pl-home">
         <section className="p-hero pl-home-hero">
           <div className="p-hero-copy pl-hero-copy">
-            <div className="pl-hero-brand">
-              <BrandLogo
-                variant="vertical"
-                className="pl-hero-brand-logo"
-                priority
-              />
-            </div>
             <p className="p-eyebrow">
               <span aria-hidden="true" />
               CASA CATÓLICA DE ORAÇÃO

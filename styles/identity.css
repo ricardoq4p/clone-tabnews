@@ -137,17 +137,6 @@ body {
   height: auto;
 }
 
-.prayer-app .pl-hero-brand {
-  display: flex;
-  align-items: center;
-  margin-bottom: 1rem;
-}
-
-.prayer-app .pl-hero-brand-logo {
-  width: clamp(132px, 14vw, 168px);
-  height: auto;
-}
-
 .prayer-app .p-auth-brand {
   display: flex;
   justify-content: center;
@@ -1381,7 +1370,6 @@ body {
   .prayer-app .p-brand-logo {
     width: clamp(144px, 42vw, 182px);
   }
-  .prayer-app .pl-hero-brand-logo,
   .prayer-app .p-auth-logo,
   .prayer-app .p-document-logo {
     width: clamp(124px, 34vw, 148px);
