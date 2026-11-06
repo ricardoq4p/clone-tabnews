@@ -524,23 +524,27 @@ body {
   background: #e9dac3;
 }
 
-/* Four experience cards section */
-.prayer-app .pl-home-paths {
+/* Three experience cards section */
+.prayer-app .pl-home-paths,
+.prayer-app .pl-oratorio-paths {
   padding-block: clamp(1.5rem, 3.5vw, 2.75rem);
   border-top: 1px solid var(--pl-line);
 }
 
-.prayer-app .pl-home-paths .p-section-heading {
+.prayer-app .pl-home-paths .p-section-heading,
+.prayer-app .pl-oratorio-paths .p-section-heading {
   align-items: flex-end;
   margin-bottom: 1.5rem;
 }
 
-.prayer-app .pl-home-paths .p-section-heading h2 {
+.prayer-app .pl-home-paths .p-section-heading h2,
+.prayer-app .pl-oratorio-paths .p-section-heading h2 {
   font-size: clamp(1.75rem, 2.6vw, 2.35rem);
   margin-top: 0.45rem;
 }
 
-.prayer-app .pl-home-paths .p-section-heading > p {
+.prayer-app .pl-home-paths .p-section-heading > p,
+.prayer-app .pl-oratorio-paths .p-section-heading > p {
   color: var(--pl-muted);
   font-size: 0.92rem;
   line-height: 1.6;
@@ -549,8 +553,44 @@ body {
 
 .prayer-app .pl-path-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.15rem;
+}
+
+.prayer-app .pl-oratorio {
+  padding-bottom: 2.25rem;
+}
+
+.prayer-app .pl-oratorio-head .pl-oratorio-support {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.15rem, 1.8vw, 1.4rem);
+  color: var(--pl-ink);
+  margin-bottom: 0.65rem;
+  max-width: 680px;
+  line-height: 1.5;
+}
+
+.prayer-app .pl-oratorio-head .pl-oratorio-lead {
+  color: var(--pl-muted);
+  max-width: 680px;
+  font-size: 0.98rem;
+  line-height: 1.8;
+}
+
+.prayer-app .pl-oratorio-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.4rem;
+}
+
+.prayer-app .pl-oratorio-grid .p-path-art {
+  height: 196px;
+}
+
+.prayer-app .pl-oratorio-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--pl-gold);
 }
 
 .prayer-app .pl-path-grid .p-path-card {
@@ -714,6 +754,13 @@ body {
   padding-left: 0;
   margin-left: 0;
   color: var(--pl-coffee);
+}
+
+.prayer-app .pl-daily-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.35rem;
 }
 
 .prayer-app .pl-intentions-actions {
@@ -1339,16 +1386,19 @@ body {
 }
 
 @media (max-width: 720px) {
-  .prayer-app .pl-home-paths .p-section-heading {
+  .prayer-app .pl-home-paths .p-section-heading,
+  .prayer-app .pl-oratorio-paths .p-section-heading {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
-  .prayer-app .pl-home-paths .p-section-heading > p {
+  .prayer-app .pl-home-paths .p-section-heading > p,
+  .prayer-app .pl-oratorio-paths .p-section-heading > p {
     text-align: left;
   }
   .prayer-app .pl-lower-panels,
-  .prayer-app .pl-mercy-player-options {
+  .prayer-app .pl-mercy-player-options,
+  .prayer-app .pl-oratorio-grid {
     grid-template-columns: minmax(0, 1fr);
   }
   .prayer-app .pl-mercy-resume-actions {

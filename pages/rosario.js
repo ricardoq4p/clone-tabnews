@@ -124,6 +124,8 @@ export default function Rosario() {
         <div className="p-page-head">
           <div className="p-breadcrumb">
             <Link href="/">Início</Link>
+            <span>/</span>
+            <Link href="/oratorio">Oratório</Link>
             <span>/</span>Santo Rosário
           </div>
           <p className="p-eyebrow">CONTEMPLAR COM MARIA</p>

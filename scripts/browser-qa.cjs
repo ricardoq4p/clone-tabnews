@@ -57,6 +57,7 @@ async function photo(page, name) {
     await page
       .getByRole("link", { name: "Começar a rezar", exact: true })
       .click();
+    await page.getByRole("link", { name: /Entrar no Santo Rosário/ }).click();
     await page.getByRole("button", { name: "Começar este momento" }).waitFor();
     await page.getByRole("button", { name: /Luminosos/ }).click();
     await page.getByRole("button", { name: "Começar este momento" }).click();
@@ -228,6 +229,7 @@ async function photo(page, name) {
       await phone.setViewportSize({ width, height: 900 });
       for (const route of [
         "/",
+        "/oratorio",
         "/rosario",
         "/capelinha",
         "/comunidade",

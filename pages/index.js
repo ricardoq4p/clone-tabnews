@@ -7,36 +7,23 @@ import { CHAPEL_SLOTS, homeChapelSummary } from "@/lib/chapel-scene";
 import { requestJson } from "@/lib/client";
 import { mysteriesForDay } from "@/lib/rosary/engine";
 
-const EXPERIENCES = [
+export const EXPERIENCES = [
   {
-    href: "/rosario",
+    href: "/oratorio",
     number: "01",
     badge: "CONTEMPLAR",
-    title: "Santo Rosário",
+    title: "Oratório",
     description:
-      "Medite cada mistério da vida de Jesus com Maria, acompanhado por pinturas sacras e orações tradicionais.",
-    cta: "Rezar o Rosário",
+      "Um espaço de silêncio e contemplação para rezar o Santo Rosário e o Terço da Misericórdia, com pinturas sacras e condução em áudio.",
+    cta: "Entrar no Oratório",
     image: "/images/home/caminho-rosario.webp",
     imageWidth: 1536,
     imageHeight: 204,
     artClass: "p-path-rosary",
   },
   {
-    href: "/terco-da-misericordia",
-    number: "02",
-    badge: "CONFIAR",
-    title: "Terço da Misericórdia",
-    description:
-      "Entregue suas intenções à Divina Misericórdia, rezando conta a conta com texto e condução em áudio.",
-    cta: "Terço da Misericórdia",
-    image: "/images/rosario/dolorosos/crucificacao.webp",
-    imageWidth: 640,
-    imageHeight: 640,
-    artClass: "p-path-mercy",
-  },
-  {
     href: "/capelinha",
-    number: "03",
+    number: "02",
     badge: "ENTREGAR",
     title: "Capelinha",
     description:
@@ -49,7 +36,7 @@ const EXPERIENCES = [
   },
   {
     href: "/comunidade",
-    number: "04",
+    number: "03",
     badge: "CAMINHAR JUNTOS",
     title: "Comunidades",
     description:
@@ -177,17 +164,14 @@ export default function Home() {
               comunidade que caminha com você.
             </p>
             <div className="p-actions">
-              <Link className="p-button" href="/rosario">
+              <Link className="p-button" href="/oratorio">
                 <Icon name="rosary" />
                 Começar a rezar
                 <Icon name="arrow" size={17} />
               </Link>
-              <Link
-                className="p-button p-button-outline"
-                href="/terco-da-misericordia"
-              >
-                <Icon name="heart" />
-                Terço da Misericórdia
+              <Link className="p-button p-button-outline" href="/oratorio">
+                <Icon name="book" />
+                Conhecer o Oratório
               </Link>
             </div>
             <p className="p-quiet">
@@ -271,8 +255,8 @@ export default function Home() {
         >
           <div className="p-section-heading">
             <div>
-              <p className="p-eyebrow">QUATRO CAMINHOS, UM ENCONTRO</p>
-              <h2 id="pl-paths-heading">Encontre seu caminho de oração.</h2>
+              <p className="p-eyebrow">ENCONTRE SEU CAMINHO DE ORAÇÃO</p>
+              <h2 id="pl-paths-heading">Três caminhos, um encontro</h2>
             </div>
             <p>
               Pequenos gestos de fé.
@@ -333,10 +317,16 @@ export default function Home() {
                 {today?.day || "Um novo dia para rezar"}
                 <small>Horário de Brasília</small>
               </p>
-              <Link href="/rosario" className="p-text-link">
-                Rezar os mistérios
-                <Icon name="arrow" size={17} />
-              </Link>
+              <div className="pl-daily-actions">
+                <Link href="/oratorio" className="p-text-link">
+                  Ir ao Oratório
+                  <Icon name="arrow" size={17} />
+                </Link>
+                <Link href="/rosario" className="p-text-link">
+                  Rezar os mistérios
+                  <Icon name="arrow" size={17} />
+                </Link>
+              </div>
             </div>
           </section>
 

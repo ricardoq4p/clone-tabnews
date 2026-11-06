@@ -56,7 +56,7 @@ export default function Sobre() {
           <li>Sinalize à moderação conteúdos que precisem de cuidado.</li>
         </ul>
         <div className="p-actions">
-          <Link href="/rosario" className="p-button">
+          <Link href="/oratorio" className="p-button">
             Encontrar meu momento de oração
           </Link>
           <Link href="/comunidade" className="p-button p-button-outline">

@@ -24,16 +24,10 @@ const mono = localFont({
 const links = [
   { href: "/", label: "Início", icon: "home" },
   {
-    href: "/rosario",
-    label: "Santo Rosário",
-    short: "Rosário",
+    href: "/oratorio",
+    label: "Oratório",
+    short: "Oratório",
     icon: "rosary",
-  },
-  {
-    href: "/terco-da-misericordia",
-    label: "Terço da Misericórdia",
-    short: "Misericórdia",
-    icon: "heart",
   },
   { href: "/capelinha", label: "Capelinha", icon: "candle" },
   {
@@ -51,8 +45,11 @@ export default function PrayerLayout({
 }) {
   const router = useRouter();
   const { data: session } = useSession();
+  const fullTitle = title.includes("|") ? title : `${title} · ${BRAND_NAME}`;
   const currentSection =
     {
+      "/rosario": "/oratorio",
+      "/terco-da-misericordia": "/oratorio",
       "/minhas-velas": "/capelinha",
       "/feed": "/comunidade",
       "/comunidades/[id]": "/comunidade",
@@ -69,12 +66,13 @@ export default function PrayerLayout({
       className={`prayer-app ${pixel.variable} ${mono.variable} ${legacy ? "prayer-legacy" : ""}`}
     >
       <Head>
-        <title>{`${title} · ${BRAND_NAME}`}</title>
+        <title>{fullTitle}</title>
         <meta name="description" content={description} />
         <meta name="theme-color" content="#F7F1E8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta property="og:site_name" content={BRAND_NAME} />
-        <meta property="og:title" content={`${title} · ${BRAND_NAME}`} />
+        <meta property="og:title" content={fullTitle} />
+        <meta name="twitter:title" content={fullTitle} />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
         <meta property="og:image" content={BRAND_ASSETS.avatar.src} />
@@ -87,7 +85,6 @@ export default function PrayerLayout({
           content={String(BRAND_ASSETS.avatar.height)}
         />
         <meta name="twitter:card" content="summary" />
-        <meta name="twitter:title" content={`${title} · ${BRAND_NAME}`} />
         <meta name="twitter:description" content={description} />
         <meta name="twitter:image" content={BRAND_ASSETS.avatar.src} />
         <link

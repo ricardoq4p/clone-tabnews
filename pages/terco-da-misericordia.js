@@ -91,6 +91,8 @@ export default function TercoDaMisericordia() {
         <div className="p-page-head">
           <div className="p-breadcrumb">
             <Link href="/">Início</Link>
+            <span>/</span>
+            <Link href="/oratorio">Oratório</Link>
             <span>/</span>Terço da Misericórdia
           </div>
           <p className="p-eyebrow">JESUS, EU CONFIO EM VÓS</p>
@@ -290,6 +292,10 @@ export default function TercoDaMisericordia() {
                 </div>
 
                 <div className="pl-mercy-aside-links">
+                  <Link href="/oratorio" className="p-text-link">
+                    Voltar ao Oratório
+                    <Icon name="arrow" size={15} />
+                  </Link>
                   <Link href="/rosario" className="p-text-link">
                     Ir para o Santo Rosário
                     <Icon name="arrow" size={15} />
