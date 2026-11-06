@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -256,5 +258,17 @@ describe("Breadcrumbs e preservação das rotas diretas (/rosario e /terco-da-mi
     expect(html).not.toContain(
       "Um auxílio à oração pessoal, em comunhão com a vida da Igreja.",
     );
+  });
+
+  test("Fundo global utiliza cor marfim uniforme sem a marca-d'água maria-fundo.webp em identity.css", () => {
+    const identityCss = fs.readFileSync(
+      path.join(process.cwd(), "styles", "identity.css"),
+      "utf8",
+    );
+
+    expect(identityCss).toContain("--pl-paper: #f7f1e8;");
+    expect(identityCss).toContain("background: var(--pl-paper);");
+    expect(identityCss).not.toContain("maria-fundo.webp");
+    expect(identityCss).not.toContain(".prayer-app::before");
   });
 });

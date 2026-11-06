@@ -42,26 +42,11 @@ body {
   --p-radius: 18px;
   --p-radius-control: 12px;
   --p-shadow: 0 10px 28px rgba(70, 46, 24, 0.06);
+  background: var(--pl-paper);
   background-color: var(--pl-paper);
   color: var(--pl-ink);
   color-scheme: light;
   min-height: 100vh;
-  position: relative;
-  isolation: isolate;
-}
-
-.prayer-app::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  pointer-events: none;
-  top: 0;
-  right: 0;
-  width: min(36vw, 500px);
-  height: min(740px, 85vh);
-  opacity: 0.09;
-  background: url("/sacred/maria-fundo.webp") right top / contain no-repeat;
-  mask-image: linear-gradient(to left, #000 24%, transparent 100%);
 }
 
 .prayer-app :is(h1, h2, h3, .p-brand, .p-footer-brand) {
@@ -1546,11 +1531,6 @@ body {
 }
 
 @media (max-width: 640px) {
-  .prayer-app::before {
-    width: 78vw;
-    height: 55vh;
-    opacity: 0.035;
-  }
   .prayer-app .p-header {
     padding-block: 0.6rem;
     flex-wrap: wrap;
