@@ -2,11 +2,17 @@ import { withApi, requireCondition } from "@/lib/api";
 import Candle from "@/lib/models/Candle";
 import Message from "@/lib/models/Message";
 import Comment from "@/lib/models/Comment";
+import BlogPost from "@/lib/models/BlogPost";
 import ModerationLog from "@/lib/models/ModerationLog";
 import AbuseReport from "@/lib/models/AbuseReport";
 import { isObjectId, validText } from "@/lib/validation";
 import { notifyChange } from "@/lib/pusher";
-const models = { candle: Candle, message: Message, comment: Comment };
+const models = {
+  candle: Candle,
+  message: Message,
+  comment: Comment,
+  blog_post: BlogPost,
+};
 export default withApi(
   { methods: ["PATCH"], admin: true, scope: "moderation", limit: 30 },
   async (req, res, session) => {
@@ -47,7 +53,7 @@ export default withApi(
       { targetType: type, targetId: id },
       { $set: { status: "resolved" } },
     );
-    if (type !== "candle") {
+    if (type === "message" || type === "comment") {
       const parent =
         type === "message"
           ? record

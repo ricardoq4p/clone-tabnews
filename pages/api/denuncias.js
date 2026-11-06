@@ -2,8 +2,11 @@ import { withApi, requireCondition } from "@/lib/api";
 import AbuseReport from "@/lib/models/AbuseReport";
 import Candle from "@/lib/models/Candle";
 import Comment from "@/lib/models/Comment";
+import Blog from "@/lib/models/Blog";
+import BlogPost from "@/lib/models/BlogPost";
 import { readableMessage } from "@/lib/message-access";
 import { canReadCandle } from "@/lib/candles";
+import { canReadPublicBlogPost } from "@/lib/blogs";
 import { isObjectId } from "@/lib/validation";
 export default withApi(
   {
@@ -16,7 +19,7 @@ export default withApi(
   async (req, res, session) => {
     const { targetType, targetId, reason, details = "" } = req.body || {};
     requireCondition(
-      ["candle", "message", "comment"].includes(targetType) &&
+      ["candle", "message", "comment", "blog_post"].includes(targetType) &&
         isObjectId(targetId) &&
         ["privacy", "disrespect", "spam", "other"].includes(reason) &&
         typeof details === "string" &&
@@ -32,7 +35,11 @@ export default withApi(
       );
     else if (targetType === "message")
       readable = await readableMessage(targetId, session);
-    else {
+    else if (targetType === "blog_post") {
+      const post = await BlogPost.findById(targetId).lean();
+      const blog = post ? await Blog.findById(post.blogId).lean() : null;
+      readable = canReadPublicBlogPost(post, blog);
+    } else {
       const comment = await Comment.findById(targetId).lean();
       readable =
         comment &&

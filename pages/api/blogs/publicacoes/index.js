@@ -1,0 +1,96 @@
+import { withApi, requireCondition, ApiError } from "@/lib/api";
+import Blog from "@/lib/models/Blog";
+import BlogPost from "@/lib/models/BlogPost";
+import { canManageBlog, validateBlogPostInput } from "@/lib/blogs";
+
+export default withApi(
+  {
+    methods: ["POST"],
+    auth: true,
+    scope: "blog-posts-create",
+    limit: 15,
+    windowMs: 600000,
+  },
+  async (req, res, session) => {
+    const blog = await Blog.findOne({ ownerId: session.user.id });
+    requireCondition(
+      blog,
+      404,
+      "Crie o seu blog pessoal antes de publicar um texto.",
+    );
+    requireCondition(
+      canManageBlog(blog, session),
+      403,
+      "Você só pode criar publicações no seu próprio blog.",
+    );
+    requireCondition(
+      blog.status === "active",
+      403,
+      "Este blog não está ativo para novas publicações.",
+    );
+
+    const validation = validateBlogPostInput(req.body || {});
+    requireCondition(validation.ok, 400, validation.error);
+
+    const { title, subtitle, slug, category, content, status } =
+      validation.value;
+
+    await BlogPost.init();
+
+    const existingSlug = await BlogPost.findOne({
+      blogId: blog._id,
+      slug,
+    }).lean();
+    if (existingSlug) {
+      throw new ApiError(
+        409,
+        "Você já possui uma publicação com este título ou endereço no seu blog.",
+      );
+    }
+
+    const now = new Date();
+    try {
+      const created = await BlogPost.create({
+        blogId: blog._id,
+        authorId: session.user.id,
+        title,
+        subtitle,
+        slug,
+        category,
+        content,
+        status,
+        createdAt: now,
+        updatedAt: now,
+        publishedAt: status === "published" ? now : null,
+      });
+
+      blog.updatedAt = now;
+      await blog.save();
+
+      return res.status(201).json({
+        post: {
+          _id: String(created._id),
+          blogId: String(created.blogId),
+          authorId: String(created.authorId),
+          title: created.title,
+          subtitle: created.subtitle || "",
+          slug: created.slug,
+          category: created.category,
+          content: created.content,
+          status: created.status,
+          createdAt: created.createdAt,
+          updatedAt: created.updatedAt,
+          publishedAt: created.publishedAt,
+        },
+      });
+    } catch (error) {
+      if (error?.code === 11000) {
+        throw new ApiError(
+          409,
+          "Já existe uma publicação com este endereço no seu blog.",
+        );
+      }
+      throw error;
+    }
+  },
+);

@@ -29,6 +29,12 @@ const links = [
     short: "Oratório",
     icon: "rosary",
   },
+  {
+    href: "/blogs",
+    label: "Blogs",
+    short: "Blogs",
+    icon: "book",
+  },
   { href: "/capelinha", label: "Capelinha", icon: "candle" },
   {
     href: "/comunidade",
@@ -48,13 +54,15 @@ export default function PrayerLayout({
   const fullTitle = title.includes("|") ? title : `${title} · ${BRAND_NAME}`;
   const currentSection = router.pathname?.startsWith("/oratorio")
     ? "/oratorio"
-    : {
-        "/rosario": "/oratorio",
-        "/terco-da-misericordia": "/oratorio",
-        "/minhas-velas": "/capelinha",
-        "/feed": "/comunidade",
-        "/comunidades/[id]": "/comunidade",
-      }[router.pathname] || router.pathname;
+    : router.pathname?.startsWith("/blogs") || router.pathname === "/meu-blog"
+      ? "/blogs"
+      : {
+          "/rosario": "/oratorio",
+          "/terco-da-misericordia": "/oratorio",
+          "/minhas-velas": "/capelinha",
+          "/feed": "/comunidade",
+          "/comunidades/[id]": "/comunidade",
+        }[router.pathname] || router.pathname;
   const accountCurrent = [
     "/profile",
     "/user/edit",

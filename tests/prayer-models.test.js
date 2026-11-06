@@ -2,6 +2,8 @@ import Candle from "../lib/models/Candle";
 import PrayerSupport from "../lib/models/PrayerSupport";
 import Notification from "../lib/models/Notification";
 import Comment from "../lib/models/Comment";
+import Blog from "../lib/models/Blog";
+import BlogPost from "../lib/models/BlogPost";
 test("candle storage has no automatic TTL deletion", () => {
   expect(
     Candle.schema
@@ -45,6 +47,21 @@ test("idempotency keys prevent duplicate authenticated comments on retries", () 
           },
         }),
       ],
+    ]),
+  );
+});
+
+test("blog and blog_post collections enforce unique ownerId, normalizedName, slug, and blogId+slug indexes", () => {
+  expect(Blog.schema.indexes()).toEqual(
+    expect.arrayContaining([
+      [{ ownerId: 1 }, expect.objectContaining({ unique: true })],
+      [{ normalizedName: 1 }, expect.objectContaining({ unique: true })],
+      [{ slug: 1 }, expect.objectContaining({ unique: true })],
+    ]),
+  );
+  expect(BlogPost.schema.indexes()).toEqual(
+    expect.arrayContaining([
+      [{ blogId: 1, slug: 1 }, expect.objectContaining({ unique: true })],
     ]),
   );
 });
