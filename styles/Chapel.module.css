@@ -40,13 +40,19 @@
   border-color: var(--p-terminal);
 }
 .sanctuary {
+  width: min(
+    var(--p-container, 1280px),
+    calc(100% - 2 * var(--p-gutter, 2rem))
+  );
+  max-width: var(--p-container, 1280px);
+  margin-inline: auto;
   background: var(--p-paper);
   color: var(--p-ink);
 }
 .scene {
   position: relative;
   width: 100%;
-  max-width: 1536px;
+  max-width: 100%;
   margin: 0 auto;
   aspect-ratio: 3 / 2;
   isolation: isolate;
@@ -136,8 +142,9 @@
   outline-offset: 4px;
 }
 .sceneControls {
-  max-width: 1120px;
-  padding: 2rem 1.5rem 2.5rem;
+  width: 100%;
+  max-width: 34rem;
+  padding: 1.75rem 1rem 2rem;
   margin: 0 auto;
 }
 .sceneCaption {
@@ -232,9 +239,24 @@
     opacity: 1;
   }
 }
+@media (max-width: 767px) {
+  .sanctuary {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    overflow-x: clip;
+  }
+  .sceneControls {
+    padding: 1.25rem 0.5rem 1.75rem;
+  }
+  .choices,
+  .navigation {
+    justify-content: center;
+  }
+}
 @media (max-width: 480px) {
   .sceneControls {
-    padding: 1.5rem 1rem;
+    padding: 1.25rem 0.25rem 1.5rem;
   }
   .selectedHeading {
     align-items: flex-start;
@@ -260,8 +282,28 @@
   padding-bottom: 1rem;
 }
 
-/* Keep the original 3:2 coordinate space: image and candles shrink together.
-   The minimum allows natural scrolling in short windows and at browser zoom. */
+@media (min-width: 768px) {
+  .sanctuary {
+    display: grid;
+    grid-template-columns: minmax(0, 1.18fr) minmax(17.5rem, 0.82fr);
+    align-items: center;
+    gap: clamp(1.25rem, 2.5vw, 2rem);
+    padding-block: 0.5rem 1rem;
+  }
+  .scene {
+    width: 100%;
+    margin: 0;
+  }
+  .sceneControls {
+    width: 100%;
+    max-width: 28rem;
+    margin-inline: auto;
+    padding: 0.5rem 0.25rem;
+  }
+}
+
+/* Keep the original 3:2 coordinate space: image and candles scale together
+   while keeping the image and right-hand prayer panel balanced and close. */
 @media (min-width: 1024px) {
   .page > :global(.p-container) :global(.p-page-head) {
     display: grid;
@@ -292,40 +334,39 @@
     margin-block: 0;
   }
   .sanctuary {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(16rem, 25vw, 21rem);
-    align-items: start;
-    gap: clamp(1rem, 2vw, 2rem);
-    padding: 0.75rem clamp(1rem, 3vw, 3rem);
+    grid-template-columns: minmax(0, 1.42fr) minmax(20rem, 0.88fr);
+    align-items: center;
+    gap: clamp(1.5rem, 2.8vw, 2.5rem);
+    padding-block: 0.75rem 1.25rem;
   }
   .scene {
-    width: min(
-      100%,
-      calc(max(18rem, calc(100dvh - var(--chapel-top, 22rem) - 1.5rem)) * 1.5)
-    );
-    max-width: 1536px;
+    width: 100%;
+    max-width: 100%;
+    margin: 0;
   }
   .sceneControls {
     width: 100%;
-    padding: 0;
+    max-width: 28rem;
+    margin-inline: auto;
+    padding: 0.5rem;
   }
   .sanctuary .sceneCaption h2 {
-    font-size: clamp(1.25rem, 2.8dvh, 1.75rem);
+    font-size: clamp(1.35rem, 2.4vw, 1.85rem);
     margin-block: 0.5rem;
   }
   .sanctuary .sceneCaption p {
-    font-size: 0.875rem;
-    line-height: 1.5;
+    font-size: 0.9375rem;
+    line-height: 1.6;
   }
   .sanctuary .sceneCaption .eyebrow {
     font-size: 0.6875rem;
   }
   .choices {
     gap: 0.5rem;
-    margin-top: 0.75rem;
+    margin-top: 1rem;
   }
   .navigation {
     gap: 0.5rem;
-    margin-top: 0.75rem;
+    margin-top: 0.85rem;
   }
 }

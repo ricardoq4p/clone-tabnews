@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import {
   activeSceneCandles,
   CHAPEL_SLOTS,
@@ -116,4 +118,23 @@ test("homeChapelSummary reflects active public and anonymous candles determinist
   expect(manySummary.featured._id).toBe("c-1");
   expect(manySummary.intentionSnippet).toHaveLength(94);
   expect(manySummary.intentionSnippet.endsWith("…")).toBe(true);
+});
+
+test("Chapel.module.css keeps sanctuary aligned to the page container with balanced columns across desktop, tablet, and mobile", () => {
+  const chapelCss = fs.readFileSync(
+    path.join(process.cwd(), "styles", "Chapel.module.css"),
+    "utf8",
+  );
+
+  expect(chapelCss).toContain("max-width: var(--p-container, 1280px);");
+  expect(chapelCss).toContain("margin-inline: auto;");
+  expect(chapelCss).toContain(
+    "grid-template-columns: minmax(0, 1.18fr) minmax(17.5rem, 0.82fr);",
+  );
+  expect(chapelCss).toContain(
+    "grid-template-columns: minmax(0, 1.42fr) minmax(20rem, 0.88fr);",
+  );
+  expect(chapelCss).not.toContain("--chapel-top");
+  expect(chapelCss).toContain("flex-direction: column;");
+  expect(chapelCss).toContain("justify-content: center;");
 });
