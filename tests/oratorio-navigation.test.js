@@ -241,4 +241,20 @@ describe("Breadcrumbs e preservação das rotas diretas (/rosario e /terco-da-mi
     // Encerramento visual panorâmico
     expect(html).toContain('src="/images/misericordia/horizonte-cruz.webp"');
   });
+
+  test("Rodapé (Footer) exibe apenas a logo centralizada e os três links institucionais, sem textos extras", () => {
+    const html = renderToStaticMarkup(React.createElement(Home));
+
+    expect(html).toContain("p-footer-brand");
+    expect(html).toContain("p-footer-logo");
+    expect(html).toContain("p-footer-links");
+    expect(html).toContain('<a href="/sobre">Nossa casa</a>');
+    expect(html).toContain('<a href="/privacidade">Privacidade</a>');
+    expect(html).toContain('<a href="/fontes">Fontes e créditos</a>');
+
+    expect(html).not.toContain("Um encontro com Deus. Um passo de cada vez.");
+    expect(html).not.toContain(
+      "Um auxílio à oração pessoal, em comunhão com a vida da Igreja.",
+    );
+  });
 });

@@ -185,27 +185,18 @@ export default function PrayerLayout({
         {children}
       </main>
       <footer className="p-footer">
-        <div>
-          <Link
-            href="/"
-            className="p-footer-brand"
-            aria-label={`${BRAND_NAME}, início`}
-          >
-            <BrandLogo variant="horizontal" className="p-footer-logo" />
-          </Link>
-          <p>Um encontro com Deus. Um passo de cada vez.</p>
-        </div>
-        <div>
+        <Link
+          href="/"
+          className="p-footer-brand"
+          aria-label={`${BRAND_NAME}, início`}
+        >
+          <BrandLogo variant="horizontal" className="p-footer-logo" />
+        </Link>
+        <nav className="p-footer-links" aria-label="Institucional">
           <Link href="/sobre">Nossa casa</Link>
           <Link href="/privacidade">Privacidade</Link>
           <Link href="/fontes">Fontes e créditos</Link>
-          {session?.user?.role === "superadmin" ? (
-            <Link href="/administracao">Administração</Link>
-          ) : null}
-        </div>
-        <p className="p-footer-note">
-          Um auxílio à oração pessoal, em comunhão com a vida da Igreja.
-        </p>
+        </nav>
       </footer>
       <nav className="p-mobile-nav" aria-label="Navegação no celular">
         {links.map((link) => (
