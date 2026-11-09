@@ -1,7 +1,12 @@
 import { withApi, requireCondition, ApiError } from "@/lib/api";
 import Blog from "@/lib/models/Blog";
 import BlogPost from "@/lib/models/BlogPost";
-import { canManageBlog, validateBlogPostInput } from "@/lib/blogs";
+import User from "@/lib/models/User";
+import {
+  canManageBlog,
+  resolveBlogEditorialSession,
+  validateBlogPostInput,
+} from "@/lib/blogs";
 
 export default withApi(
   {
@@ -12,14 +17,28 @@ export default withApi(
     windowMs: 600000,
   },
   async (req, res, session) => {
-    const blog = await Blog.findOne({ ownerId: session.user.id });
+    const actor = await resolveBlogEditorialSession(session, User);
+    requireCondition(
+      actor?.canPublish,
+      403,
+      "Apenas os autores autorizados podem publicar artigos no Blog.",
+    );
+    requireCondition(
+      !req.body?.authorId ||
+        String(req.body.authorId) === String(actor.userId) ||
+        String(req.body.authorId) === String(session.user.id),
+      403,
+      "Você não pode criar publicações em nome de outro autor.",
+    );
+
+    const blog = await Blog.findOne({ ownerId: actor.userId });
     requireCondition(
       blog,
       404,
       "Crie o seu blog pessoal antes de publicar um texto.",
     );
     requireCondition(
-      canManageBlog(blog, session),
+      canManageBlog(blog, actor.session),
       403,
       "Você só pode criar publicações no seu próprio blog.",
     );
@@ -52,7 +71,7 @@ export default withApi(
     try {
       const created = await BlogPost.create({
         blogId: blog._id,
-        authorId: session.user.id,
+        authorId: actor.userId,
         title,
         subtitle,
         slug,

@@ -1,7 +1,12 @@
 import { withApi, requireCondition, ApiError } from "@/lib/api";
 import Blog from "@/lib/models/Blog";
 import BlogPost from "@/lib/models/BlogPost";
-import { canManageBlog, validateBlogInput } from "@/lib/blogs";
+import User from "@/lib/models/User";
+import {
+  canManageBlog,
+  resolveBlogEditorialSession,
+  validateBlogInput,
+} from "@/lib/blogs";
 
 export default withApi(
   {
@@ -12,8 +17,15 @@ export default withApi(
     windowMs: 600000,
   },
   async (req, res, session) => {
+    const actor = await resolveBlogEditorialSession(session, User);
+    requireCondition(
+      actor?.canPublish,
+      403,
+      "Apenas os autores autorizados podem acessar o painel editorial do Blog.",
+    );
+
     if (req.method === "GET") {
-      const blog = await Blog.findOne({ ownerId: session.user.id }).lean();
+      const blog = await Blog.findOne({ ownerId: actor.userId }).lean();
       if (!blog) {
         return res.status(200).json({ blog: null, posts: [] });
       }
@@ -51,10 +63,10 @@ export default withApi(
       });
     }
 
-    const blog = await Blog.findOne({ ownerId: session.user.id });
+    const blog = await Blog.findOne({ ownerId: actor.userId });
     requireCondition(blog, 404, "Você ainda não possui um blog cadastrado.");
     requireCondition(
-      canManageBlog(blog, session),
+      canManageBlog(blog, actor.session),
       403,
       "Você só pode administrar o seu próprio blog.",
     );

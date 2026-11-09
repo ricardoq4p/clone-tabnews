@@ -4,7 +4,9 @@ import BlogPost from "@/lib/models/BlogPost";
 import User from "@/lib/models/User";
 import {
   BLOG_POSTS_PAGE_SIZE,
+  canManageBlog,
   canReadPublicBlog,
+  resolveBlogEditorialSession,
   slugifyText,
   summarizeBlogPost,
 } from "@/lib/blogs";
@@ -34,7 +36,7 @@ export default withApi(
       status: "published",
     };
 
-    const [owner, total, posts] = await Promise.all([
+    const [owner, total, posts, actor] = await Promise.all([
       User.findById(blog.ownerId).select("name").lean(),
       BlogPost.countDocuments(filter),
       BlogPost.find(filter)
@@ -42,6 +44,9 @@ export default withApi(
         .skip(skip)
         .limit(limit)
         .lean(),
+      session
+        ? resolveBlogEditorialSession(session, User)
+        : Promise.resolve(null),
     ]);
 
     const totalPages = Math.max(1, Math.ceil(total / limit));
@@ -55,9 +60,7 @@ export default withApi(
         description: blog.description,
         authorBio: blog.authorBio,
         authorName: owner?.name || "Membro da comunidade",
-        isOwner: Boolean(
-          session?.user?.id && String(blog.ownerId) === String(session.user.id),
-        ),
+        isOwner: Boolean(actor && canManageBlog(blog, actor.session)),
         createdAt: blog.createdAt,
         updatedAt: blog.updatedAt,
       },

@@ -1,7 +1,12 @@
 import { withApi, requireCondition, ApiError } from "@/lib/api";
 import Blog from "@/lib/models/Blog";
 import BlogPost from "@/lib/models/BlogPost";
-import { canManageBlogPost, validateBlogPostInput } from "@/lib/blogs";
+import User from "@/lib/models/User";
+import {
+  canManageBlogPost,
+  resolveBlogEditorialSession,
+  validateBlogPostInput,
+} from "@/lib/blogs";
 import { isObjectId } from "@/lib/validation";
 
 export default withApi(
@@ -13,6 +18,13 @@ export default withApi(
     windowMs: 600000,
   },
   async (req, res, session) => {
+    const actor = await resolveBlogEditorialSession(session, User);
+    requireCondition(
+      actor?.canPublish,
+      403,
+      "Apenas os autores autorizados podem editar ou excluir artigos do Blog.",
+    );
+
     const postId = typeof req.query?.id === "string" ? req.query.id : "";
     requireCondition(isObjectId(postId), 400, "Publicação inválida.");
 
@@ -22,17 +34,24 @@ export default withApi(
     const blog = await Blog.findById(post.blogId);
     requireCondition(blog, 404, "Blog não encontrado.");
     requireCondition(
-      canManageBlogPost(post, blog, session),
+      canManageBlogPost(post, blog, actor.session),
       403,
       "Você não tem permissão para alterar ou excluir publicações de outro usuário.",
     );
 
     if (req.method === "DELETE") {
-      await BlogPost.deleteOne({
-        _id: post._id,
-        blogId: blog._id,
-        authorId: session.user.id,
-      });
+      await BlogPost.deleteOne(
+        actor.isSuperAdmin
+          ? {
+              _id: post._id,
+              blogId: blog._id,
+            }
+          : {
+              _id: post._id,
+              blogId: blog._id,
+              authorId: actor.userId,
+            },
+      );
       blog.updatedAt = new Date();
       await blog.save();
 
@@ -42,7 +61,7 @@ export default withApi(
     }
 
     requireCondition(
-      post.status !== "hidden",
+      post.status !== "hidden" || actor.isSuperAdmin,
       409,
       "Esta publicação está indisponível por decisão da moderação.",
     );

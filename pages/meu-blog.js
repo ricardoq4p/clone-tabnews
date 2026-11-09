@@ -8,6 +8,7 @@ import { requestJson, jsonRequest, formatPrayerDate } from "@/lib/client";
 import {
   BLOG_CATEGORIES,
   BLOG_INSTITUTIONAL_DISCLAIMER,
+  canPublishInBlog,
   slugifyText,
 } from "@/lib/blogs";
 
@@ -17,6 +18,7 @@ export default function MeuBlogPage({
   initialLoaded = false,
 }) {
   const { data: session, status } = useSession();
+  const canPublish = canPublishInBlog(session);
   const [blog, setBlog] = useState(initialBlog);
   const [posts, setPosts] = useState(initialPosts);
   const [loading, setLoading] = useState(!initialLoaded);
@@ -75,9 +77,10 @@ export default function MeuBlogPage({
   }, []);
 
   useEffect(() => {
-    if (status === "loading" || initialLoaded || !session) return;
+    if (status === "loading" || initialLoaded || !session || !canPublish)
+      return;
     loadOwnerWorkspace();
-  }, [status, session, initialLoaded, loadOwnerWorkspace]);
+  }, [status, session, canPublish, initialLoaded, loadOwnerWorkspace]);
 
   function handleNameChange(value) {
     setBlogName(value);
@@ -312,15 +315,15 @@ export default function MeuBlogPage({
 
   return (
     <PrayerLayout
-      title="Meu Blog — Vozes da Comunidade | Caminhar para Cristo"
-      description="Crie e administre seu blog pessoal na comunidade Caminhar para Cristo."
+      title="Meu Blog — Blog | Caminhar para Cristo"
+      description="Painel editorial do Blog na comunidade Caminhar para Cristo."
     >
       <div className="p-container pl-blogs-page pl-owner-blog-page">
         <header className="p-page-head pl-blogs-hero">
           <div className="p-breadcrumb">
             <Link href="/">Início</Link>
             <span>/</span>
-            <Link href="/blogs">Blogs</Link>
+            <Link href="/blogs">Blog</Link>
             <span>/</span>
             Meu blog
           </div>
@@ -339,17 +342,32 @@ export default function MeuBlogPage({
         {!session && status !== "loading" ? (
           <section className="p-panel p-empty pl-blogs-empty">
             <Icon name="lock" size={28} />
-            <h2>Entre na sua conta para criar ou administrar seu blog.</h2>
+            <h2>Entre na sua conta para acessar o painel editorial do Blog.</h2>
             <p>
-              Cada membro autenticado pode manter um blog pessoal exclusivo na
-              comunidade Caminhar para Cristo.
+              A publicação de textos no Blog é reservada aos autores autorizados
+              da plataforma.
             </p>
             <div className="p-actions" style={{ justifyContent: "center" }}>
               <Link href="/login" className="p-button">
                 Entrar na minha conta
               </Link>
-              <Link href="/register" className="p-button p-button-outline">
-                Criar conta
+              <Link href="/blogs" className="p-button p-button-outline">
+                Ler artigos no Blog
+              </Link>
+            </div>
+          </section>
+        ) : session && !canPublish ? (
+          <section className="p-panel p-empty pl-blogs-empty">
+            <Icon name="book" size={28} />
+            <h2>Área editorial restrita aos autores do Blog</h2>
+            <p>
+              O Blog é público para leitura e compartilhamento, mas a publicação
+              de artigos é restrita às contas editoriais autorizadas.
+            </p>
+            <div className="p-actions" style={{ justifyContent: "center" }}>
+              <Link href="/blogs" className="p-button">
+                Ler artigos no Blog
+                <Icon name="arrow" size={16} />
               </Link>
             </div>
           </section>

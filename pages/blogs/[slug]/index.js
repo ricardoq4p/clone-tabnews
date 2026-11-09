@@ -68,7 +68,7 @@ export default function PublicBlogPage({
           <div className="p-breadcrumb">
             <Link href="/">Início</Link>
             <span>/</span>
-            <Link href="/blogs">Blogs</Link>
+            <Link href="/blogs">Blog</Link>
             <span>/</span>
             {blog?.name || "Blog"}
           </div>

@@ -4,11 +4,12 @@ import { useSession } from "next-auth/react";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
 import { requestJson, formatPrayerDate } from "@/lib/client";
-import { BLOG_INSTITUTIONAL_DISCLAIMER } from "@/lib/blogs";
+import { BLOG_INSTITUTIONAL_DISCLAIMER, canPublishInBlog } from "@/lib/blogs";
 
 export default function BlogsDirectory({
   initialItems = [],
   initialMyBlog = null,
+  initialCanPublish = false,
   initialPage = 1,
   initialTotalPages = 1,
   initialLoaded = false,
@@ -16,10 +17,15 @@ export default function BlogsDirectory({
   const { data: session, status } = useSession();
   const [items, setItems] = useState(initialItems);
   const [myBlog, setMyBlog] = useState(initialMyBlog);
+  const [serverCanPublish, setServerCanPublish] = useState(
+    Boolean(initialCanPublish),
+  );
   const [page, setPage] = useState(initialPage);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const [loading, setLoading] = useState(!initialLoaded);
   const [error, setError] = useState("");
+
+  const canEditBlog = canPublishInBlog(session) || serverCanPublish;
 
   const loadDirectory = useCallback((targetPage = 1) => {
     return requestJson(`/api/blogs?page=${targetPage}`)
@@ -27,12 +33,13 @@ export default function BlogsDirectory({
         setError("");
         setItems(Array.isArray(result.items) ? result.items : []);
         setMyBlog(result.myBlog || null);
+        setServerCanPublish(Boolean(result.canPublish));
         setPage(result.page || targetPage);
         setTotalPages(result.totalPages || 1);
       })
       .catch((err) => {
         setError(
-          err?.message || "Não foi possível carregar os blogs no momento.",
+          err?.message || "Não foi possível carregar o Blog no momento.",
         );
       })
       .finally(() => {
@@ -47,7 +54,7 @@ export default function BlogsDirectory({
 
   return (
     <PrayerLayout
-      title="Vozes da Comunidade — Blogs | Caminhar para Cristo"
+      title="Vozes da Comunidade — Blog | Caminhar para Cristo"
       description="Histórias, reflexões e testemunhos compartilhados na caminhada com Cristo."
     >
       <div className="p-container pl-blogs-page">
@@ -55,11 +62,11 @@ export default function BlogsDirectory({
           <div className="p-breadcrumb">
             <Link href="/">Início</Link>
             <span>/</span>
-            Blogs
+            Blog
           </div>
           <p className="p-eyebrow">
             <span aria-hidden="true" />
-            COMUNIDADE CAMINHAR PARA CRISTO
+            BLOG · CAMINHAR PARA CRISTO
           </p>
           <h1>Vozes da Comunidade</h1>
           <p className="pl-blogs-lead">
@@ -67,9 +74,9 @@ export default function BlogsDirectory({
             Cristo.
           </p>
 
-          <div className="p-actions pl-blogs-hero-actions">
-            {session ? (
-              myBlog ? (
+          {canEditBlog ? (
+            <div className="p-actions pl-blogs-hero-actions">
+              {myBlog ? (
                 <>
                   <Link href="/meu-blog" className="p-button">
                     <Icon name="book" size={18} />
@@ -89,15 +96,9 @@ export default function BlogsDirectory({
                   Criar meu blog
                   <Icon name="arrow" size={16} />
                 </Link>
-              )
-            ) : (
-              <Link href="/meu-blog" className="p-button">
-                <Icon name="book" size={18} />
-                Criar meu blog
-                <Icon name="arrow" size={16} />
-              </Link>
-            )}
-          </div>
+              )}
+            </div>
+          ) : null}
         </header>
 
         {error ? (
@@ -115,7 +116,7 @@ export default function BlogsDirectory({
 
         <section
           className="pl-blogs-directory"
-          aria-label="Diretório público de blogs"
+          aria-label="Diretório público do Blog"
         >
           {items.length > 0 ? (
             <>
@@ -167,7 +168,7 @@ export default function BlogsDirectory({
               {totalPages > 1 ? (
                 <nav
                   className="pl-blogs-pagination"
-                  aria-label="Paginação de blogs"
+                  aria-label="Paginação do Blog"
                 >
                   <button
                     type="button"
@@ -200,13 +201,15 @@ export default function BlogsDirectory({
               <Icon name="book" size={28} />
               <h2>Vozes que edificam a fé</h2>
               <p>
-                Este espaço está começando a florescer. Seja o primeiro a
-                compartilhar suas reflexões.
+                Este espaço está começando a florescer. Em breve, novas
+                reflexões e estudos estarão disponíveis para leitura.
               </p>
-              <Link href="/meu-blog" className="p-button">
-                Criar meu blog
-                <Icon name="arrow" size={16} />
-              </Link>
+              {canEditBlog ? (
+                <Link href="/meu-blog" className="p-button">
+                  Criar meu blog
+                  <Icon name="arrow" size={16} />
+                </Link>
+              ) : null}
             </div>
           )}
         </section>
