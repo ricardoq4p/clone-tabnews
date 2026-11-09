@@ -97,9 +97,19 @@ import {
   AUTHORIZED_BLOG_AUTHOR_EMAILS,
   BLOG_CATEGORIES,
   BLOG_INSTITUTIONAL_DISCLAIMER,
+  DEFAULT_AUTHOR_AVATAR,
+  DEFAULT_BLOG_COVER_IMAGE,
+  detectImageFormatFromBytes,
+  estimateReadingTimeMinutes,
+  extractBlogHeadings,
+  hasValidImageMagicBytes,
   normalizeBlogName,
+  normalizeBlogTags,
+  shouldShowBlogTableOfContents,
   slugifyText,
   isReservedBlogIdentifier,
+  validateBlogCoverDimensions,
+  validateBlogCoverUrl,
   validateBlogInput,
   validateBlogPostInput,
   sanitizeBlogPostContent,
@@ -109,6 +119,7 @@ import {
   canManageBlogPost,
   canReadPublicBlogPost,
 } from "../lib/blogs";
+import BlogCoverUploader from "../components/BlogCoverUploader";
 import blogsApi from "../pages/api/blogs/index";
 import disponibilidadeApi from "../pages/api/blogs/disponibilidade";
 import meuBlogApi from "../pages/api/blogs/meu";
@@ -1373,5 +1384,195 @@ describe("Autorização Editorial Restrita — 3 Contas Autorizadas, Superadmin 
         }),
       }),
     );
+  });
+});
+
+describe("Evolução Visual e Editorial — Capas, Magic Bytes, Sumário H2/H3, Progresso e Revista Digital", () => {
+  test("valida o conteúdo real do arquivo (magic bytes) para JPG, PNG e WebP e rejeita arquivos falsificados", () => {
+    const jpegHeader = new Uint8Array([
+      0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10, 0x4a, 0x46, 0x49, 0x46, 0x00, 0x01,
+    ]);
+    const pngHeader = new Uint8Array([
+      0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0x00, 0x00, 0x00, 0x0d,
+    ]);
+    const webpHeader = new Uint8Array([
+      0x52, 0x49, 0x46, 0x46, 0x24, 0x00, 0x00, 0x00, 0x57, 0x45, 0x42, 0x50,
+    ]);
+    const fakeScriptAsJpg = new Uint8Array([
+      0x3c, 0x73, 0x63, 0x72, 0x69, 0x70, 0x74, 0x3e, 0x61, 0x6c, 0x65, 0x72,
+    ]);
+
+    expect(detectImageFormatFromBytes(jpegHeader)).toBe("image/jpeg");
+    expect(detectImageFormatFromBytes(pngHeader)).toBe("image/png");
+    expect(detectImageFormatFromBytes(webpHeader)).toBe("image/webp");
+    expect(detectImageFormatFromBytes(fakeScriptAsJpg)).toBeNull();
+
+    expect(hasValidImageMagicBytes(jpegHeader, "image/jpeg")).toBe(true);
+    expect(hasValidImageMagicBytes(pngHeader, "image/png")).toBe(true);
+    expect(hasValidImageMagicBytes(webpHeader, "image/webp")).toBe(true);
+    expect(hasValidImageMagicBytes(jpegHeader, "image/png")).toBe(false);
+    expect(hasValidImageMagicBytes(fakeScriptAsJpg, "image/jpeg")).toBe(false);
+  });
+
+  test("valida dimensões e proporção horizontal recomendada (1600x600) e rejeita imagens verticais ou pequenas", () => {
+    expect(validateBlogCoverDimensions(1600, 600).ok).toBe(true);
+    expect(validateBlogCoverDimensions(1200, 500).ok).toBe(true);
+    expect(validateBlogCoverDimensions(400, 200).ok).toBe(false);
+    expect(validateBlogCoverDimensions(600, 900).ok).toBe(false);
+  });
+
+  test("valida URL de capa do blog e do artigo no servidor (Cloudinary ou capa padrão) e rejeita URLs externas", () => {
+    expect(validateBlogCoverUrl("").ok).toBe(true);
+    expect(validateBlogCoverUrl(DEFAULT_BLOG_COVER_IMAGE).ok).toBe(true);
+    expect(
+      validateBlogCoverUrl(
+        "https://res.cloudinary.com/panteralab/image/upload/v1/capa-blog.webp",
+      ).ok,
+    ).toBe(true);
+    expect(validateBlogCoverUrl("https://evil.example.com/capa.jpg").ok).toBe(
+      false,
+    );
+
+    const invalidBlog = validateBlogInput({
+      name: "Revista de Oração",
+      description: "Descrição editorial válida da revista.",
+      authorBio: "Apresentação válida do autor no blog.",
+      coverImage: "https://attacker.com/fake.png",
+    });
+    expect(invalidBlog.ok).toBe(false);
+  });
+
+  test("extrai títulos H2 e H3 para sumário automático, normaliza tags e calcula tempo de leitura", () => {
+    const content = [
+      "Introdução contemplativa ao tema.",
+      "## O silêncio interior",
+      "Texto sobre a importância do recolhimento.",
+      "### Prática cotidiana",
+      "Passos práticos para a oração diária.",
+    ].join("\n\n");
+
+    const headings = extractBlogHeadings(content);
+    expect(headings).toEqual([
+      { id: "o-silencio-interior", level: 2, text: "O silêncio interior" },
+      { id: "pratica-cotidiana", level: 3, text: "Prática cotidiana" },
+    ]);
+    expect(shouldShowBlogTableOfContents(headings)).toBe(true);
+    expect(estimateReadingTimeMinutes(content)).toBeGreaterThanOrEqual(1);
+    expect(normalizeBlogTags("Oração, Silêncio, oração, #Liturgia, a")).toEqual(
+      ["Oração", "Silêncio", "Liturgia"],
+    );
+  });
+
+  test("renderiza seção Identidade visual na criação/edição do blog, revista digital pública e artigo com barra de progresso e sumário", () => {
+    expect(typeof BlogCoverUploader).toBe("function");
+
+    const setupHtml = renderToStaticMarkup(
+      React.createElement(MeuBlogPage, {
+        initialLoaded: true,
+        initialBlog: null,
+        initialPosts: [],
+      }),
+    );
+    expect(setupHtml).toContain("Identidade visual");
+    expect(setupHtml).toContain("Imagem de capa do blog");
+    expect(setupHtml).toContain("1600 × 600 pixels");
+    expect(setupHtml).toContain("Pré-visualizar blog");
+
+    mockUseRouter.mockReturnValue({
+      pathname: "/blogs/[slug]",
+      asPath: "/blogs/revista-da-fe",
+      query: { slug: "revista-da-fe" },
+    });
+
+    const magazineHtml = renderToStaticMarkup(
+      React.createElement(PublicBlogPage, {
+        initialLoaded: true,
+        initialBlog: {
+          _id: blogId,
+          name: "Revista da Fé",
+          slug: "revista-da-fe",
+          description: "Ensaios e meditações para a caminhada cristã.",
+          authorName: "Fernanda",
+          authorBio: "Autora dedicada à espiritualidade e arte cristã.",
+          authorAvatar:
+            "https://res.cloudinary.com/panteralab/image/upload/v1/avatar-fernanda.webp",
+          coverImage:
+            "https://res.cloudinary.com/panteralab/image/upload/v1/capa-revista.webp",
+        },
+        initialPosts: [
+          {
+            _id: postId,
+            title: "Beleza e Liturgia",
+            subtitle: "A arte a serviço do sagrado",
+            slug: "beleza-e-liturgia",
+            category: "Espiritualidade",
+            excerpt: "Uma reflexão sobre a contemplação da beleza.",
+            tags: ["Liturgia", "Arte"],
+            featured: true,
+            readingTimeMinutes: 4,
+            publishedAt: "2026-11-09T12:00:00.000Z",
+          },
+        ],
+      }),
+    );
+
+    expect(magazineHtml).toContain("ARTIGO EM DESTAQUE");
+    expect(magazineHtml).toContain("4 min de leitura");
+    expect(magazineHtml).toContain("Compartilhar blog");
+    expect(magazineHtml).toContain("Buscar artigos");
+    expect(magazineHtml).toContain("#Liturgia");
+    expect(magazineHtml).toContain("Propósito de Revista da Fé:");
+
+    mockUseRouter.mockReturnValue({
+      pathname: "/blogs/[slug]/[post]",
+      asPath: "/blogs/revista-da-fe/beleza-e-liturgia",
+      query: { slug: "revista-da-fe", post: "beleza-e-liturgia" },
+    });
+
+    const articleHtml = renderToStaticMarkup(
+      React.createElement(PublicBlogPostPage, {
+        initialLoaded: true,
+        initialBlog: {
+          _id: blogId,
+          name: "Revista da Fé",
+          slug: "revista-da-fe",
+          description: "Ensaios e meditações.",
+          authorName: "Fernanda",
+          authorBio: "Autora dedicada à espiritualidade.",
+          authorAvatar: DEFAULT_AUTHOR_AVATAR,
+          coverImage: DEFAULT_BLOG_COVER_IMAGE,
+        },
+        initialPost: {
+          _id: postId,
+          title: "Beleza e Liturgia",
+          subtitle: "A arte a serviço do sagrado",
+          slug: "beleza-e-liturgia",
+          category: "Espiritualidade",
+          tags: ["Liturgia"],
+          readingTimeMinutes: 3,
+          content:
+            "Introdução ao estudo.\n\n## O Sagrado na Arte\n\nPrimeiro ponto.\n\n### Arquitetura e Luz\n\nSegundo ponto.",
+          publishedAt: "2026-11-09T12:00:00.000Z",
+        },
+        initialRelatedPosts: [
+          {
+            _id: "65a444444444444444444499",
+            title: "O Canto Gregoriano",
+            slug: "o-canto-gregoriano",
+            category: "Orações",
+            excerpt: "A tradição musical da Igreja.",
+            readingTimeMinutes: 2,
+          },
+        ],
+      }),
+    );
+
+    expect(articleHtml).toContain('aria-label="Progresso de leitura"');
+    expect(articleHtml).toContain('aria-label="Sumário do artigo"');
+    expect(articleHtml).toContain('href="#o-sagrado-na-arte"');
+    expect(articleHtml).toContain('href="#arquitetura-e-luz"');
+    expect(articleHtml).toContain("3 min de leitura");
+    expect(articleHtml).toContain("Artigos relacionados");
+    expect(articleHtml).toContain("O Canto Gregoriano");
   });
 });

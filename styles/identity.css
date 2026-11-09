@@ -2459,3 +2459,454 @@ body {
   font-size: 0.84rem;
   font-weight: 500;
 }
+
+/* Blog editorial magazine & visual identity styles */
+.prayer-app .pl-blog-identity-section {
+  border: 1px solid var(--pl-line);
+  border-radius: 16px;
+  padding: 1.25rem;
+  background: var(--pl-surface-warm);
+  margin: 0 0 0.75rem;
+  display: grid;
+  gap: 0.85rem;
+}
+
+.prayer-app .pl-blog-identity-section legend {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--pl-coffee);
+  padding: 0 0.45rem;
+}
+
+.prayer-app .pl-blog-setup-head-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+  margin-bottom: 0.45rem;
+}
+
+.prayer-app .pl-blog-cover-uploader {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.prayer-app .pl-blog-cover-uploader-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.prayer-app .pl-blog-cover-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-weight: 600;
+  color: var(--pl-coffee);
+}
+
+.prayer-app .pl-blog-cover-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: var(--pl-paper);
+  color: var(--pl-gold);
+  border: 1px solid var(--pl-line);
+}
+
+.prayer-app .pl-blog-cover-preview-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 6;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--pl-line);
+  background: var(--pl-paper);
+}
+
+.prayer-app .pl-blog-cover-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prayer-app .pl-blog-cover-helper,
+.prayer-app .pl-blog-cover-file-info {
+  font-size: 0.82rem;
+  color: var(--pl-muted);
+}
+
+.prayer-app .pl-blog-cover-status {
+  font-size: 0.84rem;
+  color: var(--pl-gold);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.prayer-app .pl-blog-cover-status.is-success {
+  color: var(--p-success);
+}
+
+.prayer-app .pl-blog-card-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 6;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 0.85rem;
+  border: 1px solid var(--pl-line);
+  background: var(--pl-surface-warm);
+}
+
+.prayer-app .pl-blog-card-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prayer-app .pl-blog-card-author {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-bottom: 0.35rem;
+}
+
+.prayer-app .pl-blog-author-avatar-sm {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1px solid var(--pl-gold-soft);
+  background: var(--pl-surface-warm);
+  flex-shrink: 0;
+}
+
+.prayer-app .pl-blog-author-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 1.5px solid var(--pl-gold-soft);
+  background: var(--pl-surface-warm);
+  flex-shrink: 0;
+}
+
+.prayer-app .pl-blog-author-avatar-lg {
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  object-fit: cover;
+  border: 2px solid var(--pl-gold-soft);
+  background: var(--pl-paper);
+  flex-shrink: 0;
+}
+
+.prayer-app .pl-blog-magazine-header {
+  padding: 0;
+  overflow: hidden;
+  margin-top: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.prayer-app .pl-blog-magazine-cover {
+  width: 100%;
+  aspect-ratio: 16 / 6;
+  max-height: 360px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--pl-line);
+  background: var(--pl-surface-warm);
+}
+
+.prayer-app .pl-blog-magazine-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prayer-app .pl-blog-magazine-hero-body {
+  padding: clamp(1.35rem, 3vw, 2.25rem);
+  display: grid;
+  gap: 0.85rem;
+}
+
+.prayer-app .pl-blog-magazine-author-strip {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.prayer-app .pl-blog-author-strip-bio {
+  font-size: 0.9rem;
+  color: var(--pl-muted);
+  margin-top: 0.15rem;
+}
+
+.prayer-app .pl-blog-featured-section {
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1.15fr);
+  gap: 1.5rem;
+  align-items: center;
+  margin-bottom: 1.75rem;
+  background: var(--pl-surface-warm);
+}
+
+.prayer-app .pl-blog-featured-media {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--pl-line);
+  aspect-ratio: 16 / 9;
+  background: var(--pl-paper);
+}
+
+.prayer-app .pl-blog-featured-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prayer-app .pl-blog-featured-content {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.prayer-app .pl-blog-featured-content h2 {
+  font-size: clamp(1.55rem, 2.6vw, 2.15rem);
+  line-height: 1.2;
+}
+
+.prayer-app .pl-blog-editorial-nav {
+  display: grid;
+  gap: 0.95rem;
+  margin-bottom: 1.75rem;
+}
+
+.prayer-app .pl-blog-search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.prayer-app .pl-blog-search-input {
+  flex: 1 1 260px;
+}
+
+.prayer-app .pl-blog-category-filters,
+.prayer-app .pl-blog-tag-filters,
+.prayer-app .pl-blog-post-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.prayer-app .pl-blog-filter-chip,
+.prayer-app .pl-blog-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.32rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--pl-line);
+  background: var(--pl-paper);
+  color: var(--pl-coffee);
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.prayer-app .pl-blog-filter-chip.is-active,
+.prayer-app .pl-blog-tag-chip.is-active {
+  background: var(--pl-coffee);
+  color: #fffdf9;
+  border-color: var(--pl-coffee);
+}
+
+.prayer-app .pl-blog-posts-grid {
+  max-width: 100%;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.prayer-app .pl-blog-post-card-cover {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 8;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--pl-line);
+  background: var(--pl-surface-warm);
+  margin-bottom: 0.35rem;
+}
+
+.prayer-app .pl-blog-post-card-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prayer-app .pl-blog-author-card-grid {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.prayer-app .pl-blog-author-purpose {
+  margin-top: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--pl-line);
+  font-size: 0.92rem;
+  color: var(--pl-ink);
+}
+
+.prayer-app .pl-blog-reading-progress {
+  position: sticky;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(200, 169, 107, 0.2);
+  z-index: 40;
+}
+
+.prayer-app .pl-blog-reading-progress-fill {
+  height: 100%;
+  background: var(--pl-gold);
+  transition: width 120ms ease-out;
+}
+
+.prayer-app .pl-blog-article-cover {
+  width: 100%;
+  aspect-ratio: 16 / 6.5;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--pl-line);
+  margin-bottom: 1.5rem;
+  background: var(--pl-surface-warm);
+}
+
+.prayer-app .pl-blog-article-cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.prayer-app .pl-blog-article-author-row,
+.prayer-app .pl-blog-author-inline-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.prayer-app .pl-blog-toc {
+  margin-bottom: 1.75rem;
+  padding: 1.1rem 1.35rem;
+  border-radius: 14px;
+  background: var(--pl-surface-warm);
+  border: 1px solid var(--pl-line);
+}
+
+.prayer-app .pl-blog-toc-list {
+  margin: 0.55rem 0 0;
+  padding-left: 1.2rem;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.prayer-app .pl-blog-toc-item.is-level-3 {
+  margin-left: 1rem;
+  font-size: 0.92rem;
+}
+
+.prayer-app .pl-blog-toc-item a {
+  color: var(--pl-coffee);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prayer-app .pl-blog-heading-h2 {
+  font-size: clamp(1.45rem, 2.5vw, 1.85rem);
+  margin-top: 1.15rem;
+  margin-bottom: 0.25rem;
+  color: var(--pl-coffee);
+}
+
+.prayer-app .pl-blog-heading-h3 {
+  font-size: clamp(1.2rem, 2vw, 1.4rem);
+  margin-top: 0.85rem;
+  margin-bottom: 0.15rem;
+  color: var(--pl-coffee);
+}
+
+.prayer-app .pl-blog-related-section {
+  max-width: 48rem;
+  margin: 1.75rem auto;
+}
+
+.prayer-app .pl-blog-related-section h2 {
+  font-size: 1.45rem;
+  margin: 0.3rem 0 1rem;
+}
+
+.prayer-app .pl-blog-related-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.prayer-app .pl-blog-related-card {
+  padding: 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--pl-line);
+  background: var(--pl-surface-warm);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+}
+
+.prayer-app .pl-blog-related-card h3 {
+  font-size: 1.08rem;
+  line-height: 1.35;
+}
+
+.prayer-app .pl-blog-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-top: 0.45rem;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .prayer-app .pl-blog-featured-section,
+  .prayer-app .pl-blog-posts-grid,
+  .prayer-app .pl-blog-related-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .prayer-app .pl-blog-author-card-grid,
+  .prayer-app .pl-blog-magazine-author-strip {
+    grid-template-columns: minmax(0, 1fr);
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

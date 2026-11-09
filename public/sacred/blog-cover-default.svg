@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 600" width="1600" height="600" role="img" aria-label="Capa editorial padrão — Caminhar para Cristo">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F7F1E8" />
+      <stop offset="52%" stop-color="#EFE4D3" />
+      <stop offset="100%" stop-color="#E4D2B8" />
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="42%" r="55%">
+      <stop offset="0%" stop-color="#FFFDF9" stop-opacity="0.82" />
+      <stop offset="100%" stop-color="#EFE4D3" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="goldLine" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#C8A96B" stop-opacity="0" />
+      <stop offset="50%" stop-color="#9B7540" stop-opacity="0.55" />
+      <stop offset="100%" stop-color="#C8A96B" stop-opacity="0" />
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="600" fill="url(#bg)" />
+  <rect width="1600" height="600" fill="url(#glow)" />
+  <rect x="48" y="44" width="1504" height="512" rx="20" fill="none" stroke="#C8A96B" stroke-opacity="0.32" stroke-width="1.5" />
+  <line x1="280" y1="300" x2="1320" y2="300" stroke="url(#goldLine)" stroke-width="1.5" />
+  <g transform="translate(800 245)" fill="none" stroke="#8C652F" stroke-opacity="0.48" stroke-width="2" stroke-linecap="round">
+    <circle cx="0" cy="0" r="44" stroke-opacity="0.24" />
+    <line x1="0" y1="-26" x2="0" y2="28" />
+    <line x1="-18" y1="-8" x2="18" y2="-8" />
+  </g>
+</svg>

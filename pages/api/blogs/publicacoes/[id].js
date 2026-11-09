@@ -4,6 +4,7 @@ import BlogPost from "@/lib/models/BlogPost";
 import User from "@/lib/models/User";
 import {
   canManageBlogPost,
+  estimateReadingTimeMinutes,
   resolveBlogEditorialSession,
   validateBlogPostInput,
 } from "@/lib/blogs";
@@ -67,10 +68,27 @@ export default withApi(
     );
 
     const action = req.body?.action;
-    if (action === "publish" || action === "unpublish") {
+    if (
+      action === "publish" ||
+      action === "unpublish" ||
+      action === "feature" ||
+      action === "unfeature"
+    ) {
       const now = new Date();
-      post.status = action === "publish" ? "published" : "draft";
-      post.publishedAt = action === "publish" ? post.publishedAt || now : null;
+      if (action === "publish" || action === "unpublish") {
+        post.status = action === "publish" ? "published" : "draft";
+        post.publishedAt =
+          action === "publish" ? post.publishedAt || now : null;
+      } else {
+        const nextFeatured = action === "feature";
+        if (nextFeatured && typeof BlogPost.updateMany === "function") {
+          await BlogPost.updateMany(
+            { blogId: blog._id, _id: { $ne: post._id }, featured: true },
+            { $set: { featured: false } },
+          );
+        }
+        post.featured = nextFeatured;
+      }
       post.updatedAt = now;
       await post.save();
 
@@ -87,6 +105,10 @@ export default withApi(
           slug: post.slug,
           category: post.category,
           content: post.content,
+          coverImage: post.coverImage || "",
+          tags: Array.isArray(post.tags) ? post.tags : [],
+          featured: Boolean(post.featured),
+          readingTimeMinutes: estimateReadingTimeMinutes(post.content),
           status: post.status,
           createdAt: post.createdAt,
           updatedAt: post.updatedAt,
@@ -102,11 +124,23 @@ export default withApi(
       category: req.body?.category ?? post.category,
       content: req.body?.content ?? post.content,
       status: req.body?.status ?? post.status,
+      coverImage: req.body?.coverImage ?? post.coverImage ?? "",
+      tags: req.body?.tags ?? post.tags ?? [],
+      featured: req.body?.featured ?? post.featured ?? false,
     });
     requireCondition(validation.ok, 400, validation.error);
 
-    const { title, subtitle, slug, category, content, status } =
-      validation.value;
+    const {
+      title,
+      subtitle,
+      slug,
+      category,
+      content,
+      status,
+      coverImage,
+      tags,
+      featured,
+    } = validation.value;
 
     const duplicateSlug = await BlogPost.findOne({
       blogId: blog._id,
@@ -121,11 +155,20 @@ export default withApi(
     }
 
     const now = new Date();
+    if (featured && typeof BlogPost.updateMany === "function") {
+      await BlogPost.updateMany(
+        { blogId: blog._id, _id: { $ne: post._id }, featured: true },
+        { $set: { featured: false } },
+      );
+    }
     post.title = title;
     post.subtitle = subtitle;
     post.slug = slug;
     post.category = category;
     post.content = content;
+    post.coverImage = coverImage || "";
+    post.tags = tags || [];
+    post.featured = Boolean(featured);
     post.status = status;
     post.updatedAt = now;
     post.publishedAt = status === "published" ? post.publishedAt || now : null;
@@ -155,6 +198,10 @@ export default withApi(
         slug: post.slug,
         category: post.category,
         content: post.content,
+        coverImage: post.coverImage || "",
+        tags: Array.isArray(post.tags) ? post.tags : [],
+        featured: Boolean(post.featured),
+        readingTimeMinutes: estimateReadingTimeMinutes(post.content),
         status: post.status,
         createdAt: post.createdAt,
         updatedAt: post.updatedAt,

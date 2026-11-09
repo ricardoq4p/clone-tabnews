@@ -1,14 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
 import BlogContentRenderer from "@/components/prayer/BlogContentRenderer";
+import BlogCoverUploader from "@/components/BlogCoverUploader";
 import { requestJson, jsonRequest, formatPrayerDate } from "@/lib/client";
 import {
   BLOG_CATEGORIES,
   BLOG_INSTITUTIONAL_DISCLAIMER,
+  DEFAULT_AUTHOR_AVATAR,
+  DEFAULT_BLOG_COVER_IMAGE,
   canPublishInBlog,
+  normalizeBlogTags,
   slugifyText,
 } from "@/lib/blogs";
 
@@ -27,6 +32,7 @@ export default function MeuBlogPage({
 
   // Blog creation / settings state
   const [editingBlogInfo, setEditingBlogInfo] = useState(false);
+  const [previewBlogMode, setPreviewBlogMode] = useState(false);
   const [blogName, setBlogName] = useState(initialBlog?.name || "");
   const [blogSlug, setBlogSlug] = useState(initialBlog?.slug || "");
   const [slugTouched, setSlugTouched] = useState(Boolean(initialBlog?.slug));
@@ -35,6 +41,9 @@ export default function MeuBlogPage({
   );
   const [blogAuthorBio, setBlogAuthorBio] = useState(
     initialBlog?.authorBio || "",
+  );
+  const [blogCoverImage, setBlogCoverImage] = useState(
+    initialBlog?.coverImage || "",
   );
   const [availabilityStatus, setAvailabilityStatus] = useState(null);
   const [checkingAvailability, setCheckingAvailability] = useState(false);
@@ -46,6 +55,9 @@ export default function MeuBlogPage({
   const [postTitle, setPostTitle] = useState("");
   const [postSubtitle, setPostSubtitle] = useState("");
   const [postCategory, setPostCategory] = useState(BLOG_CATEGORIES[0]);
+  const [postCoverImage, setPostCoverImage] = useState("");
+  const [postTagsInput, setPostTagsInput] = useState("");
+  const [postFeatured, setPostFeatured] = useState(false);
   const [postContent, setPostContent] = useState("");
   const [previewMode, setPreviewMode] = useState(false);
   const [savingPost, setSavingPost] = useState(false);
@@ -64,6 +76,7 @@ export default function MeuBlogPage({
           setSlugTouched(true);
           setBlogDescription(result.blog.description);
           setBlogAuthorBio(result.blog.authorBio);
+          setBlogCoverImage(result.blog.coverImage || "");
         }
       })
       .catch((err) => {
@@ -138,6 +151,7 @@ export default function MeuBlogPage({
           slug: blogSlug || slugifyText(blogName, 60),
           description: blogDescription,
           authorBio: blogAuthorBio,
+          coverImage: blogCoverImage,
         }),
       );
       setBlog(result.blog);
@@ -146,7 +160,9 @@ export default function MeuBlogPage({
       setSlugTouched(true);
       setBlogDescription(result.blog.description);
       setBlogAuthorBio(result.blog.authorBio);
+      setBlogCoverImage(result.blog.coverImage || "");
       setEditingBlogInfo(false);
+      setPreviewBlogMode(false);
       setStatusMessage(
         blog
           ? "Dados do blog atualizados com sucesso."
@@ -164,6 +180,9 @@ export default function MeuBlogPage({
     setPostTitle("");
     setPostSubtitle("");
     setPostCategory(BLOG_CATEGORIES[0]);
+    setPostCoverImage("");
+    setPostTagsInput("");
+    setPostFeatured(false);
     setPostContent("");
     setPreviewMode(false);
   }
@@ -173,6 +192,9 @@ export default function MeuBlogPage({
     setPostTitle(post.title);
     setPostSubtitle(post.subtitle || "");
     setPostCategory(post.category || BLOG_CATEGORIES[0]);
+    setPostCoverImage(post.coverImage || "");
+    setPostTagsInput(Array.isArray(post.tags) ? post.tags.join(", ") : "");
+    setPostFeatured(Boolean(post.featured));
     setPostContent(post.content || "");
     setPreviewMode(false);
     setEditorOpen(true);
@@ -183,6 +205,9 @@ export default function MeuBlogPage({
   function insertFormatting(kind) {
     const textarea = contentRef.current;
     if (!textarea) {
+      if (kind === "h2")
+        setPostContent((old) => `${old}\n\n## Título da seção`);
+      if (kind === "h3") setPostContent((old) => `${old}\n\n### Subtítulo`);
       if (kind === "bold")
         setPostContent((old) => `${old} **texto em negrito**`);
       if (kind === "italic")
@@ -197,7 +222,11 @@ export default function MeuBlogPage({
     const selected = postContent.slice(start, end);
 
     let replacement = "";
-    if (kind === "bold") {
+    if (kind === "h2") {
+      replacement = `\n## ${selected || "Título da seção"}\n`;
+    } else if (kind === "h3") {
+      replacement = `\n### ${selected || "Subtítulo da seção"}\n`;
+    } else if (kind === "bold") {
       replacement = `**${selected || "texto em negrito"}**`;
     } else if (kind === "italic") {
       replacement = `*${selected || "texto em itálico"}*`;
@@ -225,6 +254,9 @@ export default function MeuBlogPage({
         title: postTitle,
         subtitle: postSubtitle,
         category: postCategory,
+        coverImage: postCoverImage,
+        tags: normalizeBlogTags(postTagsInput),
+        featured: postFeatured,
         content: postContent,
         status: targetStatus,
       };
@@ -234,9 +266,11 @@ export default function MeuBlogPage({
           jsonRequest("PATCH", payload),
         );
         setPosts((current) =>
-          current.map((item) =>
-            item._id === result.post._id ? result.post : item,
-          ),
+          current.map((item) => {
+            if (item._id === result.post._id) return result.post;
+            if (result.post.featured) return { ...item, featured: false };
+            return item;
+          }),
         );
         setStatusMessage(
           targetStatus === "published"
@@ -248,7 +282,12 @@ export default function MeuBlogPage({
           "/api/blogs/publicacoes",
           jsonRequest("POST", payload),
         );
-        setPosts((current) => [result.post, ...current]);
+        setPosts((current) => {
+          const rest = result.post.featured
+            ? current.map((item) => ({ ...item, featured: false }))
+            : current;
+          return [result.post, ...rest];
+        });
         setStatusMessage(
           targetStatus === "published"
             ? "Artigo publicado com sucesso."
@@ -290,6 +329,35 @@ export default function MeuBlogPage({
     }
   }
 
+  async function handleToggleFeatured(post) {
+    const nextAction = post.featured ? "unfeature" : "feature";
+    setBusyPostId(post._id);
+    setError("");
+    setStatusMessage("");
+    try {
+      const result = await requestJson(
+        `/api/blogs/publicacoes/${post._id}`,
+        jsonRequest("PATCH", { action: nextAction }),
+      );
+      setPosts((current) =>
+        current.map((item) => {
+          if (item._id === result.post._id) return result.post;
+          if (result.post.featured) return { ...item, featured: false };
+          return item;
+        }),
+      );
+      setStatusMessage(
+        nextAction === "feature"
+          ? "Artigo marcado como destaque no seu blog."
+          : "Destaque removido do artigo.",
+      );
+    } catch (err) {
+      setError(err?.message || "Não foi possível atualizar o destaque.");
+    } finally {
+      setBusyPostId(null);
+    }
+  }
+
   async function handleDeletePost(post) {
     setBusyPostId(post._id);
     setError("");
@@ -312,6 +380,10 @@ export default function MeuBlogPage({
   }
 
   const previewSlug = blogSlug || slugifyText(blogName, 60) || "meu-blog";
+  const authorDisplayName =
+    session?.user?.name || blog?.authorName || "Autor do Blog";
+  const authorAvatarUrl =
+    session?.user?.image || blog?.authorAvatar || DEFAULT_AUTHOR_AVATAR;
 
   return (
     <PrayerLayout
@@ -395,23 +467,96 @@ export default function MeuBlogPage({
                 aria-labelledby="blog-setup-heading"
               >
                 <div className="pl-blog-setup-head">
-                  <p className="p-eyebrow">
-                    {blog
-                      ? "CONFIGURAÇÕES DO BLOG"
-                      : "CADASTRO DO BLOG PESSOAL"}
-                  </p>
-                  <h2 id="blog-setup-heading">
-                    {blog
-                      ? "Editar informações do seu blog"
-                      : "Criar meu blog pessoal"}
-                  </h2>
+                  <div className="pl-blog-setup-head-row">
+                    <div>
+                      <p className="p-eyebrow">
+                        {blog
+                          ? "CONFIGURAÇÕES DO BLOG"
+                          : "CADASTRO DO BLOG PESSOAL"}
+                      </p>
+                      <h2 id="blog-setup-heading">
+                        {blog
+                          ? "Editar informações do seu blog"
+                          : "Criar meu blog pessoal"}
+                      </h2>
+                    </div>
+                    <button
+                      type="button"
+                      className="p-button p-button-outline"
+                      onClick={() => setPreviewBlogMode((v) => !v)}
+                    >
+                      {previewBlogMode
+                        ? "Voltar à edição do blog"
+                        : "Pré-visualizar blog"}
+                    </button>
+                  </div>
                   <p>
                     Cada membro pode possuir um único blog com nome e endereço
                     exclusivos na comunidade.
                   </p>
                 </div>
 
+                {previewBlogMode ? (
+                  <div
+                    className="pl-blog-preview-box pl-blog-magazine-header"
+                    aria-label="Pré-visualização do blog"
+                  >
+                    <div className="pl-blog-magazine-cover">
+                      <Image
+                        unoptimized
+                        src={blogCoverImage || DEFAULT_BLOG_COVER_IMAGE}
+                        alt="Capa do blog"
+                        width={1600}
+                        height={600}
+                        className="pl-blog-magazine-cover-img"
+                      />
+                    </div>
+                    <div className="pl-blog-magazine-hero-body">
+                      <div className="pl-blog-magazine-author-strip">
+                        <Image
+                          unoptimized
+                          src={authorAvatarUrl}
+                          alt={authorDisplayName}
+                          width={56}
+                          height={56}
+                          className="pl-blog-author-avatar"
+                        />
+                        <div>
+                          <p className="p-eyebrow">POR {authorDisplayName}</p>
+                          <p className="pl-blog-author-strip-bio">
+                            {blogAuthorBio ||
+                              "Apresentação do autor aparecerá aqui."}
+                          </p>
+                        </div>
+                      </div>
+                      <h3>{blogName || "Nome do seu blog"}</h3>
+                      <p className="pl-blogs-lead">
+                        {blogDescription ||
+                          "Descrição curta do propósito e dos temas do seu blog."}
+                      </p>
+                    </div>
+                  </div>
+                ) : null}
+
                 <form className="p-form-stack" onSubmit={handleSaveBlog}>
+                  {/* Seção: Identidade visual */}
+                  <fieldset className="pl-blog-identity-section">
+                    <legend id="blog-visual-identity-heading">
+                      Identidade visual
+                    </legend>
+                    <p className="p-muted">
+                      Personalize a capa editorial do seu blog. A foto do autor
+                      utiliza automaticamente a foto cadastrada no seu perfil.
+                    </p>
+                    <BlogCoverUploader
+                      id="blog-cover-uploader"
+                      label="Imagem de capa do blog"
+                      value={blogCoverImage}
+                      onChange={setBlogCoverImage}
+                      disabled={savingBlog}
+                    />
+                  </fieldset>
+
                   <div className="p-field">
                     <label htmlFor="blog-name">Nome do blog</label>
                     <input
@@ -522,7 +667,10 @@ export default function MeuBlogPage({
                       <button
                         type="button"
                         className="p-button p-button-outline"
-                        onClick={() => setEditingBlogInfo(false)}
+                        onClick={() => {
+                          setEditingBlogInfo(false);
+                          setPreviewBlogMode(false);
+                        }}
                       >
                         Cancelar
                       </button>
@@ -604,6 +752,18 @@ export default function MeuBlogPage({
 
                       {previewMode ? (
                         <div className="pl-blog-preview-box">
+                          {postCoverImage ? (
+                            <div className="pl-blog-article-cover">
+                              <Image
+                                unoptimized
+                                src={postCoverImage}
+                                alt={postTitle || "Capa do artigo"}
+                                width={1200}
+                                height={480}
+                                className="pl-blog-article-cover-img"
+                              />
+                            </div>
+                          ) : null}
                           <span className="p-eyebrow">{postCategory}</span>
                           <h3>{postTitle || "Título da publicação"}</h3>
                           {postSubtitle ? (
@@ -670,6 +830,49 @@ export default function MeuBlogPage({
                             </div>
                           </div>
 
+                          <div className="pl-blog-editor-meta-row">
+                            <div className="p-field">
+                              <label htmlFor="post-tags">
+                                Tags (opcional, separadas por vírgula)
+                              </label>
+                              <input
+                                id="post-tags"
+                                type="text"
+                                maxLength={220}
+                                value={postTagsInput}
+                                onChange={(e) =>
+                                  setPostTagsInput(e.target.value)
+                                }
+                                placeholder="Ex.: oração, liturgia, contemplação"
+                              />
+                            </div>
+
+                            <div className="p-field pl-blog-featured-toggle">
+                              <label htmlFor="post-featured">
+                                Destaque no blog
+                              </label>
+                              <label className="pl-blog-checkbox-label">
+                                <input
+                                  id="post-featured"
+                                  type="checkbox"
+                                  checked={postFeatured}
+                                  onChange={(e) =>
+                                    setPostFeatured(e.target.checked)
+                                  }
+                                />
+                                <span>Destacar artigo no topo do blog</span>
+                              </label>
+                            </div>
+                          </div>
+
+                          <BlogCoverUploader
+                            id="post-cover-uploader"
+                            label="Imagem de capa do artigo (opcional)"
+                            value={postCoverImage}
+                            onChange={setPostCoverImage}
+                            disabled={savingPost}
+                          />
+
                           <div className="p-field">
                             <div className="pl-blog-format-bar">
                               <span>Conteúdo</span>
@@ -678,6 +881,22 @@ export default function MeuBlogPage({
                                 role="toolbar"
                                 aria-label="Formatação básica de texto"
                               >
+                                <button
+                                  type="button"
+                                  className="p-font-button"
+                                  onClick={() => insertFormatting("h2")}
+                                  title="Inserir título de seção H2"
+                                >
+                                  H2
+                                </button>
+                                <button
+                                  type="button"
+                                  className="p-font-button"
+                                  onClick={() => insertFormatting("h3")}
+                                  title="Inserir subtítulo H3"
+                                >
+                                  H3
+                                </button>
                                 <button
                                   type="button"
                                   className="p-font-button"
@@ -715,11 +934,12 @@ export default function MeuBlogPage({
                               className="pl-blog-content-textarea"
                               value={postContent}
                               onChange={(e) => setPostContent(e.target.value)}
-                              placeholder="Escreva com tranquilidade. Separe parágrafos com uma linha em branco. Use **negrito**, *itálico* ou linhas iniciadas por '- ' para criar listas."
+                              placeholder="Escreva com tranquilidade. Separe parágrafos com uma linha em branco. Use ## para títulos H2, ### para subtítulos H3, **negrito**, *itálico* ou '- ' para listas."
                             />
                             <small>
                               {postContent.length}/30.000 caracteres · Separe
-                              parágrafos com uma linha em branco.
+                              parágrafos com uma linha em branco. Títulos H2 e
+                              H3 geram sumário automático.
                             </small>
                           </div>
                         </div>
@@ -796,6 +1016,11 @@ export default function MeuBlogPage({
                                 <span className="pl-post-category-pill">
                                   {post.category}
                                 </span>
+                                {post.featured ? (
+                                  <span className="pl-post-category-pill">
+                                    Em destaque
+                                  </span>
+                                ) : null}
                                 <span className="pl-post-date">
                                   {post.publishedAt
                                     ? `Publicado em ${formatPrayerDate(post.publishedAt, { year: "numeric" })}`
@@ -824,6 +1049,18 @@ export default function MeuBlogPage({
                               >
                                 Editar
                               </button>
+                              {post.status === "published" ? (
+                                <button
+                                  type="button"
+                                  className="p-button p-button-outline"
+                                  disabled={busyPostId === post._id}
+                                  onClick={() => handleToggleFeatured(post)}
+                                >
+                                  {post.featured
+                                    ? "Remover destaque"
+                                    : "Destacar"}
+                                </button>
+                              ) : null}
                               {post.status !== "hidden" ? (
                                 <button
                                   type="button"

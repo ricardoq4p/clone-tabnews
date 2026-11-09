@@ -45,7 +45,7 @@ export default withApi(
       const [owners, postStats] = await Promise.all([
         ownerIds.length
           ? User.find({ _id: { $in: ownerIds } })
-              .select("name")
+              .select("name avatar")
               .lean()
           : Promise.resolve([]),
         blogIds.length
@@ -68,7 +68,10 @@ export default withApi(
       ]);
 
       const ownerMap = new Map(
-        owners.map((user) => [String(user._id), user.name]),
+        owners.map((user) => [
+          String(user._id),
+          { name: user.name, avatar: user.avatar || "" },
+        ]),
       );
       const statsMap = new Map(
         postStats.map((stat) => [
@@ -85,14 +88,16 @@ export default withApi(
           publishedCount: 0,
           lastPublishedAt: null,
         };
+        const ownerInfo = ownerMap.get(String(blog.ownerId));
         return {
           _id: String(blog._id),
           name: blog.name,
           slug: blog.slug,
           description: blog.description,
           authorBio: blog.authorBio,
-          authorName:
-            ownerMap.get(String(blog.ownerId)) || "Membro da comunidade",
+          coverImage: blog.coverImage || "",
+          authorName: ownerInfo?.name || "Membro da comunidade",
+          authorAvatar: ownerInfo?.avatar || "",
           publishedCount: stat.publishedCount,
           lastPublishedAt: stat.lastPublishedAt,
           createdAt: blog.createdAt,
@@ -136,7 +141,7 @@ export default withApi(
     const validation = validateBlogInput(req.body || {});
     requireCondition(validation.ok, 400, validation.error);
 
-    const { name, normalizedName, slug, description, authorBio } =
+    const { name, normalizedName, slug, description, authorBio, coverImage } =
       validation.value;
 
     await Blog.init();
@@ -174,6 +179,7 @@ export default withApi(
         slug,
         description,
         authorBio,
+        coverImage: coverImage || "",
         status: "active",
       });
       return res.status(201).json({
@@ -184,6 +190,7 @@ export default withApi(
           slug: created.slug,
           description: created.description,
           authorBio: created.authorBio,
+          coverImage: created.coverImage || "",
           status: created.status,
           createdAt: created.createdAt,
           updatedAt: created.updatedAt,

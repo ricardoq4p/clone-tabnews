@@ -1,10 +1,16 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 import PrayerLayout from "@/components/prayer/Layout";
 import Icon from "@/components/prayer/Icon";
 import { requestJson, formatPrayerDate } from "@/lib/client";
-import { BLOG_INSTITUTIONAL_DISCLAIMER, canPublishInBlog } from "@/lib/blogs";
+import {
+  BLOG_INSTITUTIONAL_DISCLAIMER,
+  DEFAULT_AUTHOR_AVATAR,
+  DEFAULT_BLOG_COVER_IMAGE,
+  canPublishInBlog,
+} from "@/lib/blogs";
 
 export default function BlogsDirectory({
   initialItems = [],
@@ -126,10 +132,34 @@ export default function BlogsDirectory({
                     key={blog._id || blog.slug}
                     className="p-panel pl-blog-card"
                   >
+                    <Link
+                      href={`/blogs/${blog.slug}`}
+                      className="pl-blog-card-cover"
+                    >
+                      <Image
+                        unoptimized
+                        src={blog.coverImage || DEFAULT_BLOG_COVER_IMAGE}
+                        alt={`Capa do blog ${blog.name}`}
+                        width={640}
+                        height={240}
+                        className="pl-blog-card-cover-img"
+                      />
+                    </Link>
+
                     <div className="pl-blog-card-top">
-                      <span className="p-eyebrow">
-                        POR {blog.authorName || "Membro da comunidade"}
-                      </span>
+                      <div className="pl-blog-card-author">
+                        <Image
+                          unoptimized
+                          src={blog.authorAvatar || DEFAULT_AUTHOR_AVATAR}
+                          alt={blog.authorName || "Autor do blog"}
+                          width={32}
+                          height={32}
+                          className="pl-blog-author-avatar-sm"
+                        />
+                        <span className="p-eyebrow">
+                          POR {blog.authorName || "Membro da comunidade"}
+                        </span>
+                      </div>
                       <h2>
                         <Link href={`/blogs/${blog.slug}`}>{blog.name}</Link>
                       </h2>
