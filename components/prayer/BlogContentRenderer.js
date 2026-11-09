@@ -19,6 +19,20 @@ export default function BlogContentRenderer({ content = "" }) {
   return (
     <div className="pl-blog-article-body">
       {blocks.map((block, index) => {
+        if (block.type === "h2") {
+          return (
+            <h2 key={index} id={block.id} className="pl-blog-heading-h2">
+              {renderInlineTokens(block.tokens)}
+            </h2>
+          );
+        }
+        if (block.type === "h3") {
+          return (
+            <h3 key={index} id={block.id} className="pl-blog-heading-h3">
+              {renderInlineTokens(block.tokens)}
+            </h3>
+          );
+        }
         if (block.type === "ul") {
           return (
             <ul key={index} className="pl-blog-list">

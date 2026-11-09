@@ -4,6 +4,7 @@ import BlogPost from "@/lib/models/BlogPost";
 import User from "@/lib/models/User";
 import {
   canManageBlog,
+  estimateReadingTimeMinutes,
   resolveBlogEditorialSession,
   validateBlogPostInput,
 } from "@/lib/blogs";
@@ -51,8 +52,17 @@ export default withApi(
     const validation = validateBlogPostInput(req.body || {});
     requireCondition(validation.ok, 400, validation.error);
 
-    const { title, subtitle, slug, category, content, status } =
-      validation.value;
+    const {
+      title,
+      subtitle,
+      slug,
+      category,
+      content,
+      status,
+      coverImage,
+      tags,
+      featured,
+    } = validation.value;
 
     await BlogPost.init();
 
@@ -69,6 +79,13 @@ export default withApi(
 
     const now = new Date();
     try {
+      if (featured && typeof BlogPost.updateMany === "function") {
+        await BlogPost.updateMany(
+          { blogId: blog._id, featured: true },
+          { $set: { featured: false } },
+        );
+      }
+
       const created = await BlogPost.create({
         blogId: blog._id,
         authorId: actor.userId,
@@ -77,6 +94,9 @@ export default withApi(
         slug,
         category,
         content,
+        coverImage: coverImage || "",
+        tags: tags || [],
+        featured: Boolean(featured),
         status,
         createdAt: now,
         updatedAt: now,
@@ -96,6 +116,10 @@ export default withApi(
           slug: created.slug,
           category: created.category,
           content: created.content,
+          coverImage: created.coverImage || "",
+          tags: Array.isArray(created.tags) ? created.tags : [],
+          featured: Boolean(created.featured),
+          readingTimeMinutes: estimateReadingTimeMinutes(created.content),
           status: created.status,
           createdAt: created.createdAt,
           updatedAt: created.updatedAt,

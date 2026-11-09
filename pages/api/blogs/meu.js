@@ -4,6 +4,7 @@ import BlogPost from "@/lib/models/BlogPost";
 import User from "@/lib/models/User";
 import {
   canManageBlog,
+  estimateReadingTimeMinutes,
   resolveBlogEditorialSession,
   validateBlogInput,
 } from "@/lib/blogs";
@@ -42,6 +43,7 @@ export default withApi(
           slug: blog.slug,
           description: blog.description,
           authorBio: blog.authorBio,
+          coverImage: blog.coverImage || "",
           status: blog.status,
           createdAt: blog.createdAt,
           updatedAt: blog.updatedAt,
@@ -55,6 +57,10 @@ export default withApi(
           slug: post.slug,
           category: post.category,
           content: post.content,
+          coverImage: post.coverImage || "",
+          tags: Array.isArray(post.tags) ? post.tags : [],
+          featured: Boolean(post.featured),
+          readingTimeMinutes: estimateReadingTimeMinutes(post.content),
           status: post.status,
           createdAt: post.createdAt,
           updatedAt: post.updatedAt,
@@ -76,10 +82,11 @@ export default withApi(
       slug: req.body?.slug ?? blog.slug,
       description: req.body?.description ?? blog.description,
       authorBio: req.body?.authorBio ?? blog.authorBio,
+      coverImage: req.body?.coverImage ?? blog.coverImage ?? "",
     });
     requireCondition(validation.ok, 400, validation.error);
 
-    const { name, normalizedName, slug, description, authorBio } =
+    const { name, normalizedName, slug, description, authorBio, coverImage } =
       validation.value;
 
     const duplicate = await Blog.findOne({
@@ -105,6 +112,7 @@ export default withApi(
     blog.slug = slug;
     blog.description = description;
     blog.authorBio = authorBio;
+    blog.coverImage = coverImage || "";
     blog.updatedAt = new Date();
 
     try {
@@ -127,6 +135,7 @@ export default withApi(
         slug: blog.slug,
         description: blog.description,
         authorBio: blog.authorBio,
+        coverImage: blog.coverImage || "",
         status: blog.status,
         createdAt: blog.createdAt,
         updatedAt: blog.updatedAt,

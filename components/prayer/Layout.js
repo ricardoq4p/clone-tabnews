@@ -47,11 +47,13 @@ export default function PrayerLayout({
   children,
   title = "Uma casa de oração",
   description = "Reze o Santo Rosário, apresente suas intenções e caminhe em comunidade.",
+  image = "",
   legacy = false,
 }) {
   const router = useRouter();
   const { data: session } = useSession();
   const fullTitle = title.includes("|") ? title : `${title} · ${BRAND_NAME}`;
+  const ogImage = image || BRAND_ASSETS.avatar.src;
   const currentSection = router.pathname?.startsWith("/oratorio")
     ? "/oratorio"
     : router.pathname?.startsWith("/blogs") ||
@@ -86,7 +88,7 @@ export default function PrayerLayout({
         <meta name="twitter:title" content={fullTitle} />
         <meta property="og:description" content={description} />
         <meta property="og:type" content="website" />
-        <meta property="og:image" content={BRAND_ASSETS.avatar.src} />
+        <meta property="og:image" content={ogImage} />
         <meta
           property="og:image:width"
           content={String(BRAND_ASSETS.avatar.width)}
@@ -95,9 +97,12 @@ export default function PrayerLayout({
           property="og:image:height"
           content={String(BRAND_ASSETS.avatar.height)}
         />
-        <meta name="twitter:card" content="summary" />
+        <meta
+          name="twitter:card"
+          content={image ? "summary_large_image" : "summary"}
+        />
         <meta name="twitter:description" content={description} />
-        <meta name="twitter:image" content={BRAND_ASSETS.avatar.src} />
+        <meta name="twitter:image" content={ogImage} />
         <link
           rel="icon"
           type="image/png"
