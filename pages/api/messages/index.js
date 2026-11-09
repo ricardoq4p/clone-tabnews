@@ -178,7 +178,7 @@ export default async function handler(req, res) {
       await notifyChange("feed", "new-message", communityId);
       await maybeReplyAsPantera({
         message: result,
-        authorName: session.user.name,
+        authorName: result.userId?.name || session.user.name,
         communityId,
       });
       return res.status(201).json(result);

@@ -421,8 +421,8 @@ export default function MessageCard({
                   targetCommentId && commentIdStr === targetCommentId,
                 );
                 const currentCommentAuthor =
-                  currentComment.author ||
                   currentComment.userId?.name ||
+                  currentComment.author ||
                   "Usuario";
                 const currentCommentAvatar =
                   currentComment.avatar ||

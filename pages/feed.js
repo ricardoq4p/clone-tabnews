@@ -536,7 +536,7 @@ export default function Feed() {
                       className="h-10 w-10 rounded-full object-cover"
                     />
                     <span className="max-w-[120px] truncate text-sm">
-                      {session?.user?.name}
+                      {userData?.name || session?.user?.name}
                     </span>
                   </button>
 
@@ -569,7 +569,7 @@ export default function Feed() {
                 />
                 <div>
                   <p className="font-medium text-white">
-                    {session?.user?.name}
+                    {userData?.name || session?.user?.name}
                   </p>
                   <p className="text-sm text-slate-400">
                     O que voce quer compartilhar agora?

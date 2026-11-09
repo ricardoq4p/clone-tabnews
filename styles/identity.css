@@ -2414,3 +2414,48 @@ body {
   outline: 2px solid #8c652f;
   outline-offset: 2px;
 }
+
+.prayer-app .pl-profile-name-row {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.prayer-app .pl-profile-edit-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 32px;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--pl-gold-soft);
+  background: var(--pl-surface-warm);
+  color: var(--pl-coffee) !important;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.prayer-app .pl-profile-edit-trigger:hover {
+  background: #efe4d3;
+  border-color: var(--pl-gold-accent);
+}
+
+.prayer-app .pl-profile-name-form {
+  padding: 1rem;
+  border-radius: 16px;
+  background: var(--pl-surface-warm);
+  border: 1px solid var(--pl-line);
+}
+
+.prayer-app .pl-profile-feedback {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  border-radius: 12px;
+  background: #e8f1e5;
+  border: 1px solid #bfd3b8;
+  color: #2f5129;
+  font-size: 0.84rem;
+  font-weight: 500;
+}

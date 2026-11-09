@@ -129,3 +129,34 @@ test("verified superadmin role is propagated from MongoDB through JWT into sessi
   expect(session.user.id).toBe("admin-id");
   expect(session.user.role).toBe("superadmin");
 });
+
+test("updated display name in MongoDB is propagated through JWT into session", async () => {
+  User.findById.mockReturnValue({
+    select: jest.fn().mockResolvedValue({
+      name: "Maria Clara",
+      isVerified: true,
+      role: "user",
+      sessionVersion: 0,
+    }),
+  });
+  const token = await authOptions.callbacks.jwt({
+    token: {
+      id: "user-id",
+      name: "sumo",
+      role: "user",
+      sessionVersion: 0,
+    },
+  });
+  const session = await authOptions.callbacks.session({
+    session: {
+      user: {
+        email: "sumo@example.test",
+        name: "sumo",
+      },
+    },
+    token,
+  });
+  expect(token.name).toBe("Maria Clara");
+  expect(session.user.name).toBe("Maria Clara");
+  expect(session.user.email).toBe("sumo@example.test");
+});

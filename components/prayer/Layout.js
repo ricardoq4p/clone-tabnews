@@ -169,9 +169,7 @@ export default function PrayerLayout({
         >
           <Icon name="user" size={17} />
           <span>
-            {session
-              ? session.user.name?.split(" ")[0] || "Minha conta"
-              : "Entrar"}
+            {session ? session.user.name?.trim() || "Minha conta" : "Entrar"}
           </span>
         </Link>
         <NotificationBell />
