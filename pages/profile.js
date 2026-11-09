@@ -1,4 +1,5 @@
 import { uploadsEnabled } from "@/lib/integration-policy";
+import { MAX_DISPLAY_NAME_LENGTH, validateDisplayName } from "@/lib/validation";
 import Image from "next/image";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
@@ -7,13 +8,18 @@ import { useRouter } from "next/router";
 import imageCompression from "browser-image-compression";
 
 export default function Profile() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update: updateSession } = useSession();
   const router = useRouter();
 
   const [avatar, setAvatar] = useState("");
   const [profileData, setProfileData] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [avatarError, setAvatarError] = useState("");
+  const [nameEditing, setNameEditing] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [nameSaving, setNameSaving] = useState(false);
+  const [nameError, setNameError] = useState("");
+  const [nameSuccess, setNameSuccess] = useState("");
   const [secretOpen, setSecretOpen] = useState(false);
   const [calorieDescription, setCalorieDescription] = useState("");
   const [calorieGoal, setCalorieGoal] = useState(1200);
@@ -77,6 +83,76 @@ export default function Profile() {
   }, [calorieData.goal, calorieData.totalCalories]);
 
   if (status === "loading" || !session) return null;
+
+  const displayName = profileData?.name || session.user.name || "";
+
+  const handleStartNameEdit = () => {
+    setNameDraft(displayName);
+    setNameError("");
+    setNameSuccess("");
+    setNameEditing(true);
+  };
+
+  const handleCancelNameEdit = () => {
+    setNameDraft(displayName);
+    setNameError("");
+    setNameEditing(false);
+  };
+
+  const handleSaveName = async (e) => {
+    if (e?.preventDefault) e.preventDefault();
+    if (nameSaving) return;
+
+    const validation = validateDisplayName(nameDraft);
+    if (!validation.valid) {
+      setNameError(validation.error);
+      setNameSuccess("");
+      return;
+    }
+
+    try {
+      setNameSaving(true);
+      setNameError("");
+      setNameSuccess("");
+
+      const res = await fetch("/api/users/me", {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: validation.value }),
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        throw new Error(
+          data?.error || "Não foi possível atualizar o nome de exibição.",
+        );
+      }
+
+      const nextName = data.name || validation.value;
+      setProfileData((current) => ({
+        ...(current || {}),
+        ...data,
+        name: nextName,
+      }));
+      setNameDraft(nextName);
+      setNameEditing(false);
+      setNameSuccess(
+        data.message || "Nome de exibição atualizado com sucesso.",
+      );
+      if (typeof updateSession === "function") {
+        await updateSession({ name: nextName }).catch(() => {});
+      }
+    } catch (error) {
+      setNameError(
+        error.message || "Não foi possível atualizar o nome de exibição.",
+      );
+    } finally {
+      setNameSaving(false);
+    }
+  };
 
   const handleImage = async (file) => {
     if (!file) return;
@@ -293,12 +369,97 @@ export default function Profile() {
                 className="h-32 w-32 rounded-full object-cover ring-4 ring-cyan-400/20"
               />
 
-              <h2 className="mt-5 text-2xl font-semibold text-white">
-                {profileData?.name || session.user.name}
-              </h2>
+              {!nameEditing ? (
+                <div className="pl-profile-name-row mt-5 flex flex-wrap items-center justify-center gap-2.5">
+                  <h2 className="text-2xl font-semibold text-white">
+                    {displayName}
+                  </h2>
+                  <button
+                    type="button"
+                    onClick={handleStartNameEdit}
+                    aria-label="Editar nome de exibição"
+                    title="Editar nome de exibição"
+                    className="pl-profile-edit-trigger secondary-button rounded-full px-3 py-1.5 text-xs"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="1.8"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 20h9" />
+                      <path d="M16.5 3.5a2.12 2.12 0 1 1 3 3L7 19l-4 1 1-4Z" />
+                    </svg>
+                    <span>Editar</span>
+                  </button>
+                </div>
+              ) : (
+                <form
+                  onSubmit={handleSaveName}
+                  className="pl-profile-name-form mt-5 w-full text-left"
+                >
+                  <div className="mb-2 flex items-center justify-between gap-2 text-xs text-slate-400">
+                    <label
+                      htmlFor="profile-display-name"
+                      className="font-medium text-slate-300"
+                    >
+                      Nome de exibição
+                    </label>
+                    <span aria-live="polite">
+                      {nameDraft.trim().length}/{MAX_DISPLAY_NAME_LENGTH}
+                    </span>
+                  </div>
+                  <input
+                    id="profile-display-name"
+                    type="text"
+                    aria-label="Nome de exibição"
+                    value={nameDraft}
+                    onChange={(e) => {
+                      setNameDraft(e.target.value);
+                      if (nameError) setNameError("");
+                    }}
+                    maxLength={MAX_DISPLAY_NAME_LENGTH}
+                    disabled={nameSaving}
+                    placeholder="Como seu nome aparecerá na comunidade"
+                    className="field-input"
+                  />
+                  {nameError ? (
+                    <p role="alert" className="p-error mt-2">
+                      {nameError}
+                    </p>
+                  ) : null}
+                  <div className="mt-3 flex flex-wrap items-center gap-2.5">
+                    <button
+                      type="submit"
+                      disabled={nameSaving}
+                      className="primary-button px-4 py-2.5 text-sm"
+                    >
+                      {nameSaving ? "Salvando..." : "Salvar alterações"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleCancelNameEdit}
+                      disabled={nameSaving}
+                      className="secondary-button rounded-full px-4 py-2.5 text-sm"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </form>
+              )}
               <p className="mt-1 text-sm text-slate-400">
                 {profileData?.email || session.user.email}
               </p>
+              {nameSuccess && !nameEditing ? (
+                <p role="status" className="pl-profile-feedback mt-3">
+                  {nameSuccess}
+                </p>
+              ) : null}
 
               <label className="mt-6 w-full text-left text-sm text-slate-300">
                 <span className="mb-2 block">Trocar foto de perfil</span>

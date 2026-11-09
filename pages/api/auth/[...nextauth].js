@@ -79,6 +79,9 @@ export const authOptions = {
         token.id = user.id;
         token.role = user.role;
         token.sessionVersion = user.sessionVersion;
+        if (user.name) {
+          token.name = user.name;
+        }
       }
 
       if (!token.id && token.sub) {
@@ -88,11 +91,14 @@ export const authOptions = {
       await connectToDatabase();
       const currentUser = token.id
         ? await User.findById(token.id).select(
-            "role isVerified disabledAt sessionVersion",
+            "name role isVerified disabledAt sessionVersion",
           )
         : null;
       token.valid = isSessionCurrent(currentUser, token);
       token.role = token.valid ? currentUser.role : null;
+      if (token.valid && currentUser?.name) {
+        token.name = currentUser.name;
+      }
       return token;
     },
 
@@ -103,6 +109,9 @@ export const authOptions = {
       if (session?.user) {
         session.user.id = token.id;
         session.user.role = token.role;
+        if (token.name) {
+          session.user.name = token.name;
+        }
       }
       return session;
     },
