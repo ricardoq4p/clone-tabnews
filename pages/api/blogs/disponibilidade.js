@@ -1,8 +1,10 @@
-import { withApi } from "@/lib/api";
+import { withApi, requireCondition } from "@/lib/api";
 import Blog from "@/lib/models/Blog";
+import User from "@/lib/models/User";
 import {
   isReservedBlogIdentifier,
   normalizeBlogName,
+  resolveBlogEditorialSession,
   sanitizePlainField,
   slugifyText,
 } from "@/lib/blogs";
@@ -13,7 +15,14 @@ export default withApi(
     methods: ["GET"],
     auth: true,
   },
-  async (req, res) => {
+  async (req, res, session) => {
+    const actor = await resolveBlogEditorialSession(session, User);
+    requireCondition(
+      actor?.canPublish,
+      403,
+      "Apenas os autores autorizados podem configurar endereços no Blog.",
+    );
+
     const rawName = sanitizePlainField(req.query?.name || "");
     const rawSlug = String(req.query?.slug || rawName).trim();
     const excludeBlogId =

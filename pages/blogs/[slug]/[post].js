@@ -27,6 +27,27 @@ export default function PublicBlogPostPage({
   const [post, setPost] = useState(initialPost);
   const [loading, setLoading] = useState(!initialLoaded);
   const [error, setError] = useState("");
+  const [shareFeedback, setShareFeedback] = useState("");
+
+  async function handleShareArticle() {
+    if (typeof window === "undefined") return;
+    const shareUrl = window.location.href;
+    const shareTitle = post?.title || "Artigo — Blog Caminhar para Cristo";
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: shareTitle, url: shareUrl });
+        setShareFeedback("Link compartilhado.");
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+        setShareFeedback("Link copiado para compartilhar.");
+        return;
+      }
+    } catch {
+      /* ignore share cancellation */
+    }
+  }
 
   const loadArticle = useCallback(() => {
     if (!blogSlug || !postSlug) return Promise.resolve();
@@ -66,7 +87,7 @@ export default function PublicBlogPostPage({
           <div className="p-breadcrumb">
             <Link href="/">Início</Link>
             <span>/</span>
-            <Link href="/blogs">Blogs</Link>
+            <Link href="/blogs">Blog</Link>
             <span>/</span>
             {blog ? (
               <Link href={`/blogs/${blog.slug}`}>{blog.name}</Link>
@@ -140,6 +161,28 @@ export default function PublicBlogPostPage({
               </div>
 
               <div className="pl-blog-article-moderation">
+                <div className="p-actions">
+                  <button
+                    type="button"
+                    className="p-button p-button-outline"
+                    onClick={handleShareArticle}
+                  >
+                    Compartilhar artigo
+                  </button>
+                  {blog.isOwner ? (
+                    <Link
+                      href="/meu-blog"
+                      className="p-button p-button-outline"
+                    >
+                      Gerenciar no Blog
+                    </Link>
+                  ) : null}
+                </div>
+                {shareFeedback ? (
+                  <p role="status" className="p-muted">
+                    {shareFeedback}
+                  </p>
+                ) : null}
                 <ReportButton targetType="blog_post" targetId={post._id} />
               </div>
             </footer>

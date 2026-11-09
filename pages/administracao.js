@@ -15,7 +15,7 @@ const tabs = [
   { id: "comment", title: "Comentários" },
   { id: "participantes", title: "Participantes" },
   { id: "comunidades", title: "Comunidades" },
-  { id: "blogs", title: "Blogs" },
+  { id: "blogs", title: "Blog" },
   { id: "rosario", title: "Rosário" },
   { id: "auditoria", title: "Auditoria" },
   { id: "solicitacoes", title: "Privacidade" },

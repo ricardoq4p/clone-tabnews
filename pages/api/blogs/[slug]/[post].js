@@ -3,8 +3,10 @@ import Blog from "@/lib/models/Blog";
 import BlogPost from "@/lib/models/BlogPost";
 import User from "@/lib/models/User";
 import {
+  canManageBlogPost,
   canReadPublicBlog,
   canReadPublicBlogPost,
+  resolveBlogEditorialSession,
   slugifyText,
 } from "@/lib/blogs";
 
@@ -39,7 +41,12 @@ export default withApi(
       "Esta publicação não está disponível.",
     );
 
-    const owner = await User.findById(blog.ownerId).select("name").lean();
+    const [owner, actor] = await Promise.all([
+      User.findById(blog.ownerId).select("name").lean(),
+      session
+        ? resolveBlogEditorialSession(session, User)
+        : Promise.resolve(null),
+    ]);
 
     return res.status(200).json({
       blog: {
@@ -49,9 +56,7 @@ export default withApi(
         description: blog.description,
         authorBio: blog.authorBio,
         authorName: owner?.name || "Membro da comunidade",
-        isOwner: Boolean(
-          session?.user?.id && String(blog.ownerId) === String(session.user.id),
-        ),
+        isOwner: Boolean(actor && canManageBlogPost(post, blog, actor.session)),
       },
       post: {
         _id: String(post._id),

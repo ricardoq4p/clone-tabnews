@@ -2,7 +2,11 @@ import { withApi, requireCondition, ApiError } from "@/lib/api";
 import Blog from "@/lib/models/Blog";
 import BlogPost from "@/lib/models/BlogPost";
 import User from "@/lib/models/User";
-import { BLOG_DIRECTORY_PAGE_SIZE, validateBlogInput } from "@/lib/blogs";
+import {
+  BLOG_DIRECTORY_PAGE_SIZE,
+  resolveBlogEditorialSession,
+  validateBlogInput,
+} from "@/lib/blogs";
 
 export default withApi(
   {
@@ -12,6 +16,10 @@ export default withApi(
     windowMs: 600000,
   },
   async (req, res, session) => {
+    const actor = session
+      ? await resolveBlogEditorialSession(session, User)
+      : null;
+
     if (req.method === "GET") {
       const rawPage = Number.parseInt(String(req.query?.page || "1"), 10);
       const page = Number.isFinite(rawPage) && rawPage > 0 ? rawPage : 1;
@@ -26,8 +34,8 @@ export default withApi(
           .skip(skip)
           .limit(limit)
           .lean(),
-        session?.user?.id
-          ? Blog.findOne({ ownerId: session.user.id }).lean()
+        actor?.canPublish && actor.userId
+          ? Blog.findOne({ ownerId: actor.userId }).lean()
           : Promise.resolve(null),
       ]);
 
@@ -100,6 +108,7 @@ export default withApi(
         totalPages,
         total,
         hasMore: page < totalPages,
+        canPublish: Boolean(actor?.canPublish),
         myBlog: myBlog
           ? {
               _id: String(myBlog._id),
@@ -111,7 +120,14 @@ export default withApi(
     }
 
     requireCondition(
+      actor?.canPublish,
+      403,
+      "Apenas os autores autorizados podem publicar no Blog.",
+    );
+
+    requireCondition(
       !req.body?.ownerId ||
+        String(req.body.ownerId) === String(actor.userId) ||
         String(req.body.ownerId) === String(session.user.id),
       403,
       "Você não pode criar um blog em nome de outra pessoa.",
@@ -126,7 +142,7 @@ export default withApi(
     await Blog.init();
 
     const existingUserBlog = await Blog.findOne({
-      ownerId: session.user.id,
+      ownerId: actor.userId,
     }).lean();
     requireCondition(
       !existingUserBlog,
@@ -152,7 +168,7 @@ export default withApi(
 
     try {
       const created = await Blog.create({
-        ownerId: session.user.id,
+        ownerId: actor.userId,
         name,
         normalizedName,
         slug,

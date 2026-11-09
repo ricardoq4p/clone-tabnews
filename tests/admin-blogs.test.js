@@ -542,7 +542,7 @@ describe("Administração de Blogs — Segurança, APIs, Auditoria e Integraçã
     expect(hiddenPostRes.status).toHaveBeenCalledWith(404);
   });
 
-  test("preserva todas as abas existentes do painel administrativo e exibe a nova aba Blogs e o gerenciador BlogManager", () => {
+  test("preserva todas as abas existentes do painel administrativo e exibe a aba Blog e o gerenciador BlogManager", () => {
     const adminHtml = renderToStaticMarkup(<AdministracaoPage />);
 
     const expectedTabs = [
@@ -553,7 +553,7 @@ describe("Administração de Blogs — Segurança, APIs, Auditoria e Integraçã
       "Comentários",
       "Participantes",
       "Comunidades",
-      "Blogs",
+      "Blog",
       "Rosário",
       "Auditoria",
       "Privacidade",

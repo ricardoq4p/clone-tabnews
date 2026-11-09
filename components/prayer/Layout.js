@@ -31,8 +31,8 @@ const links = [
   },
   {
     href: "/blogs",
-    label: "Blogs",
-    short: "Blogs",
+    label: "Blog",
+    short: "Blog",
     icon: "book",
   },
   { href: "/capelinha", label: "Capelinha", icon: "candle" },
@@ -54,7 +54,9 @@ export default function PrayerLayout({
   const fullTitle = title.includes("|") ? title : `${title} · ${BRAND_NAME}`;
   const currentSection = router.pathname?.startsWith("/oratorio")
     ? "/oratorio"
-    : router.pathname?.startsWith("/blogs") || router.pathname === "/meu-blog"
+    : router.pathname?.startsWith("/blogs") ||
+        router.pathname?.startsWith("/blog") ||
+        router.pathname === "/meu-blog"
       ? "/blogs"
       : {
           "/rosario": "/oratorio",
